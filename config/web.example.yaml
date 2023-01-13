@@ -1,0 +1,89 @@
+Debug: true
+AppName:
+HttpServer:
+  Port: ":18081"
+  AllowCrossDomain: true # 是否允许跨域
+
+Token:
+  Sign: "mobgi-ads"
+  ExpiresAt: 259200
+
+Mysql:
+  Host: ""
+  Port: 3306
+  Database: "hiads"
+  Prefix: ""
+  Username: "root"
+  Password: ""
+  Charset: "utf8mb4"
+  SetMaxIdleConns: 10
+  SetMaxOpenConns: 128
+  SetConnMaxLifetime: 60
+  ReadWrite: 0 # 1开启，0关闭
+  SlowQuery: 2 # 慢 SQL
+
+Redis:
+  Host: "127.0.0.1:6379"
+  Password:
+  Db: 0
+  KeyPrefix: "mobgi:ads:"
+  BLDataNumber: 100000
+  BLFalsePositive: 0.01
+  BLKeyPrefix: "mobgi:ads:filter:"
+  ExpireTime: 3600 # s
+
+Sso:
+  AppCode: "HW_ADS_DEV"
+  Secret: "reader-cms"
+  LoginHost: "https://test-sso.mobgi.cc/sso/login?app_code="
+  UserHost: "https://test-sso.mobgi.cc/sso/user"
+  PassHost: "https://test-sso.mobgi.cc/sso/pass"
+  ForcePassHost: "https://test-sso.mobgi.cc/sso/force-pass"
+  LogoutHost: "https://test-sso.mobgi.cc/sso/logout"
+
+Logs:
+  GinLogName: "/storage/logs/gin.log" # 设置 gin 框架的接口访问日志
+  SysLogName: "/storage/logs/sys.log" # 运行时日志文件名，注意该名称不要与上一条重复 ,避免和 gin 框架的日志掺杂一起，造成混乱。
+  TextFormat: "json" #记录日志的格式，参数选项：console、json ， console 表示一般的文本格式
+  TimePrecision: "millisecond" #记录日志时，相关的时间精度，该参数选项：second  、 millisecond ， 分别表示 秒 和 毫秒 ,默认为毫秒级别
+  MaxSize: 10 #每个日志的最大尺寸(以MB为单位）， 超过该值，系统将会自动进行切割
+  MaxBackups: 7 #保留旧日志最大个数
+  MaxAge: 15 #保留旧日志最大天数
+  Compress: false #日志备份时，是否进行压缩
+
+FileUploadSetting:
+  Size: 500 # 单位 KB
+  UploadPath: "/storage/app/upload"
+  ReturnPath: "/web/storage/upload"
+
+MarketingApis:
+  Client: # 拉数据刷新 token 专用
+    Id: ""
+    Secret: ""
+  Refresh: "https://oauth-login.cloud.huawei.com/oauth2/v2/token"
+  RefreshV3: "https://oauth-login.cloud.huawei.com/oauth2/v3/token"
+  PageSize: 500
+  App:
+    Query: "https://ads-dra.cloud.huawei.com/ads/v1/promotion/product/query"
+  Asset:
+    Query: "https://ads-dra.cloud.huawei.com/ads/v1/tools/creative_asset/query"
+    Delete: "https://ads-dra.cloud.huawei.com/ads/v1/tools/creative_asset/delete"
+    Create: "https://ads-dra.cloud.huawei.com/ads/v1/tools/creative_asset/create"
+    Token: "https://ads-dra.cloud.huawei.com/ads/v1/tools/file/token/query"
+    AssetTmpPath: "./storage/asset" # 素材上传临时地址
+  Tracking:
+    Query: "https://ads-dra.cloud.huawei.com/ads/v1/tools/effect_tracking/query"
+  Targeting:
+    Create: "https://ads-dra.cloud.huawei.com/ads/v1/tools/targeting_package/create"
+  Promotion:
+    Campaign: "https://ads-dra.cloud.huawei.com/ads/v1/promotion/campaign/query"
+  Reports:
+    CampaignQuery: "https://ads-dra.cloud.huawei.com/openapi/v2/reports/campaign/query"
+    CountryQuery: "https://ads-dra.cloud.huawei.com/openapi/v2/reports/country/query"
+    AdsQuery: "https://ads.cloud.huawei.com/openapi/monetization/reports/v1/publisher"
+  Tools:
+    Dictionary: "https://ads-dra.cloud.huawei.com/ads/v1/tools/dictionary/query"
+    Targeting: "https://ads-dra.cloud.huawei.com/ads/v1/tools/targeting_package/query"
+    Position: "https://ads-dra.cloud.huawei.com/ads/v1/tools/position/query"
+    PositionPrice: "https://ads-dra.cloud.huawei.com/ads/v1/tools/position_price/query"
+    PositionElement: "https://ads-dra.cloud.huawei.com/ads/v1/tools/position_detail/query"

@@ -1,0 +1,35 @@
+package v_data
+
+type VAccountList struct {
+	AccountId   int64  `form:"account_id,optional"`
+	AccountName string `form:"account_name,optional"`
+	AccountType int64  `form:"account_type,optional"`
+	State       int64  `form:"state"`
+	Page        int64  `form:"page"`
+	PageSize    int64  `form:"page_size"`
+}
+
+type VAccountParents struct {
+	ParentId    int64  `form:"parent_id,optional"`
+	AccountName string `form:"account_name,optional"`
+}
+
+type VAccountSearch struct {
+	AccountName string `form:"account_name,optional"`
+}
+
+type VAccountCreate struct {
+	ParentId     int64  `json:"parent_id"`
+	AccountName  string `json:"account_name" binding:"required"`
+	AccountType  int64  `json:"account_type" binding:"required"`
+	AdvertiserId string `json:"advertiser_id" binding:"required"`
+	DeveloperId  string `json:"developer_id"`
+	ClientId     string `json:"client_id"`
+	Secret       string `json:"secret"`
+	State        int64  `json:"state"`
+}
+
+type VAccountUpdate struct {
+	Id int64 `json:"id" binding:"required"`
+	VAccountCreate
+}

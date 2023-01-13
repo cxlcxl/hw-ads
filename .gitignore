@@ -1,0 +1,10 @@
+frontend/node_modules/*
+.idea/*
+.vscode/*
+config/web.yaml
+storage/*
+tmp/*
+web/storage
+.DS_Store
+go.mod
+go.sum
