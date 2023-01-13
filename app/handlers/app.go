@@ -21,21 +21,7 @@ func (h *App) AppList(ctx *gin.Context, p interface{}) {
 		response.Fail(ctx, "查询失败："+err.Error())
 		return
 	}
-	actIds := make([]int64, 0)
-	for _, app := range apps {
-		actIds = append(actIds, app.AccountId)
-	}
-	if acts, err := model.NewAct(vars.DBMysql).GetAccountsByIds(actIds); err == nil {
-		_act := make(map[int64]string)
-		for _, act := range acts {
-			_act[act.Id] = act.AccountName
-		}
-		for i, app := range apps {
-			if v, ok := _act[app.AccountId]; ok {
-				apps[i].AccountName = v
-			}
-		}
-	}
+
 	response.Success(ctx, gin.H{
 		"total":       total,
 		"list":        apps,
@@ -65,7 +51,6 @@ func (h *App) AppUpdate(ctx *gin.Context, p interface{}) {
 		"channel":    params.Channel,
 		"pkg_name":   params.PkgName,
 		"tags":       params.Tags,
-		"account_id": params.AccountId,
 		"updated_at": time.Now(),
 	}
 	err := model.NewApp(vars.DBMysql).UpdateApp(d, params.Id)
@@ -80,12 +65,11 @@ func (h *App) AppUpdate(ctx *gin.Context, p interface{}) {
 func (h *App) AppCreate(ctx *gin.Context, p interface{}) {
 	params := p.(*v_data.VAppCreate)
 	app := &model.App{
-		AccountId: params.AccountId,
-		AppId:     params.AppId,
-		AppName:   params.AppName,
-		PkgName:   params.PkgName,
-		Channel:   params.Channel,
-		Tags:      params.Tags,
+		AppId:   params.AppId,
+		AppName: params.AppName,
+		PkgName: params.PkgName,
+		Channel: params.Channel,
+		Tags:    params.Tags,
 		Timestamp: model.Timestamp{
 			CreatedAt: time.Now(),
 			UpdatedAt: time.Now(),

@@ -51,7 +51,7 @@ func TrackingPull(appId string) (tracks []*TrackingItem, err error) {
 	if err != nil {
 		return nil, errors.New("应用信息有误：" + err.Error())
 	}
-	token, err := serviceaccount.GetToken(app.AccountId)
+	token, err := serviceaccount.GetToken(0)
 	if err != nil {
 		return nil, errors.New("Token 信息获取失败：" + err.Error())
 	}
@@ -65,7 +65,7 @@ func TrackingPull(appId string) (tracks []*TrackingItem, err error) {
 		Page:      page,
 		PageSize:  50,
 	}
-	items, total, err := pull(t, d, app.AccountId, app.AppId)
+	items, total, err := pull(t, d, 0, app.AppId)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +74,7 @@ func TrackingPull(appId string) (tracks []*TrackingItem, err error) {
 		pages := utils.CeilPages(total, 50)
 		for i := 2; i <= int(pages); i++ {
 			d.Page = i
-			if items, _, err = pull(t, d, app.AccountId, app.AppId); err != nil {
+			if items, _, err = pull(t, d, 0, app.AppId); err != nil {
 				return nil, err
 			} else {
 				tracks = append(tracks, items...)

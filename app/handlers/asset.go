@@ -44,13 +44,8 @@ func (h *Asset) AssetDimension(ctx *gin.Context) {
 }
 
 func (h *Asset) AssetSync(ctx *gin.Context, p interface{}) {
-	params := p.(*v_data.VAssetSync)
-	app, err := model.NewApp(vars.DBMysql).FindAppByAppId(params.AppId)
-	if err != nil {
-		response.Fail(ctx, "应用数据异常："+err.Error())
-		return
-	}
-	token, err := serviceaccount.GetToken(app.AccountId)
+	//params := p.(*v_data.VAssetSync)
+	token, err := serviceaccount.GetToken(0)
 	if err != nil {
 		response.Fail(ctx, "Token 信息获取失败："+err.Error())
 		return
@@ -66,7 +61,7 @@ func (h *Asset) AssetSync(ctx *gin.Context, p interface{}) {
 		Filtering: serviceasset.Filtering{AssetStatus: "CREATIVE_ASSET_ENABLE"},
 	}
 	t := fmt.Sprintf("%s %s", token.TokenType, token.AccessToken)
-	total, err := serviceasset.AssetPull(t, d, app.AccountId)
+	total, err := serviceasset.AssetPull(t, d, 0)
 	if err != nil {
 		response.Fail(ctx, err.Error())
 		return
@@ -76,7 +71,7 @@ func (h *Asset) AssetSync(ctx *gin.Context, p interface{}) {
 		pages := utils.CeilPages(total, 50)
 		for i := 2; i <= int(pages); i++ {
 			d.Page = i
-			if _, err = serviceasset.AssetPull(t, d, app.AccountId); err != nil {
+			if _, err = serviceasset.AssetPull(t, d, 0); err != nil {
 				response.Fail(ctx, err.Error())
 				return
 			}
