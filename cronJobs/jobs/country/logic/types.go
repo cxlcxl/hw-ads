@@ -3,7 +3,7 @@ package logic
 import "bs.mobgi.cc/cronJobs/job_data/statements"
 
 var (
-	maxGoroutine   int64 = 10
+	maxGoroutine   int64 = 15
 	failRetryTimes uint8 = 3 // 单个 API 失败重试最大次数
 )
 

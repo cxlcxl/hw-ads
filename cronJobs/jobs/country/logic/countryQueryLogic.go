@@ -7,6 +7,7 @@ import (
 	"bs.mobgi.cc/cronJobs/jobs"
 	"bs.mobgi.cc/library/curl"
 	"fmt"
+	"sync"
 	"time"
 )
 
@@ -21,6 +22,7 @@ type CountryQueryLogic struct {
 	runChan      chan *run
 	doneChan     chan struct{}
 	pageDoneChan chan struct{}
+	pageLock     sync.RWMutex
 }
 
 func NewCountryQueryLogic(day string) *CountryQueryLogic {
@@ -35,6 +37,7 @@ func NewCountryQueryLogic(day string) *CountryQueryLogic {
 		pageRequests: 0,
 		pageSize:     vars.YmlConfig.GetInt64("MarketingApis.PageSize"),
 		url:          vars.YmlConfig.GetString("MarketingApis.Reports.CountryQuery"),
+		pageLock:     sync.RWMutex{},
 	}
 }
 
@@ -67,6 +70,7 @@ func (l *CountryQueryLogic) CountryQuery() (err error) {
 			}
 		case <-l.doneChan:
 			l.workers--
+			fmt.Println("workers：", l.workers)
 		case <-l.pageDoneChan:
 			l.pageRequests--
 		default:
@@ -151,11 +155,25 @@ func (l *CountryQueryLogic) setFailed(param *queryParam, page int64) {
 					page:       page,
 				}
 			} else {
-				// log
+				// TODO log
 
 			}
 			break
 		}
+	}
+	return
+}
+
+func (l *CountryQueryLogic) setPageFailed(param *queryParam) {
+	if param.failed < failRetryTimes {
+		// 写锁?
+		l.pageLock.Lock()
+		l.pageRequests++
+		l.pageLock.Unlock()
+		go l.queryPages(&queryParam{failed: param.failed + 1, accountId: param.accountId, accessToken: param.accessToken})
+	} else {
+		// TODO log
+
 	}
 	return
 }
@@ -181,14 +199,17 @@ func (l *CountryQueryLogic) queryPages(param *queryParam) {
 	c, err := curl.New(l.url).Debug(false).Post().JsonData(data)
 	if err != nil {
 		fmt.Println("API 接口构建失败：" + err.Error())
+		go l.setPageFailed(param)
 		return
 	}
 	if err = c.Request(&response, curl.Authorization(param.accessToken), curl.JsonHeader()); err != nil {
 		fmt.Println("API 接口请求失败：" + err.Error())
+		go l.setPageFailed(param)
 		return
 	}
 	if response.Code != "0" {
 		fmt.Println("API 接口响应失败：" + response.Message)
+		go l.setPageFailed(param)
 		return
 	}
 
@@ -282,12 +303,4 @@ func getRate(a, b int64) float64 {
 		return 0
 	}
 	return utils.Round(float64(a)/float64(b), 6)
-}
-
-func formatWeek(y, w int) string {
-	if w >= 10 {
-		return fmt.Sprintf("%d%d", y, w)
-	} else {
-		return fmt.Sprintf("%d0%d", y, w)
-	}
 }

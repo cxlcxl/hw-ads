@@ -55,7 +55,7 @@ func (m *App) AppList(appId, appName string, channel int64, offset, limit int64)
 
 func (m *App) AppCampaignList(appName string, offset, limit int64) (apps []*App, total int64, err error) {
 	query := m.Table(m.TableName()).Order("id desc").
-		Select("id", "app_id", "app_name", "icon_url", "advertiser_id")
+		Select("id", "app_id", "app_name", "icon_url")
 	if len(appName) > 0 {
 		query = query.Where("app_name like ? or app_id = ?", "%"+appName+"%", appName)
 	}

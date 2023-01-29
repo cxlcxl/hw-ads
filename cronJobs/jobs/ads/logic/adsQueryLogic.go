@@ -202,7 +202,7 @@ func (l *AdsQueryLogic) setFailed(param *queryParam, page int64) {
 					page: page,
 				}
 			} else {
-				// log
+				// TODO log
 			}
 
 			break
