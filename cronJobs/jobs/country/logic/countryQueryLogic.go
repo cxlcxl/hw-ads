@@ -280,9 +280,9 @@ func (l *CountryQueryLogic) saveCountryData(accountId int64, data []*CountryList
 				InstallCount:         d.InstallCount,
 				ActivateCount:        d.ActiveCountNormalized,
 				RetainCount:          d.RetainCountNormalized,
-				ClickThroughRate:     getRate(d.ClickCount, d.ShowCount),
-				ClickDownloadRate:    getRate(d.DownloadCount, d.ClickCount),
-				DownloadActivateRate: getRate(d.ActiveCountNormalized, d.DownloadCount),
+				ClickThroughRate:     getRate(float64(d.ClickCount), d.ShowCount, 6),
+				ClickDownloadRate:    getRate(float64(d.DownloadCount), d.ClickCount, 6),
+				DownloadActivateRate: getRate(float64(d.ActiveCountNormalized), d.DownloadCount, 6),
 				Cpm:                  utils.StringToFloat(d.Cpm),
 				Cpc:                  utils.StringToFloat(d.Cpc),
 				Cpd:                  utils.StringToFloat(d.Cpd),
@@ -298,9 +298,9 @@ func (l *CountryQueryLogic) saveCountryData(accountId int64, data []*CountryList
 	return nil
 }
 
-func getRate(a, b int64) float64 {
+func getRate(a float64, b, c int64) float64 {
 	if b == 0 {
 		return 0
 	}
-	return utils.Round(float64(a)/float64(b), 6)
+	return utils.Round(a/float64(b), int(c))
 }

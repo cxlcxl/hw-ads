@@ -15,10 +15,13 @@ const (
 
 	DateTimeFormat = "2006-01-02 15:04:05"
 
-	DateFormat               = "2006-01-02"
-	Env                      = "dev"
+	DateFormat = "2006-01-02"
+	Env        = "dev"
+
 	ApiModuleCountry         = "Country"
+	ApiModuleCountryCollect  = "CountryCollect"
 	ApiModuleAds             = "Ads"
+	ApiModuleAdsCollect      = "AdsCollect"
 	ApiModuleApp             = "App"
 	ApiModuleCampaign        = "Campaign"
 	ApiModuleDictionary      = "Dictionary"      // 定向字典数据
@@ -63,15 +66,16 @@ const (
 	CommonStateValid
 )
 
+// 调度截止规则：0 调度到当天；-1 停止调度此任务；> 0 为当前日期减{pause_rule}天
 const (
-	JobPauseRuleStop  = -1
-	JobPauseRuleToday = iota
-	JobPauseRuleADayAgo
-	JobPauseRuleTwoDayAgo
-	JobPauseRuleThreeDayAgo
-	JobPauseRuleFourDayAgo
-	JobPauseRuleFiveDayAgo
-	JobPauseRuleAWeekAgo
+	JobPauseStop  = -1
+	JobPauseToday = iota
+	JobPauseADayAgo
+	JobPauseTwoDayAgo
+	JobPauseThreeDayAgo
+	JobPauseFourDayAgo
+	JobPauseFiveDayAgo
+	JobPauseAWeekAgo
 )
 
 var (
@@ -103,19 +107,14 @@ var (
 		AppChannelAppStore:   "AppStore",
 		AppChannelOther:      "Other",
 	}
-	// CronModules 调度模块 - 与 cronJobs 模块保持一致
-	CronModules = map[string]string{
-		ApiModuleCountry:  "国家/地区数据",
-		ApiModuleCampaign: "计划数据",
-	}
 	JobPauseRule = map[int]string{
-		JobPauseRuleStop:        "已停止",
-		JobPauseRuleToday:       "到当天",
-		JobPauseRuleADayAgo:     "一天前",
-		JobPauseRuleTwoDayAgo:   "两天前",
-		JobPauseRuleThreeDayAgo: "三天前",
-		JobPauseRuleFourDayAgo:  "四天前",
-		JobPauseRuleFiveDayAgo:  "五天前",
-		JobPauseRuleAWeekAgo:    "一周前",
+		JobPauseStop:        "已停止",
+		JobPauseToday:       "到当天",
+		JobPauseADayAgo:     "一天前",
+		JobPauseTwoDayAgo:   "两天前",
+		JobPauseThreeDayAgo: "三天前",
+		JobPauseFourDayAgo:  "四天前",
+		JobPauseFiveDayAgo:  "五天前",
+		JobPauseAWeekAgo:    "一周前",
 	}
 )

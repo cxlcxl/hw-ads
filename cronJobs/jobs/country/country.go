@@ -30,6 +30,10 @@ func Country() {
 			log.Fatal(err)
 			return
 		}
+		if err = logic.NewCountryCollectLogic(d).CountryCollect(); err != nil {
+			log.Fatal(err)
+			return
+		}
 		jobDay = jobDay.AddDate(0, 0, 1)
 		if err = model.NewJob(vars.DBMysql).UpdateJobDayByModule(vars.ApiModuleCountry, jobDay.Format(vars.DateFormat)); err != nil {
 			fmt.Println("数据库调度时间修改失败: ", err)
@@ -69,6 +73,10 @@ func CountryManual(day time.Time, pauseRule int64) {
 				log.Fatal(err)
 				return
 			}
+			if err = logic.NewCountryCollectLogic(d).CountryCollect(); err != nil {
+				log.Fatal(err)
+				return
+			}
 			jobDay = jobDay.AddDate(0, 0, 1)
 
 			time.Sleep(time.Millisecond * 500)
@@ -81,6 +89,10 @@ func CountryManual(day time.Time, pauseRule int64) {
 			}
 			d := day.Format(vars.DateFormat)
 			if err := logic.NewCountryQueryLogic(d).CountryQuery(); err != nil {
+				log.Fatal(err)
+				return
+			}
+			if err := logic.NewCountryCollectLogic(d).CountryCollect(); err != nil {
 				log.Fatal(err)
 				return
 			}
@@ -103,5 +115,16 @@ func countryDoSchedule(d string) (err error) {
 		log.Fatal(err)
 		return
 	}
+	if err = logic.NewCountryCollectLogic(d).CountryCollect(); err != nil {
+		log.Fatal(err)
+		return
+	}
 	return nil
+}
+
+func ReportCountryCollectManual(day time.Time, _ int64) {
+	if err := logic.NewCountryCollectLogic(day.Format(vars.DateFormat)).CountryCollect(); err != nil {
+		log.Fatal(err)
+	}
+	return
 }

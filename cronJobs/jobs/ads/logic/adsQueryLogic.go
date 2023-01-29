@@ -222,7 +222,7 @@ func (l *AdsQueryLogic) saveAdsData(accountId int64, data []*AdsList) (err error
 			}
 			eCpm := 0.0
 			if d.ShowCount > 0 {
-				eCpm = getRate(d.Earnings*1000, d.ShowCount)
+				eCpm = getRate(d.Earnings*1000, d.ShowCount, 6)
 			}
 			m[i] = &model.ReportAdsSource{
 				StatDay:             day,
@@ -273,9 +273,9 @@ func (l *AdsQueryLogic) getClientInfo(accountId int64) (string, string) {
 	}
 }
 
-func getRate(a float64, b int64) float64 {
+func getRate(a float64, b, c int64) float64 {
 	if b == 0 {
 		return 0
 	}
-	return utils.Round(a/float64(b), 6)
+	return utils.Round(a/float64(b), int(c))
 }

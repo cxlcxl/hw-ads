@@ -83,7 +83,7 @@ func (s *schedule) taskScheduling() {
 	}
 	now := time.Now()
 	for _, job := range _jobs {
-		if job.PauseRule == -1 {
+		if job.PauseRule == vars.JobPauseStop {
 			continue
 		}
 		pauseDay := now.AddDate(0, 0, -1*int(job.PauseRule))

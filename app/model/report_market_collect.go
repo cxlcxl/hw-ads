@@ -6,23 +6,15 @@ import (
 	"time"
 )
 
-type ReportMarketSource struct {
+type ReportMarketCollect struct {
 	connectDb
 
 	Id                   int64     `json:"id"`
 	StatDay              time.Time `json:"stat_day"`               // 日: 日粒度，例如2021-09-08
-	StatHour             uint8     `json:"stat_hour"`              // 时间: 小时
 	Country              string    `json:"country"`                // 国家代码，使用华为开发者文档中的广告代码库
 	AccountId            int64     `json:"account_id"`             // 应用所属账户ID
 	AppId                string    `json:"app_id"`                 // 应用ID（此处一般标识三方应用ID）
 	AppName              string    `json:"app_name"`               // 应用名称
-	PkgName              string    `json:"pkg_name"`               // 投放的应用包名
-	CampaignId           string    `json:"campaign_id"`            // 广告计划ID
-	CampaignName         string    `json:"campaign_name"`          // 广告计划名称
-	AdgroupId            string    `json:"adgroup_id"`             // 广告任务ID
-	AdgroupName          string    `json:"adgroup_name"`           // 广告任务名称
-	CreativeId           string    `json:"creative_id"`            // 广告创意ID
-	CreativeName         string    `json:"creative_name"`          // 广告创意名称
 	Cost                 float64   `json:"cost"`                   // 花费
 	ShowCount            int64     `json:"show_count"`             // 展示数
 	ClickCount           int64     `json:"click_count"`            // 点击数
@@ -43,49 +35,28 @@ type ReportMarketSource struct {
 	SevenRetainCost      float64   `json:"seven_retain_cost"`      // 平均留存花费=花费/七日留存数
 	RetainCost           float64   `json:"retain_cost"`            // 平均留存花费=花费/留存数
 	ThreeRetainCost      float64   `json:"three_retain_cost"`      // 平均留存花费=花费/三日留存数
-	Timestamp
 }
 
-// NewRMS ReportMarketSource 实例
-func NewRMS(db *gorm.DB) *ReportMarketSource {
-	return &ReportMarketSource{connectDb: connectDb{DB: db}}
+// NewRMC ReportMarketCollect 实例
+func NewRMC(db *gorm.DB) *ReportMarketCollect {
+	return &ReportMarketCollect{connectDb: connectDb{DB: db}}
 }
 
-func (m *ReportMarketSource) TableName() string {
-	return "report_market_sources"
+func (m *ReportMarketCollect) TableName() string {
+	return "report_market_collects"
 }
 
-func (m *ReportMarketSource) BatchInsert(markets []*ReportMarketSource) (err error) {
-	if len(markets) == 0 {
+func (m *ReportMarketCollect) BatchInsert(ms []*ReportMarketCollect) (err error) {
+	if len(ms) == 0 {
 		return nil
 	}
 	updateColumns := []string{
 		"cost", "show_count", "click_count", "download_count", "install_count", "activate_count", "retain_count",
 		"click_through_rate", "click_download_rate", "download_activate_rate", "cpm", "cpd", "cpc", "cpi", "cpa", "retain_cost",
 	}
-	return m.Table(m.TableName()).Clauses(clause.OnConflict{
-		DoUpdates: clause.AssignmentColumns(updateColumns),
-	}).CreateInBatches(markets, 500).Error
-}
 
-func (m *ReportMarketSource) CollectSources(day string) (markets []*ReportMarketSource, err error) {
-	columns := []string{
-		"stat_day",
-		"app_id",
-		"app_name",
-		"account_id",
-		"country",
-		"round(sum(cost), 4) as cost",
-		"sum(show_count) as show_count",
-		"sum(click_count) as click_count",
-		"sum(download_count) as download_count",
-		"sum(install_count) as install_count",
-		"sum(activate_count) as activate_count",
-		"sum(retain_count) as retain_count",
-		"sum(three_retain_count) as three_retain_count",
-		"sum(seven_retain_count) as seven_retain_count",
-	}
-	err = m.Table(m.TableName()).Where("stat_day = ?", day).Select(columns).
-		Group("app_id,country,account_id").Find(&markets).Error
-	return
+	err = m.Table(m.TableName()).Clauses(clause.OnConflict{
+		DoUpdates: clause.AssignmentColumns(updateColumns),
+	}).CreateInBatches(ms, 300).Error
+	return err
 }

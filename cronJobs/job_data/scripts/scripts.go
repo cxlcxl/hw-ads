@@ -36,7 +36,9 @@ var (
 		vars.ApiModulePositionPrice:   position.PriceManual,
 		vars.ApiModulePositionElement: position.ElementManual,
 		vars.ApiModuleCountry:         country.CountryManual,
+		vars.ApiModuleCountryCollect:  country.ReportCountryCollectManual,
 		vars.ApiModuleAds:             ads.ReportAdsManual,
+		vars.ApiModuleAdsCollect:      ads.ReportAdsCollectManual,
 		vars.ApiModuleApp:             app.ReportAppManual,
 	}
 )

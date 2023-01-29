@@ -20,7 +20,7 @@
       <el-button type="primary" icon="el-icon-plus" size="mini" @click="add">添加用户</el-button>
     </el-col> -->
     <el-col :span="24">
-      <el-table v-loading="loadings.pageLoading" :data="adsList.list" highlight-current-row stripe border size="mini" style="margin-top: 15px">
+      <el-table v-loading="loadings.pageLoading" :data="adsList.list" highlight-current-row stripe border size="mini">
         <el-table-column prop="stat_day" label="日期" width="120" align="center" />
         <el-table-column prop="email" label="收入" align="right" />
         <el-table-column prop="username" label="eCPM" align="right" />
