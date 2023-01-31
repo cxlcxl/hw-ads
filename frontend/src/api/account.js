@@ -61,6 +61,13 @@ export function defaultAccounts() {
   });
 }
 
+export function allAccounts() {
+  return request({
+    url: "/account/all",
+    method: "get",
+  });
+}
+
 export function parentAccounts(params) {
   return request({
     url: "/account/parents",

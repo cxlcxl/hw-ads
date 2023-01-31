@@ -22,6 +22,12 @@ type Account struct {
 	UpdatedAt    time.Time `json:"updated_at"`    // 最后一次修改时间
 }
 
+type BelongAccount struct {
+	Id          int64  `json:"id"`
+	AccountType int64  `json:"account_type"` // 账户类型
+	AccountName string `json:"account_name"` // 账户名
+}
+
 func (m *Account) TableName() string {
 	return "accounts"
 }
@@ -61,6 +67,11 @@ func (m *Account) RemoteAccounts(accountName string, isParent int64) (accounts [
 		query = query.Where("account_name like ?", "%"+accountName+"%")
 	}
 	err = query.Order("updated_at desc").Offset(0).Limit(20).Find(&accounts).Error
+	return
+}
+
+func (m *Account) AllAccounts() (accounts []*BelongAccount, err error) {
+	err = m.Table(m.TableName()).Where("state = 1").Find(&accounts).Error
 	return
 }
 

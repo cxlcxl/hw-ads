@@ -16,6 +16,7 @@ type RedisCache struct {
 	*gorm.DB
 	debug  bool
 	expire int
+	vt     RedisValueType
 }
 
 func New(db *gorm.DB) *RedisCache {
@@ -24,6 +25,7 @@ func New(db *gorm.DB) *RedisCache {
 		DB:      db,
 		expire:  vars.YmlConfig.GetInt("Redis.ExpireTime"),
 		debug:   vars.YmlConfig.GetBool("Debug"),
+		vt:      jsonValue,
 	}
 }
 
@@ -73,16 +75,16 @@ func (rc *RedisCache) SetRow(cacheKey string, v interface{}, id interface{}, fn 
 	if rc.debug {
 		return nil
 	}
-	key := fmt.Sprintf("%s%d", cacheKey, id)
-	return rc.ExecRedis("del", key)
+	key := fmt.Sprintf("%s%v", cacheKey, id)
+	return rc.setCache(key, v)
 }
 
 func (rc *RedisCache) setCache(cacheKey string, v interface{}) error {
-	bytes, err := json.Marshal(v)
+	value, err := rc.vt.setValue(v)
 	if err != nil {
 		return err
 	}
-	if !rc.SetString(cacheKey, string(bytes), time.Duration(rc.expire)*time.Second) {
+	if !rc.SetString(cacheKey, value, time.Duration(rc.expire)*time.Second) {
 		return errors.New("设置缓存失败")
 	}
 	return nil
@@ -90,5 +92,10 @@ func (rc *RedisCache) setCache(cacheKey string, v interface{}) error {
 
 func (rc *RedisCache) SetExpire(expire int) *RedisCache {
 	rc.expire = expire
+	return rc
+}
+
+func (rc *RedisCache) StringValue() *RedisCache {
+	rc.vt = stringValue
 	return rc
 }

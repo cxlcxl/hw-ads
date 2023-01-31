@@ -17,8 +17,7 @@ type VUserList struct {
 	Username string `json:"username" form:"username"`
 	Email    string `json:"email" form:"email"`
 	State    uint8  `json:"state" form:"state" binding:"numeric"`
-	Page     int64  `json:"page" form:"page" binding:"required"`
-	PageSize int64  `json:"page_size" form:"page_size" binding:"required"`
+	Pagination
 }
 
 type VUserCreate struct {

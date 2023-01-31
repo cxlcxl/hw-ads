@@ -101,3 +101,12 @@ func (h *App) AppInfo(ctx *gin.Context, v string) {
 func (h *App) AppPull(ctx *gin.Context, p interface{}) {
 	response.Success(ctx, nil)
 }
+
+func (h *App) AllApp(ctx *gin.Context) {
+	apps, err := model.NewApp(vars.DBMysql).AllApps()
+	if err != nil {
+		response.Fail(ctx, "请求失败："+err.Error())
+		return
+	}
+	response.Success(ctx, apps)
+}

@@ -30,6 +30,10 @@ func (v BsValidator) VAccountDefault(ctx *gin.Context) {
 	(&handlers.Account{}).AccountDefault(ctx)
 }
 
+func (v BsValidator) VAllAccounts(ctx *gin.Context) {
+	(&handlers.Account{}).AllAccounts(ctx)
+}
+
 func (v BsValidator) VAccountCreate(ctx *gin.Context) {
 	var params v_data.VAccountCreate
 	bindData(ctx, &params, emptyValidator, (&handlers.Account{}).AccountCreate)

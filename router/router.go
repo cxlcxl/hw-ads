@@ -20,6 +20,7 @@ func Router() error {
 		initAppApis(group)
 
 		initMarketingApis(group)
+		initReportApis(group)
 	}
 
 	return r.Run(vars.YmlConfig.GetString("HttpServer.Port"))

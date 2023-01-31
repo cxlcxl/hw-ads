@@ -60,3 +60,22 @@ func (m *ReportMarketCollect) BatchInsert(ms []*ReportMarketCollect) (err error)
 	}).CreateInBatches(ms, 300).Error
 	return err
 }
+
+// AnalysisComprehensive 综合报表投放数据部分
+func (m *ReportMarketCollect) AnalysisComprehensive(
+	appIds, dates []string, actIds []int64, selects []string, groups []string,
+) (markets []*ReportMarketCollect, err error) {
+	query := m.Debug().Table(m.TableName()).Select(selects).Where("stat_day between ? and ?", dates[0], dates[1])
+	if len(appIds) > 0 {
+		query = query.Where("app_id in ?", appIds)
+	}
+	if len(actIds) > 0 {
+		query = query.Where("account_id in ?", actIds)
+	}
+
+	for _, group := range groups {
+		query = query.Group(group)
+	}
+	err = query.Order("stat_day desc,account_id asc,app_id asc").Find(&markets).Error
+	return
+}

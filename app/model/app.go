@@ -21,8 +21,13 @@ type App struct {
 	Timestamp
 }
 
+type SimpleApp struct {
+	AppId   string `json:"app_id"`
+	AppName string `json:"app_name"`
+}
+
 var (
-	appKey = "db:app:"
+	appSearchKey = "db:app:search:"
 )
 
 func (m *App) TableName() string {
@@ -78,6 +83,13 @@ func (m *App) FindAppById(id int64) (app *App, err error) {
 	return
 }
 
+func (m *App) AllApps() (apps []*SimpleApp, err error) {
+	err = cache.New(m.DB).Query(appSearchKey, &apps, func(db *gorm.DB, v interface{}) error {
+		return db.Table(m.TableName()).Find(v).Error
+	})
+	return
+}
+
 func (m *App) CreateApp(app *App) (err error) {
 	err = m.Table(m.TableName()).Create(app).Error
 	return
@@ -85,15 +97,11 @@ func (m *App) CreateApp(app *App) (err error) {
 
 func (m *App) UpdateApp(d map[string]interface{}, id int64) (err error) {
 	err = m.Table(m.TableName()).Where("id = ? ", id).Updates(d).Error
-	if err == nil {
-		err = cache.New(nil).DelQueryRowCache(appKey, id)
-	}
 	return
 }
 
 type JobApp struct {
-	AppId   string `json:"app_id"`
-	AppName string `json:"app_name"`
+	SimpleApp
 	PkgName string `json:"pkg_name"`
 }
 

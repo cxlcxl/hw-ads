@@ -3,6 +3,7 @@ package handlers
 import (
 	"bs.mobgi.cc/app/model"
 	"bs.mobgi.cc/app/response"
+	serviceaccount "bs.mobgi.cc/app/service/account"
 	"bs.mobgi.cc/app/utils"
 	"bs.mobgi.cc/app/validator/v_data"
 	"bs.mobgi.cc/app/vars"
@@ -59,6 +60,15 @@ func (h *Account) AccountDefault(ctx *gin.Context) {
 	response.Success(ctx, acts)
 }
 
+func (h *Account) AllAccounts(ctx *gin.Context) {
+	acts, err := model.NewAct(vars.DBMysql).AllAccounts()
+	if err != nil {
+		response.Fail(ctx, "请求失败："+err.Error())
+		return
+	}
+	response.Success(ctx, acts)
+}
+
 func (h *Account) AccountSearch(ctx *gin.Context, p interface{}) {
 	params := p.(*v_data.VAccountSearch)
 	if params.AccountName == "" {
@@ -85,6 +95,43 @@ func (h *Account) AccountInfo(ctx *gin.Context, v string) {
 		return
 	}
 	response.Success(ctx, act)
+}
+
+func (h *Account) AccountAuth(ctx *gin.Context) {
+	id, _ := strconv.ParseInt(ctx.Query("id"), 0, 64)
+	if id <= 0 {
+		response.Fail(ctx, "请求失败")
+		return
+	}
+	info, err := model.NewAct(vars.DBMysql).FindAccountById(id)
+	if err != nil {
+		response.Fail(ctx, "请求有误")
+		return
+	}
+	clientId, secret := info.ClientId, info.Secret
+	if clientId == "" || secret == "" {
+		if info.ParentId == 0 {
+			response.Fail(ctx, "请先完整填写 ClientId 与 Secret")
+			return
+		} else {
+			parent, err := model.NewAct(vars.DBMysql).FindAccountById(info.ParentId)
+			if err != nil {
+				response.Fail(ctx, "上级信息查询有误")
+				return
+			}
+			if parent.ClientId == "" || parent.Secret == "" {
+				response.Fail(ctx, "上级 ClientId 与 Secret 信息也未填写")
+				return
+			}
+			clientId, secret = parent.ClientId, parent.Secret
+		}
+	}
+	url, err := serviceaccount.AuthorizeCodeUrl(info.Id, clientId, secret)
+	if err != nil {
+		response.Fail(ctx, "请求失败:"+err.Error())
+		return
+	}
+	response.Success(ctx, url)
 }
 
 func (h *Account) RefreshToken(ctx *gin.Context, v string) {

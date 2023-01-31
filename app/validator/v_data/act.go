@@ -22,7 +22,7 @@ type VAccountCreate struct {
 	ParentId     int64  `json:"parent_id"`
 	AccountName  string `json:"account_name" binding:"required"`
 	AccountType  int64  `json:"account_type" binding:"required"`
-	AdvertiserId string `json:"advertiser_id" binding:"required"`
+	AdvertiserId string `json:"advertiser_id"`
 	DeveloperId  string `json:"developer_id"`
 	ClientId     string `json:"client_id"`
 	Secret       string `json:"secret"`

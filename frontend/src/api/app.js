@@ -31,6 +31,13 @@ export function appInfo(id) {
   });
 }
 
+export function allApp() {
+  return request({
+    url: "/app/all",
+    method: "get",
+  });
+}
+
 export function campaignAppList(params) {
   return request({
     url: "/app/campaign-list",

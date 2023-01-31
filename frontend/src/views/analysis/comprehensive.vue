@@ -1,42 +1,48 @@
 <template>
   <el-row class="comprehensive">
-    <el-col :span="24" class="search-container">
-      <el-form ref="_search" :model="search" inline size="small">
-        <el-form-item>
-          <el-date-picker v-model="search.date_range" :picker-options="pickerOptions" class="w220" :clearable="false" value-format="yyyyMMdd"
+    <el-form ref="_search" :model="search" inline size="small">
+      <el-col :span="24" class="search-container">
+        <el-form-item label="日期">
+          <el-date-picker v-model="search.date_range" :picker-options="pickerOptions" class="w240" :clearable="false" value-format="yyyy-MM-dd"
             type="daterange" start-placeholder="开始日期" end-placeholder="结束日期" />
         </el-form-item>
-        <el-form-item>
-          <el-select v-model="search.dimensions" placeholder="数据维度" class="w200" multiple collapse-tags>
+        <el-form-item label="维度">
+          <el-select v-model="search.dimensions" placeholder="数据维度" class="w220" multiple collapse-tags>
             <el-option :key="k" :label="v" :value="k" v-for="(v,k) in requestDimensions" />
           </el-select>
         </el-form-item>
         <el-form-item label="">
           <el-button type="primary" icon="el-icon-search" class="item" @click="doSearch">查询</el-button>
         </el-form-item>
-      </el-form>
-    </el-col>
-    <!-- <el-col :span="24">
-      <el-button type="primary" icon="el-icon-plus" size="mini" @click="add">添加用户</el-button>
-    </el-col> -->
+        <el-form-item label="" style="float: right;">
+          <el-button type="danger" icon="el-icon-s-tools" class="item" @click="selectColumns" circle />
+        </el-form-item>
+      </el-col>
+      <el-col :span="24" class="search-container">
+        <el-form-item v-if="search.dimensions.includes('account_id')" label="账户">
+          <el-select v-model="search.account_ids" placeholder="账户选择" class="w260" multiple collapse-tags clearable filterable>
+            <el-option :key="item.id" :label="item.account_name" :value="item.id" v-for="item in accounts" v-show="item.account_type === 1" />
+          </el-select>
+        </el-form-item>
+        <el-form-item v-if="search.dimensions.includes('app_id')" label="应用">
+          <el-select v-model="search.app_ids" placeholder="应用选择" class="w260" multiple collapse-tags clearable filterable>
+            <el-option :key="item.app_id" :label="item.app_name" :value="item.app_id" v-for="item in apps" />
+          </el-select>
+        </el-form-item>
+      </el-col>
+    </el-form>
     <el-col :span="24">
-      <el-table v-loading="loadings.pageLoading" :data="adsList.list" highlight-current-row stripe border size="mini">
-        <el-table-column prop="stat_day" label="日期" width="120" align="center" />
-        <el-table-column prop="email" label="收入" align="right" />
-        <el-table-column prop="username" label="eCPM" align="right" />
-        <el-table-column prop="mobile" label="请求" align="right" />
-        <el-table-column prop="mobile" label="填充" align="right" />
-        <el-table-column prop="mobile" label="填充率" align="right" />
-        <el-table-column prop="mobile" label="曝光" align="right" />
-        <el-table-column prop="mobile" label="点击" align="right" />
-        <el-table-column prop="mobile" label="点击率" align="right" />
-        <el-table-column prop="mobile" label="展示率" align="right" />
-        <el-table-column prop="mobile" label="ARPU" align="right" />
+      <el-table v-loading="loadings.pageLoading" :data="reportList.list" highlight-current-row stripe border size="mini">
+        <el-table-column prop="stat_day" label="日期" width="110" align="center" fixed="left" />
+        <el-table-column :prop="item.key" :label="item.label" :align="item.align" :fixed="item.fix" v-for="item in reportList.columns" :key="item.key"
+          v-if="item.show" :min-width="item.min" />
       </el-table>
     </el-col>
     <el-col :span="24" style="margin-top: 15px;">
-      <page ref="page" :page="search.page" :total="adsList.total" @current-change="handlePage" @size-change="handlePageSize" />
+      <page ref="page" :page="search.page" :total="reportList.total" @current-change="handlePage" @size-change="handlePageSize" />
     </el-col>
+
+    <select-columns ref="column" :Columns="reportList.columns" @confirm="confirm" />
   </el-row>
 </template>
 
@@ -44,10 +50,14 @@
 import Page from "@c/Page"
 import { parseTime } from "@/utils"
 import { requestDimensions } from "./data"
+import { reportComprehensive } from "@/api/report"
+import { allAccounts } from "@/api/account"
+import { allApp } from "@/api/app"
+import SelectColumns from "./components/columns"
 const nowDate = new Date()
 
 export default {
-  components: { Page },
+  components: { Page, SelectColumns },
   filters: {
     timeFormat(t) {
       return parseTime(t)
@@ -62,8 +72,19 @@ export default {
       search: {
         date_range: [],
         dimensions: [],
+        account_ids: [],
+        app_ids: [],
+        show_columns: [],
+        page: 1,
+        page_size: 20,
       },
-      adsList: {},
+      accounts: [],
+      apps: [],
+      reportList: {
+        list: [],
+        total: 0,
+        columns: [],
+      },
       pickerOptions: {
         shortcuts: [
           {
@@ -98,18 +119,76 @@ export default {
     this.setDefaultSearchDate()
   },
   mounted() {
-    this.getAdsList()
+    this.getReportList()
   },
   methods: {
-    getAdsList() {},
+    getReportList() {
+      this.loadings.pageLoading = true
+      Promise.all([this.getAllAccounts(), this.getAllApps()])
+        .then((res) => {
+          reportComprehensive(this.search)
+            .then((res) => {
+              this.reportList.columns = res.data.columns
+              this.loadings.pageLoading = false
+            })
+            .catch((err) => {
+              console.log(err)
+              this.loadings.pageLoading = false
+            })
+        })
+        .catch((err) => {
+          console.log(err)
+          this.loadings.pageLoading = false
+        })
+    },
+    getAllApps() {
+      return new Promise((resolve, reject) => {
+        if (this.apps.length > 0) {
+          return resolve()
+        }
+        allApp()
+          .then((res) => {
+            this.apps = res.data
+            resolve()
+          })
+          .catch((err) => {
+            reject(err)
+          })
+      })
+    },
+    getAllAccounts() {
+      return new Promise((resolve, reject) => {
+        if (this.accounts.length > 0) {
+          resolve()
+        } else {
+          allAccounts()
+            .then((res) => {
+              this.accounts = res.data
+              resolve()
+            })
+            .catch((err) => {
+              reject(err)
+            })
+        }
+      })
+    },
     handlePage() {},
     handlePageSize() {},
-    add() {},
-    doSearch() {},
+    doSearch() {
+      this.search.page = 1
+      this.getReportList()
+    },
     setDefaultSearchDate() {
       let s = new Date()
-      let f = "{y}{m}{d}"
+      let f = "{y}-{m}-{d}"
       this.$set(this.search, "date_range", [parseTime(s.getTime() - 3600 * 1000 * 24 * 7, f), parseTime(new Date(), f)])
+    },
+    selectColumns() {
+      this.$refs.column.setDefault(this.search.show_columns)
+    },
+    confirm(selected) {
+      this.search.show_columns = selected
+      this.getReportList()
     },
   },
 }
