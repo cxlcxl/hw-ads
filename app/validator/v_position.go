@@ -8,15 +8,15 @@ import (
 
 func (v BsValidator) VPositionQuery(ctx *gin.Context) {
 	var params v_data.VPositionQuery
-	bindData(ctx, &params, emptyValidator, (&handlers.Position{}).PositionQuery)
+	bindData(ctx, &params, (&handlers.Position{}).PositionQuery)
 }
 
 func (v BsValidator) VPositionPlacement(ctx *gin.Context) {
 	var params v_data.VPositionPlacement
-	bindData(ctx, &params, emptyValidator, (&handlers.Position{}).PositionPlacement)
+	bindData(ctx, &params, (&handlers.Position{}).PositionPlacement)
 }
 
 func (v BsValidator) VPositionPrice(ctx *gin.Context) {
 	var params v_data.VPositionPrice
-	bindData(ctx, &params, emptyValidator, (&handlers.Position{}).PositionPrice)
+	bindData(ctx, &params, (&handlers.Position{}).PositionPrice)
 }

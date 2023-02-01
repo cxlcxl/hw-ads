@@ -10,15 +10,11 @@ import (
 
 // ReportComprehensive 综合报表
 func ReportComprehensive(params *v_data.VReportComprehensive) (data []*ComprehensiveReport, total int64, err error) {
-	if len(params.ShowColumns) == 0 {
-		params.ShowColumns = getFetchColumns()
-	}
-
 	// 1. 汇总出投放报表数据
 	offset := utils.GetPages(params.Page, params.PageSize)
 	markets, total, err := model.NewRMC(vars.DBMysql).AnalysisComprehensive(
 		params.AccountIds, params.AppIds, params.DateRange,
-		marketColumns(params.ShowColumns, params.Dimensions),
+		marketColumns(params.Dimensions),
 		params.Dimensions, int(offset), int(params.PageSize),
 	)
 	if err != nil {
@@ -39,11 +35,11 @@ func ReportComprehensive(params *v_data.VReportComprehensive) (data []*Comprehen
 	if utils.InArray("account_id", params.Dimensions) {
 		// 只包含国家分组，可以直接单查询
 		_ads, err = model.NewRACC(vars.DBMysql).AnalysisComprehensive(
-			params.AccountIds, appIds, params.DateRange, adsColumns(params.ShowColumns, params.Dimensions), groups,
+			params.AccountIds, appIds, params.DateRange, adsColumns(params.Dimensions), groups,
 		)
 	} else {
 		_ads, err = model.NewRAC(vars.DBMysql).AnalysisComprehensive(
-			appIds, params.DateRange, adsColumns(params.ShowColumns, params.Dimensions), groups,
+			appIds, params.DateRange, adsColumns(params.Dimensions), groups,
 		)
 	}
 	if err != nil {
@@ -54,15 +50,8 @@ func ReportComprehensive(params *v_data.VReportComprehensive) (data []*Comprehen
 	return
 }
 
-func getFetchColumns() (columns []string) {
-	for _, column := range ComprehensiveColumns {
-		columns = append(columns, column.Key)
-	}
-	return
-}
-
-func marketColumns(columns, dimensions []string) []string {
-	rs := []string{"stat_day"}
+func marketColumns(dimensions []string) []string {
+	rs := append(ComprehensiveMarketSQLColumnsMap, "stat_day")
 	if utils.InArray("account_id", dimensions) {
 		rs = append(rs, "account_id")
 	}
@@ -73,16 +62,11 @@ func marketColumns(columns, dimensions []string) []string {
 	if utils.InArray("country", dimensions) {
 		rs = append(rs, "country")
 	}
-	for _, column := range columns {
-		if v, ok := ComprehensiveMarketSQLColumnsMap[column]; ok {
-			rs = append(rs, v)
-		}
-	}
 	return rs
 }
 
-func adsColumns(columns, dimensions []string) []string {
-	rs := []string{"stat_day"}
+func adsColumns(dimensions []string) []string {
+	rs := append(ComprehensiveAdsSQLColumnsMap, "stat_day")
 	if utils.InArray("account_id", dimensions) {
 		rs = append(rs, "account_id")
 	} else {
@@ -94,39 +78,7 @@ func adsColumns(columns, dimensions []string) []string {
 	if utils.InArray("country", dimensions) {
 		rs = append(rs, "country")
 	}
-	for _, column := range columns {
-		if v, ok := ComprehensiveAdsSQLColumnsMap[column]; ok {
-			rs = append(rs, v)
-		}
-	}
 	return rs
-}
-
-func ReportComprehensiveColumns(columns, dimensions []string) (rs []*ReportColumn) {
-	var forceShow bool
-	if len(columns) == 0 {
-		forceShow = true
-	}
-	if utils.InArray("account_id", dimensions) {
-		rs = append(rs, AccountColumn)
-	}
-	if utils.InArray("app_id", dimensions) {
-		rs = append(rs, AppColumn)
-	}
-	if utils.InArray("country", dimensions) {
-		rs = append(rs, CountryColumn)
-	}
-	var updates []string
-	for _, column := range ComprehensiveColumns {
-		var c *ReportColumn
-		c = column
-		if forceShow || utils.InArray(column.Key, columns) {
-			c.Show = true
-			updates = append(updates, c.Key)
-		}
-		rs = append(rs, c)
-	}
-	return
 }
 
 func adsWhere(params *v_data.VReportComprehensive, markets []*model.ReportMarketCollect) (appIds []string) {
@@ -173,24 +125,51 @@ func formatComprehensiveData(
 		if !ok {
 			ads = &model.Comprehensive{}
 		}
+		var roi float64
+		if market.Cost == 0 {
+			if ads.Earnings == 0 {
+				roi = 0
+			} else {
+				roi = 100
+			}
+		} else {
+			roi = utils.Round(ads.Earnings/market.Cost*100, 2)
+		}
+
+		calculateMarketingRateCost(market)
+		calculateMediationRateEarnings(ads)
 		data = append(data, &ComprehensiveReport{
-			StatDay:           day,
-			Country:           market.Country,
-			AccountId:         market.AccountId,
-			AppId:             market.AppId,
-			AppName:           market.AppName,
-			AccountName:       _accountMap[market.AccountId],
-			Cost:              market.Cost,
-			ShowCount:         market.ShowCount,
-			ClickCount:        market.ClickCount,
-			DownloadCount:     market.DownloadCount,
-			InstallCount:      market.InstallCount,
-			ActivateCount:     market.ActivateCount,
-			AdRequests:        ads.AdRequests,
-			MatchedAdRequests: ads.MatchedAdRequests,
-			AdShowCount:       ads.ShowCount,
-			AdClickCount:      ads.ClickCount,
-			Earnings:          utils.Round(ads.Earnings, 3),
+			StatDay:              day,
+			Country:              market.Country,
+			AccountId:            market.AccountId,
+			AppId:                market.AppId,
+			AppName:              market.AppName,
+			AccountName:          _accountMap[market.AccountId],
+			ROI:                  roi,
+			Cost:                 market.Cost,
+			ShowCount:            market.ShowCount,
+			ClickCount:           market.ClickCount,
+			DownloadCount:        market.DownloadCount,
+			InstallCount:         market.InstallCount,
+			ActivateCount:        market.ActivateCount,
+			Cpm:                  market.Cpm,
+			Cpd:                  market.Cpd,
+			Cpi:                  market.Cpi,
+			Cpa:                  market.Cpa,
+			Cpc:                  market.Cpc,
+			ClickThroughRate:     market.ClickThroughRate,
+			ClickDownloadRate:    market.ClickDownloadRate,
+			DownloadActivateRate: market.DownloadActivateRate,
+			RetainCost:           market.RetainCost,
+			AdRequests:           ads.AdRequests,
+			MatchedAdRequests:    ads.MatchedAdRequests,
+			AdShowCount:          ads.ShowCount,
+			AdClickCount:         ads.ClickCount,
+			Earnings:             utils.Round(ads.Earnings, 3),
+			ECpm:                 ads.ECpm,
+			AdRequestsMatchRate:  ads.AdRequestsMatchRate,
+			AdRequestsShowRate:   ads.AdRequestsShowRate,
+			AdClickThroughRate:   ads.ClickThroughRate,
 		})
 	}
 	return
@@ -203,4 +182,116 @@ func adsFormat(_ads []*model.Comprehensive) map[string]*model.Comprehensive {
 		rs[unique] = ad
 	}
 	return rs
+}
+
+func getRate(a float64, b, c int64) float64 {
+	if b == 0 {
+		return 0
+	}
+	return utils.Round(a/float64(b), int(c))
+}
+
+func calculateMarketingRateCost(market *model.ReportMarketCollect) {
+	// 点击率
+	if market.ShowCount == 0 {
+		market.ClickThroughRate = 0
+	} else {
+		market.ClickThroughRate = getRate(float64(market.ClickCount)*100, market.ShowCount, 2)
+	}
+
+	// 点击下载率
+	if market.ClickCount == 0 {
+		market.ClickDownloadRate = 0
+	} else {
+		market.ClickDownloadRate = getRate(float64(market.DownloadCount)*100, market.ClickCount, 2)
+	}
+	// 下载激活率
+	if market.DownloadCount == 0 {
+		market.DownloadActivateRate = 0
+	} else {
+		market.DownloadActivateRate = getRate(float64(market.ActivateCount)*100, market.DownloadCount, 2)
+	}
+
+	if market.ShowCount == 0 {
+		market.Cpm = 0
+	} else {
+		market.Cpm = getRate(market.Cost, market.ShowCount, 6)
+	}
+
+	if market.ClickCount == 0 {
+		market.Cpc = 0
+	} else {
+		market.Cpc = getRate(market.Cost, market.ClickCount, 6)
+	}
+
+	if market.DownloadCount == 0 {
+		market.Cpd = 0
+	} else {
+		market.Cpd = getRate(market.Cost, market.DownloadCount, 6)
+	}
+
+	if market.InstallCount == 0 {
+		market.Cpi = 0
+	} else {
+		market.Cpi = getRate(market.Cost, market.InstallCount, 6)
+	}
+
+	if market.ActivateCount == 0 {
+		market.Cpa = 0
+	} else {
+		market.Cpa = getRate(market.Cost, market.ActivateCount, 6)
+	}
+
+	if market.RetainCount == 0 {
+		market.RetainCost = 0
+	} else {
+		market.RetainCost = getRate(market.Cost, market.RetainCount, 6)
+	}
+}
+
+func calculateMediationRateEarnings(ads *model.Comprehensive) {
+	if ads.AdRequests == 0 {
+		ads.AdRequestsMatchRate = 0
+	} else {
+		ads.AdRequestsMatchRate = getRate(float64(ads.MatchedAdRequests)*100, ads.AdRequests, 2)
+	}
+
+	if ads.MatchedAdRequests == 0 {
+		ads.AdRequestsShowRate = 0
+	} else {
+		ads.AdRequestsShowRate = getRate(float64(ads.ShowCount)*100, ads.MatchedAdRequests, 2)
+	}
+
+	if ads.ShowCount == 0 {
+		ads.ClickThroughRate = 0
+		ads.ECpm = 0
+	} else {
+		ads.ECpm = getRate(ads.Earnings*1000, ads.ShowCount, 4)
+		ads.ClickThroughRate = getRate(float64(ads.ClickCount)*100, ads.ShowCount, 2)
+	}
+}
+
+func ReportComprehensiveColumns(columns, dimensions []string) (rs []*ReportColumn) {
+	var forceShow bool
+	if len(columns) == 0 {
+		forceShow = true
+	}
+	if utils.InArray("account_id", dimensions) {
+		rs = append(rs, AccountColumn)
+	}
+	if utils.InArray("app_id", dimensions) {
+		rs = append(rs, AppColumn)
+	}
+	if utils.InArray("country", dimensions) {
+		rs = append(rs, CountryColumn)
+	}
+	for _, column := range ComprehensiveColumns {
+		if forceShow || utils.InArray(column.Key, columns) {
+			column.Show = true
+		} else {
+			column.Show = false
+		}
+		rs = append(rs, column)
+	}
+	return
 }

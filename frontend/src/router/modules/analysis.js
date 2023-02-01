@@ -8,7 +8,7 @@ const analysisRouter = {
   children: [
     {
       path: "comprehensive",
-      name: "AnalysisList",
+      name: "Comprehensive",
       component: () => import("@v/analysis/comprehensive"),
       meta: { title: "综合报表" },
     },

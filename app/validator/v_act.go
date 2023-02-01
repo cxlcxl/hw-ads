@@ -13,17 +13,17 @@ var (
 
 func (v BsValidator) VAccountList(ctx *gin.Context) {
 	var params v_data.VAccountList
-	bindData(ctx, &params, emptyValidator, (&handlers.Account{}).AccountList)
+	bindData(ctx, &params, (&handlers.Account{}).AccountList)
 }
 
 func (v BsValidator) VAccountParents(ctx *gin.Context) {
 	var params v_data.VAccountParents
-	bindData(ctx, &params, emptyValidator, (&handlers.Account{}).AccountParents)
+	bindData(ctx, &params, (&handlers.Account{}).AccountParents)
 }
 
 func (v BsValidator) VAccountSearch(ctx *gin.Context) {
 	var params v_data.VAccountSearch
-	bindData(ctx, &params, emptyValidator, (&handlers.Account{}).AccountSearch)
+	bindData(ctx, &params, (&handlers.Account{}).AccountSearch)
 }
 
 func (v BsValidator) VAccountDefault(ctx *gin.Context) {
@@ -36,7 +36,7 @@ func (v BsValidator) VAllAccounts(ctx *gin.Context) {
 
 func (v BsValidator) VAccountCreate(ctx *gin.Context) {
 	var params v_data.VAccountCreate
-	bindData(ctx, &params, emptyValidator, (&handlers.Account{}).AccountCreate)
+	bindData(ctx, &params, (&handlers.Account{}).AccountCreate)
 }
 
 func (v BsValidator) VAccountRefreshToken(ctx *gin.Context) {
@@ -45,13 +45,13 @@ func (v BsValidator) VAccountRefreshToken(ctx *gin.Context) {
 
 func (v BsValidator) VAccountUpdate(ctx *gin.Context) {
 	var params v_data.VAccountUpdate
-	bindData(ctx, &params, func(v interface{}) error {
+	bindData(ctx, &params, (&handlers.Account{}).AccountUpdate, func(_ *gin.Context, v interface{}) error {
 		p := v.(*v_data.VAccountUpdate)
 		if p.Id == p.ParentId {
 			return ParentCanNotSelf
 		}
 		return nil
-	}, (&handlers.Account{}).AccountUpdate)
+	})
 }
 
 func (v BsValidator) VAccountInfo(ctx *gin.Context) {

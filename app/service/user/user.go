@@ -10,10 +10,6 @@ import (
 	"bs.mobgi.cc/app/vars"
 )
 
-func EncryptPass(s string) string {
-	return utils.MD5(utils.Base64(s))
-}
-
 func UpdatePass(uid, pass string) {
 	curlPwd := map[string]interface{}{
 		"uid":  uid,

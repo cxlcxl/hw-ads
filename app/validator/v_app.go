@@ -8,27 +8,27 @@ import (
 
 func (v BsValidator) VAppList(ctx *gin.Context) {
 	var params v_data.VAppList
-	bindData(ctx, &params, emptyValidator, (&handlers.App{}).AppList)
+	bindData(ctx, &params, (&handlers.App{}).AppList)
 }
 
 func (v BsValidator) VAppCampaignList(ctx *gin.Context) {
 	var params v_data.VAppCampaignList
-	bindData(ctx, &params, emptyValidator, (&handlers.App{}).AppCampaignList)
+	bindData(ctx, &params, (&handlers.App{}).AppCampaignList)
 }
 
 func (v BsValidator) VAppPull(ctx *gin.Context) {
 	var params v_data.VAppPull
-	bindData(ctx, &params, emptyValidator, (&handlers.App{}).AppPull)
+	bindData(ctx, &params, (&handlers.App{}).AppPull)
 }
 
 func (v BsValidator) VAppUpdate(ctx *gin.Context) {
 	var params v_data.VAppUpdate
-	bindData(ctx, &params, emptyValidator, (&handlers.App{}).AppUpdate)
+	bindData(ctx, &params, (&handlers.App{}).AppUpdate)
 }
 
 func (v BsValidator) VAppCreate(ctx *gin.Context) {
 	var params v_data.VAppCreate
-	bindData(ctx, &params, emptyValidator, (&handlers.App{}).AppCreate)
+	bindData(ctx, &params, (&handlers.App{}).AppCreate)
 }
 
 func (v BsValidator) VAppInfo(ctx *gin.Context) {

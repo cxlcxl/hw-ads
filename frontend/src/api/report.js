@@ -7,3 +7,11 @@ export function reportComprehensive(data) {
     data,
   });
 }
+
+export function setReportComprehensiveColumns(data) {
+  return request({
+    url: "/report/comprehensive/column",
+    method: "post",
+    data,
+  });
+}

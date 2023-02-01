@@ -34,8 +34,12 @@
     <el-col :span="24">
       <el-table v-loading="loadings.pageLoading" :data="reportList.list" highlight-current-row stripe border size="mini">
         <el-table-column prop="stat_day" label="日期" width="90" align="center" fixed="left" />
-        <el-table-column :prop="item.key" :label="item.label" :align="item.align" :fixed="item.fix" v-for="item in reportList.columns" :key="item.key"
-          v-if="item.show" :min-width="item.min" :show-overflow-tooltip="item.fix" />
+        <el-table-column :label="item.label" :align="item.align" :fixed="item.fix" v-for="item in reportList.columns" :key="item.key" v-if="item.show"
+          :min-width="item.min" :show-overflow-tooltip="item.fix">
+          <template slot-scope="scope">
+            {{ item.prefix + scope.row[item.key] + item.suffix }}
+          </template>
+        </el-table-column>
       </el-table>
     </el-col>
     <el-col :span="24" style="margin-top: 15px;">
@@ -58,6 +62,7 @@ import SelectColumns from "./components/columns"
 const nowDate = new Date()
 
 export default {
+  // name: "Comprehensive", // 写上 name 可以使 keep-alive 生效
   components: { Page, SelectColumns },
   filters: {
     timeFormat(t) {
@@ -202,7 +207,7 @@ export default {
       this.$set(this.search, "date_range", [parseTime(s.getTime() - 3600 * 1000 * 24 * 7, f), parseTime(new Date(), f)])
     },
     selectColumns() {
-      this.$refs.column.setDefault(this.search.show_columns)
+      this.$refs.column.setDefault()
     },
     confirm(selected) {
       this.search.show_columns = selected

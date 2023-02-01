@@ -8,10 +8,10 @@ import (
 
 func (v BsValidator) VAssetList(ctx *gin.Context) {
 	var params v_data.VAssetList
-	bindData(ctx, &params, emptyValidator, (&handlers.Asset{}).AssetList)
+	bindData(ctx, &params, (&handlers.Asset{}).AssetList)
 }
 
 func (v BsValidator) VAssetSync(ctx *gin.Context) {
 	var params v_data.VAssetSync
-	bindData(ctx, &params, emptyValidator, (&handlers.Asset{}).AssetSync)
+	bindData(ctx, &params, (&handlers.Asset{}).AssetSync)
 }

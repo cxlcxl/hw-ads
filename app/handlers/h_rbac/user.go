@@ -37,7 +37,7 @@ func (l *User) Login(ctx *gin.Context, p interface{}) {
 		response.Fail(ctx, "账号已失效不可登陆")
 		return
 	}
-	if params.Pass != serviceuser.EncryptPass(params.Pass) {
+	if user.Pass != utils.Password(params.Pass, user.Secret) {
 		response.Fail(ctx, "密码错误")
 		return
 	}

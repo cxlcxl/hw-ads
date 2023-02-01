@@ -28,7 +28,7 @@ func pass(fl validator.FieldLevel) bool {
 	return true
 }
 
-func emptyValidator(_ interface{}) error {
+func emptyValidator(_ *gin.Context, _ interface{}) error {
 	return nil
 }
 
@@ -36,16 +36,19 @@ func emptyValidator(_ interface{}) error {
 // v   要绑定的数据
 // h   绑定完成后调用的方法
 // f   自定义扩展验证规则
-func bindData(ctx *gin.Context, v interface{}, f func(_v interface{}) error, h func(c *gin.Context, t interface{})) {
+func bindData(ctx *gin.Context, v interface{}, h func(*gin.Context, interface{}), fs ...func(*gin.Context, interface{}) error) {
 	//if err := ctx.ShouldBindBodyWith(v, binding.JSON); err != nil {
 	if err := ctx.ShouldBind(v); err != nil {
 		response.Fail(ctx, "验证失败："+Translate(err))
 		return
 	}
-	if err := f(v); err != nil {
-		response.Fail(ctx, "验证失败："+err.Error())
-		return
+	for _, f := range fs {
+		if err := f(ctx, v); err != nil {
+			response.Fail(ctx, "验证失败："+err.Error())
+			return
+		}
 	}
+
 	h(ctx, v)
 }
 

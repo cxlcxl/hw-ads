@@ -14,15 +14,15 @@ func (v BsValidator) VResourcePricing(ctx *gin.Context) {
 
 func (v BsValidator) VTrackingList(ctx *gin.Context) {
 	var params v_data.VTrackingList
-	bindData(ctx, &params, emptyValidator, (&handlers.Marketing{}).TrackingList)
+	bindData(ctx, &params, (&handlers.Marketing{}).TrackingList)
 }
 
 func (v BsValidator) VTrackingRefresh(ctx *gin.Context) {
 	var params v_data.VTrackingRefresh
-	bindData(ctx, &params, emptyValidator, (&handlers.Marketing{}).TrackingRefresh)
+	bindData(ctx, &params, (&handlers.Marketing{}).TrackingRefresh)
 }
 
 func (v BsValidator) VDictQuery(ctx *gin.Context) {
 	var params v_data.VDictQuery
-	bindData(ctx, &params, emptyValidator, (&handlers.Marketing{}).DictQuery)
+	bindData(ctx, &params, (&handlers.Marketing{}).DictQuery)
 }

@@ -9,5 +9,6 @@ func initReportApis(g *gin.RouterGroup) {
 	group := g.Group("/report")
 	{
 		group.POST("/comprehensive", (validator.BsValidator{}).VReportComprehensive)
+		group.POST("/comprehensive/column", (validator.BsValidator{}).VReportComprehensiveColumn)
 	}
 }

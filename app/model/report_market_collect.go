@@ -65,7 +65,7 @@ func (m *ReportMarketCollect) BatchInsert(ms []*ReportMarketCollect) (err error)
 func (m *ReportMarketCollect) AnalysisComprehensive(
 	actIds []int64, appIds, dates, selects, groups []string, offset, size int,
 ) (markets []*ReportMarketCollect, total int64, err error) {
-	query := m.Debug().Table(m.TableName()).
+	query := m.Table(m.TableName()).
 		Select(selects).
 		Where("stat_day between ? and ?", dates[0], dates[1]).
 		Group("stat_day").Order("stat_day desc")
