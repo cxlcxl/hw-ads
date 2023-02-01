@@ -2,6 +2,7 @@ package model
 
 import (
 	"bs.mobgi.cc/app/utils"
+	"bs.mobgi.cc/app/vars"
 	"fmt"
 	"gorm.io/gorm"
 )
@@ -36,4 +37,17 @@ func (m *AppAccount) BatchInsert(d []*AppAccount) (err error) {
 	}
 	err = m.Exec(sql+utils.BufferConcat(format, ","), values...).Error
 	return err
+}
+
+// CollectAdsApps 变现数据过滤查【有投放的应用才整理】
+func (m *AppAccount) CollectAdsApps() (apps []*AppAccount, err error) {
+	err = m.Table(m.TableName()).
+		Where("account_type = ?", vars.AccountTypeMarket).
+		Select("app_id,account_id").Find(&apps).Error
+	return
+}
+
+func (m *AppAccount) FindAppIdsByAccountIds(accountIds []int64) (appIds []string) {
+	m.Table(m.TableName()).Where("account_id in ?", accountIds).Select("app_id").Find(&appIds)
+	return
 }

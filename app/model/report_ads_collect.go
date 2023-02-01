@@ -12,7 +12,7 @@ type ReportAdsCollect struct {
 	Id                  int64     `json:"id"`
 	StatDay             time.Time `json:"stat_day"`                // 日: 日粒度，例如2021-09-08
 	Country             string    `json:"country"`                 // 国家代码，使用华为开发者文档中的广告代码库
-	AccountId           int64     `json:"account_id"`              // 变现类型账户ID
+	AdsAccountId        int64     `json:"ads_account_id"`          // 变现类型账户ID
 	AppId               string    `json:"app_id"`                  // 应用ID（此处一般标识三方应用ID）
 	AdRequests          int64     `json:"ad_requests"`             // 到达服务器的请求数量
 	MatchedAdRequests   int64     `json:"matched_ad_requests"`     // 匹配到的到达广告请求数量
@@ -34,8 +34,8 @@ func (m *ReportAdsCollect) TableName() string {
 	return "report_ads_collects"
 }
 
-func (m *ReportAdsCollect) BatchInsert(realizations []*ReportAdsCollect) (err error) {
-	if len(realizations) == 0 {
+func (m *ReportAdsCollect) BatchInsert(collects []*ReportAdsCollect, collectActs []*ReportAdsCollectAct) (err error) {
+	if len(collects) == 0 {
 		return nil
 	}
 	updateColumns := []string{
@@ -43,27 +43,34 @@ func (m *ReportAdsCollect) BatchInsert(realizations []*ReportAdsCollect) (err er
 		"click_count", "click_through_rate", "earnings", "ecpm",
 	}
 
-	err = m.Table(m.TableName()).Clauses(clause.OnConflict{
-		DoUpdates: clause.AssignmentColumns(updateColumns),
-	}).CreateInBatches(realizations, 500).Error
+	err = m.Transaction(func(tx *gorm.DB) error {
+		if err = tx.Table(m.TableName()).Clauses(clause.OnConflict{
+			DoUpdates: clause.AssignmentColumns(updateColumns),
+		}).CreateInBatches(collects, 500).Error; err != nil {
+			return err
+		}
+
+		if err = NewRACC(tx).BatchInsert(collectActs); err != nil {
+			return err
+		}
+		return nil
+	})
+
 	return err
 }
 
 // AnalysisComprehensive 综合报表投放数据部分
-func (m *ReportAdsCollect) AnalysisComprehensive(
-	appIds, dates []string, actIds []int64, selects []string, groups []string,
-) (markets []*ReportAdsCollect, err error) {
-	query := m.Debug().Table(m.TableName()).Select(selects).Where("stat_day between ? and ?", dates[0], dates[1])
+func (m *ReportAdsCollect) AnalysisComprehensive(appIds, dates, selects, groups []string) (markets []*Comprehensive, err error) {
+	query := m.Debug().Table(m.TableName()).Select(selects).
+		Where("stat_day between ? and ?", dates[0], dates[1]).
+		Group("stat_day") // 变现数据以应用将数据匹配到投放数据上，所以应用必需分组
 	if len(appIds) > 0 {
 		query = query.Where("app_id in ?", appIds)
-	}
-	if len(actIds) > 0 {
-		query = query.Where("account_id in ?", actIds)
 	}
 
 	for _, group := range groups {
 		query = query.Group(group)
 	}
-	err = query.Order("stat_day desc,account_id asc,app_id asc").Find(&markets).Error
+	err = query.Find(&markets).Error
 	return
 }

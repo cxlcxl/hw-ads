@@ -75,7 +75,7 @@ func (m *ReportMarketSource) CollectSources(day string) (markets []*ReportMarket
 		"app_name",
 		"account_id",
 		"country",
-		"round(sum(cost), 4) as cost",
+		"round(sum(cost), 5) as cost",
 		"sum(show_count) as show_count",
 		"sum(click_count) as click_count",
 		"sum(download_count) as download_count",
@@ -86,6 +86,6 @@ func (m *ReportMarketSource) CollectSources(day string) (markets []*ReportMarket
 		"sum(seven_retain_count) as seven_retain_count",
 	}
 	err = m.Table(m.TableName()).Where("stat_day = ?", day).Select(columns).
-		Group("app_id,country,account_id").Find(&markets).Error
+		Group("stat_day,app_id,country,account_id").Find(&markets).Error
 	return
 }

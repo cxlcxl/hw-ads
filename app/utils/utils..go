@@ -123,3 +123,13 @@ func BufferConcat(s []string, seq string) string {
 	}
 	return buf.String()
 }
+
+func WhereIn[T int64 | string](v []T) (string, []interface{}) {
+	conditions := make([]string, len(v))
+	values := make([]interface{}, len(v))
+	for i, t := range v {
+		conditions[i] = "?"
+		values[i] = t
+	}
+	return strings.Join(conditions, ","), values
+}

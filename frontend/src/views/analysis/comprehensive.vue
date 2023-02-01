@@ -33,13 +33,14 @@
     </el-form>
     <el-col :span="24">
       <el-table v-loading="loadings.pageLoading" :data="reportList.list" highlight-current-row stripe border size="mini">
-        <el-table-column prop="stat_day" label="日期" width="110" align="center" fixed="left" />
+        <el-table-column prop="stat_day" label="日期" width="90" align="center" fixed="left" />
         <el-table-column :prop="item.key" :label="item.label" :align="item.align" :fixed="item.fix" v-for="item in reportList.columns" :key="item.key"
-          v-if="item.show" :min-width="item.min" />
+          v-if="item.show" :min-width="item.min" :show-overflow-tooltip="item.fix" />
       </el-table>
     </el-col>
     <el-col :span="24" style="margin-top: 15px;">
-      <page ref="page" :page="search.page" :total="reportList.total" @current-change="handlePage" @size-change="handlePageSize" />
+      <page ref="page" :page="search.page" :total="reportList.total" @current-change="handlePage" @size-change="handlePageSize"
+        :limit="search.page_size" />
     </el-col>
 
     <select-columns ref="column" :Columns="reportList.columns" @confirm="confirm" />
@@ -76,7 +77,7 @@ export default {
         app_ids: [],
         show_columns: [],
         page: 1,
-        page_size: 20,
+        page_size: 15,
       },
       accounts: [],
       apps: [],
@@ -96,18 +97,27 @@ export default {
             },
           },
           {
+            text: "本月",
+            onClick(picker) {
+              const start = new Date()
+              picker.$emit("pick", [new Date(start.setDate(1)), nowDate])
+            },
+          },
+          {
+            text: "上月",
+            onClick(picker) {
+              const end = new Date(new Date().setDate(1)) // 本月第一天
+              end.setTime(end.getTime() - 3600 * 1000 * 24 * 1) // -1 天 => 上月最后一天
+              const s = new Date(end - 0)
+              const start = new Date(s.setDate(1))
+              picker.$emit("pick", [start, end])
+            },
+          },
+          {
             text: "近 30 天",
             onClick(picker) {
               const start = new Date()
               start.setTime(start.getTime() - 3600 * 1000 * 24 * 30)
-              picker.$emit("pick", [start, nowDate])
-            },
-          },
-          {
-            text: "近 3 个月",
-            onClick(picker) {
-              const start = new Date()
-              start.setTime(start.getTime() - 3600 * 1000 * 24 * 90)
               picker.$emit("pick", [start, nowDate])
             },
           },
@@ -129,6 +139,8 @@ export default {
           reportComprehensive(this.search)
             .then((res) => {
               this.reportList.columns = res.data.columns
+              this.reportList.list = res.data.list
+              this.reportList.total = res.data.total
               this.loadings.pageLoading = false
             })
             .catch((err) => {
@@ -172,8 +184,14 @@ export default {
         }
       })
     },
-    handlePage() {},
-    handlePageSize() {},
+    handlePage(v) {
+      this.search.page = v
+      this.getReportList()
+    },
+    handlePageSize(v) {
+      this.search.page_size = v
+      this.getReportList()
+    },
     doSearch() {
       this.search.page = 1
       this.getReportList()
