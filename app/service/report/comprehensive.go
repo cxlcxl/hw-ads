@@ -10,10 +10,11 @@ import (
 
 // ReportComprehensive 综合报表
 func ReportComprehensive(params *v_data.VReportComprehensive) (data []*ComprehensiveReport, total int64, err error) {
+	countries := formatCountries(params.Countries)
 	// 1. 汇总出投放报表数据
 	offset := utils.GetPages(params.Page, params.PageSize)
 	markets, total, err := model.NewRMC(vars.DBMysql).AnalysisComprehensive(
-		params.AccountIds, params.AppIds, params.DateRange,
+		params.AccountIds, params.AppIds, params.DateRange, countries,
 		marketColumns(params.Dimensions),
 		params.Dimensions, int(offset), int(params.PageSize),
 	)
@@ -35,11 +36,11 @@ func ReportComprehensive(params *v_data.VReportComprehensive) (data []*Comprehen
 	if utils.InArray("account_id", params.Dimensions) {
 		// 只包含国家分组，可以直接单查询
 		_ads, err = model.NewRACC(vars.DBMysql).AnalysisComprehensive(
-			params.AccountIds, appIds, params.DateRange, adsColumns(params.Dimensions), groups,
+			params.AccountIds, appIds, params.DateRange, countries, adsColumns(params.Dimensions), groups,
 		)
 	} else {
 		_ads, err = model.NewRAC(vars.DBMysql).AnalysisComprehensive(
-			appIds, params.DateRange, adsColumns(params.Dimensions), groups,
+			appIds, params.DateRange, countries, adsColumns(params.Dimensions), groups,
 		)
 	}
 	if err != nil {
@@ -109,6 +110,18 @@ func accountMap() map[int64]string {
 	return rs
 }
 
+func regionCountryMap() map[string]string {
+	rs := make(map[string]string)
+	areas, err := model.NewOverseasArea(vars.DBMysql).AreaCountries()
+	if err != nil {
+		return rs
+	}
+	for _, area := range areas {
+		rs[area.CCode] = area.CName
+	}
+	return rs
+}
+
 func formatComprehensiveData(
 	params *v_data.VReportComprehensive, markets []*model.ReportMarketCollect, _ads []*model.Comprehensive,
 ) (data []*ComprehensiveReport, err error) {
@@ -117,6 +130,11 @@ func formatComprehensiveData(
 	_accountMap := make(map[int64]string)
 	if utils.InArray("account_id", params.Dimensions) {
 		_accountMap = accountMap()
+	}
+	// 3.2 检查是否需要填充国家地区，需要则填充
+	areaMap := make(map[string]string)
+	if utils.InArray("country", params.Dimensions) {
+		areaMap = regionCountryMap()
 	}
 	for _, market := range markets {
 		day := market.StatDay.Format(vars.DateFormat)
@@ -145,6 +163,7 @@ func formatComprehensiveData(
 			AppId:                market.AppId,
 			AppName:              market.AppName,
 			AccountName:          _accountMap[market.AccountId],
+			RegionCountry:        areaMap[market.Country],
 			ROI:                  roi,
 			Cost:                 market.Cost,
 			ShowCount:            market.ShowCount,
@@ -269,6 +288,20 @@ func calculateMediationRateEarnings(ads *model.Comprehensive) {
 		ads.ECpm = getRate(ads.Earnings*1000, ads.ShowCount, 4)
 		ads.ClickThroughRate = getRate(float64(ads.ClickCount)*100, ads.ShowCount, 2)
 	}
+}
+
+func formatCountries(countries [][]string) []string {
+	rs := make([]string, 0)
+	if len(countries) == 0 {
+		return rs
+	}
+	for _, country := range countries {
+		if len(country) != 2 {
+			continue
+		}
+		rs = append(rs, country[1])
+	}
+	return rs
 }
 
 func ReportComprehensiveColumns(columns, dimensions []string) (rs []*ReportColumn) {

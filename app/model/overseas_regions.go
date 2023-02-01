@@ -4,6 +4,8 @@ import (
 	"gorm.io/gorm"
 )
 
+// OverseasRegion
+// 海外区域数据来源地址：https://developer.huawei.com/consumer/cn/doc/distribution/promotion/marketing-api-tool-targeting7-0000001286343134#ZH-CN_TOPIC_0000001286343134__li1079145116117
 type OverseasRegion struct {
 	connectDb
 

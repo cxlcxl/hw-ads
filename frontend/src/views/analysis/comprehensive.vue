@@ -29,6 +29,10 @@
             <el-option :key="item.app_id" :label="item.app_name" :value="item.app_id" v-for="item in apps" />
           </el-select>
         </el-form-item>
+        <el-form-item v-if="search.dimensions.includes('country')" label="区域">
+          <el-cascader :options="regions" :props="{ multiple: true, value:'c_code',label:'c_name' }" collapse-tags clearable class="w300"
+            v-model="search.countries" />
+        </el-form-item>
       </el-col>
     </el-form>
     <el-col :span="24">
@@ -56,6 +60,7 @@ import Page from "@c/Page"
 import { parseTime } from "@/utils"
 import { requestDimensions } from "./data"
 import { reportComprehensive } from "@/api/report"
+import { regions } from "@/api/common"
 import { allAccounts } from "@/api/account"
 import { allApp } from "@/api/app"
 import SelectColumns from "./components/columns"
@@ -80,12 +85,14 @@ export default {
         dimensions: [],
         account_ids: [],
         app_ids: [],
+        countries: [],
         show_columns: [],
         page: 1,
         page_size: 15,
       },
       accounts: [],
       apps: [],
+      regions: [],
       reportList: {
         list: [],
         total: 0,
@@ -139,7 +146,7 @@ export default {
   methods: {
     getReportList() {
       this.loadings.pageLoading = true
-      Promise.all([this.getAllAccounts(), this.getAllApps()])
+      Promise.all([this.getAllAccounts(), this.getAllApps(), this.getRegions()])
         .then((res) => {
           reportComprehensive(this.search)
             .then((res) => {
@@ -157,6 +164,21 @@ export default {
           console.log(err)
           this.loadings.pageLoading = false
         })
+    },
+    getRegions() {
+      return new Promise((resolve, reject) => {
+        if (this.regions.length > 0) {
+          return resolve()
+        }
+        regions()
+          .then((res) => {
+            this.regions = res.data
+            resolve()
+          })
+          .catch((err) => {
+            reject(err)
+          })
+      })
     },
     getAllApps() {
       return new Promise((resolve, reject) => {

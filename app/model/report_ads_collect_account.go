@@ -56,7 +56,7 @@ func (m *ReportAdsCollectAct) BatchInsert(realizations []*ReportAdsCollectAct) (
 
 // AnalysisComprehensive 综合报表投放数据部分「维度只有国家地区的情况」
 func (m *ReportAdsCollectAct) AnalysisComprehensive(
-	actIds []int64, appIds, dates, selects, groups []string,
+	actIds []int64, appIds, dates, countries, selects, groups []string,
 ) (ads []*Comprehensive, err error) {
 	query := m.Debug().Table(m.TableName()).Select(selects).
 		Where("stat_day between ? and ?", dates[0], dates[1]).
@@ -66,6 +66,9 @@ func (m *ReportAdsCollectAct) AnalysisComprehensive(
 	}
 	if len(actIds) > 0 {
 		query = query.Where("account_id in ?", actIds)
+	}
+	if len(countries) > 0 {
+		query = query.Where("country in ?", countries)
 	}
 
 	for _, group := range groups {

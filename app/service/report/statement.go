@@ -84,7 +84,7 @@ var (
 	}
 	AccountColumn = &ReportColumn{Key: "account_name", Label: "账户", Align: "left", Min: 120, Fix: true, Show: true}
 	AppColumn     = &ReportColumn{Key: "app_name", Label: "应用", Align: "left", Min: 130, Fix: true, Show: true}
-	CountryColumn = &ReportColumn{Key: "region_country", Label: "区域&国家", Align: "left", Min: 120, Fix: true, Show: true}
+	CountryColumn = &ReportColumn{Key: "region_country", Label: "区域&国家", Align: "left", Min: 130, Fix: true, Show: true}
 
 	// ComprehensiveMarketSQLColumnsMap 综合报表投放查询汇总字段「as 需要和数据库模型字段一直」
 	ComprehensiveMarketSQLColumnsMap = []string{

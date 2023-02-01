@@ -63,7 +63,7 @@ func (m *ReportMarketCollect) BatchInsert(ms []*ReportMarketCollect) (err error)
 
 // AnalysisComprehensive 综合报表投放数据部分
 func (m *ReportMarketCollect) AnalysisComprehensive(
-	actIds []int64, appIds, dates, selects, groups []string, offset, size int,
+	actIds []int64, appIds, dates, countries, selects, groups []string, offset, size int,
 ) (markets []*ReportMarketCollect, total int64, err error) {
 	query := m.Table(m.TableName()).
 		Select(selects).
@@ -74,6 +74,9 @@ func (m *ReportMarketCollect) AnalysisComprehensive(
 	}
 	if len(actIds) > 0 {
 		query = query.Where("account_id in ?", actIds)
+	}
+	if len(countries) > 0 {
+		query = query.Where("country in ?", countries)
 	}
 
 	for _, group := range groups {

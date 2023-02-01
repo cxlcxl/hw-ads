@@ -27,7 +27,7 @@ type SimpleApp struct {
 }
 
 var (
-	appSearchKey = "db:app:search:"
+	appsKey = "db:apps"
 )
 
 func (m *App) TableName() string {
@@ -84,7 +84,7 @@ func (m *App) FindAppById(id int64) (app *App, err error) {
 }
 
 func (m *App) AllApps() (apps []*SimpleApp, err error) {
-	err = cache.New(m.DB).Query(appSearchKey, &apps, func(db *gorm.DB, v interface{}) error {
+	err = cache.New(m.DB).Query(appsKey, &apps, func(db *gorm.DB, v interface{}) error {
 		return db.Table(m.TableName()).Find(v).Error
 	})
 	return

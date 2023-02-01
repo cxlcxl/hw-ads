@@ -1,6 +1,7 @@
 package router
 
 import (
+	"bs.mobgi.cc/app/handlers"
 	"bs.mobgi.cc/app/vars"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -21,6 +22,8 @@ func Router() error {
 
 		initMarketingApis(group)
 		initReportApis(group)
+
+		group.GET("/regions", (&handlers.Common{}).Regions)
 	}
 
 	return r.Run(vars.YmlConfig.GetString("HttpServer.Port"))
