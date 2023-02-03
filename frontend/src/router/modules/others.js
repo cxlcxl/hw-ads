@@ -3,13 +3,13 @@
 import Layout from "@/layout";
 
 const userRouter = {
-  path: "/account",
+  path: "/other",
   component: Layout,
-  redirect: "/account/list",
-  meta: { title: "账户&应用", icon: "el-icon-s-grid" },
+  redirect: "/other/account",
+  meta: { title: "其他功能", icon: "el-icon-s-grid" },
   children: [
     {
-      path: "list",
+      path: "account",
       name: "AccountList",
       component: () => import("@v/account/list"),
       meta: { title: "账户列表" },
@@ -19,6 +19,12 @@ const userRouter = {
       name: "AppList",
       component: () => import("@v/application/list"),
       meta: { title: "应用列表" },
+    },
+    {
+      path: "region",
+      name: "RegionList",
+      component: () => import("@v/others/region"),
+      meta: { title: "区域管理" },
     },
   ],
 };

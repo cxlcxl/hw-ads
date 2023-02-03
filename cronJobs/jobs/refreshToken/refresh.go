@@ -14,6 +14,9 @@ func RefreshToken() {
 	fmt.Println()
 	fmt.Println("================= RefreshToken job start ==================")
 
+	defer func() {
+		_ = model.NewJob(vars.DBMysql).UpdateLastSchedule(vars.ApiModuleRefreshToken)
+	}()
 	list, err := model.NewToken(vars.DBMysql).GetAccessTokenList()
 	if err != nil {
 		fmt.Println("刷新 Token 任务失败，查询 Token 数据失败：", err)

@@ -40,7 +40,7 @@ func (l *AdsCollectLogic) AdsCollect() (err error) {
 		} else {
 			for _, id := range actIds {
 				collectActs = append(collectActs, &model.ReportAdsCollectAct{
-					Comprehensive: model.Comprehensive{
+					Ads: model.Ads{
 						StatDay:             source.StatDay,
 						Country:             source.Country,
 						AdsAccountId:        source.AccountId,

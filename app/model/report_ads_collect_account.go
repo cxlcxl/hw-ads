@@ -10,10 +10,10 @@ type ReportAdsCollectAct struct {
 	connectDb
 
 	Id int64 `json:"id"`
-	Comprehensive
+	Ads
 }
 
-type Comprehensive struct {
+type Ads struct {
 	StatDay             time.Time `json:"stat_day"`                // 日: 日粒度，例如2021-09-08
 	Country             string    `json:"country"`                 // 国家代码，使用华为开发者文档中的广告代码库
 	AccountId           int64     `json:"account_id"`              // 投放账户ID
@@ -54,11 +54,11 @@ func (m *ReportAdsCollectAct) BatchInsert(realizations []*ReportAdsCollectAct) (
 	return err
 }
 
-// AnalysisComprehensive 综合报表投放数据部分「维度只有国家地区的情况」
+// AnalysisComprehensive 综合报表投放数据部分
 func (m *ReportAdsCollectAct) AnalysisComprehensive(
 	actIds []int64, appIds, dates, countries, selects, groups []string,
-) (ads []*Comprehensive, err error) {
-	query := m.Debug().Table(m.TableName()).Select(selects).
+) (ads []*Ads, err error) {
+	query := m.Table(m.TableName()).Select(selects).
 		Where("stat_day between ? and ?", dates[0], dates[1]).
 		Group("stat_day,account_id")
 	if len(appIds) > 0 {

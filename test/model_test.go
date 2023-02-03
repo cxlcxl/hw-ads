@@ -18,6 +18,6 @@ func TestAnalysisComprehensive(t *testing.T) {
 		"sum(`show_count`) as `show_count`",
 		"sum(`click_count`) as `click_count`",
 	}
-	comprehensive, err := model.NewRAC(vars.DBMysql).AnalysisComprehensive(empty, dates, selected, empty)
+	comprehensive, err := model.NewRAC(vars.DBMysql).AnalysisComprehensive(empty, dates, selected, empty, empty)
 	t.Log(comprehensive, err)
 }

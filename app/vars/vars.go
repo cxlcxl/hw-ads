@@ -24,7 +24,6 @@ type LoginUser struct {
 	Mobile   string `json:"mobile"`
 	RoleId   int64  `json:"roleId"`
 }
-
 type TicketInfo struct {
 	AppCode   string `json:"app_code"`
 	ExpiredAt int64  `json:"expired_at"`

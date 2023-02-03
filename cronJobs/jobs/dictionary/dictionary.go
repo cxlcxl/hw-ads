@@ -14,6 +14,9 @@ func Dictionary() {
 	fmt.Println()
 	fmt.Println("================= Dictionary job start ==================")
 
+	defer func() {
+		_ = model.NewJob(vars.DBMysql).UpdateLastSchedule(vars.ApiModuleDictionary)
+	}()
 	if err := logic.NewDictionaryQueryLogic().DictionaryQuery(); err != nil {
 		log.Fatal(err)
 		return

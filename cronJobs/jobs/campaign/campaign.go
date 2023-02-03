@@ -15,6 +15,9 @@ func Campaign() {
 	fmt.Println("================= campaign job start ==================")
 
 	defer func() {
+		defer func() {
+			_ = model.NewJob(vars.DBMysql).UpdateLastSchedule(vars.ApiModuleCampaign)
+		}()
 		fmt.Println("================= campaign job end ==================")
 		fmt.Println()
 		fmt.Println()
@@ -51,6 +54,9 @@ func CampaignManual(day time.Time, pauseRule int64) {
 	fmt.Println()
 	fmt.Println("================= campaign job start ==================")
 	defer func() {
+		defer func() {
+			_ = model.NewJob(vars.DBMysql).UpdateLastSchedule(vars.ApiModuleCampaign)
+		}()
 		fmt.Println("================= campaign job end ==================")
 		fmt.Println()
 		fmt.Println()

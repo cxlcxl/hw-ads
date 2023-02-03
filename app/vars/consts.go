@@ -68,7 +68,6 @@ const (
 
 // 调度截止规则：0 调度到当天；-1 停止调度此任务；> 0 为当前日期减{pause_rule}天
 const (
-	JobPauseStop  = -1
 	JobPauseToday = iota
 	JobPauseADayAgo
 	JobPauseTwoDayAgo
@@ -76,6 +75,7 @@ const (
 	JobPauseFourDayAgo
 	JobPauseFiveDayAgo
 	JobPauseAWeekAgo
+	JobPauseStop = -1
 )
 
 var (
@@ -108,7 +108,7 @@ var (
 		AppChannelOther:      "Other",
 	}
 	JobPauseRule = map[int]string{
-		JobPauseStop:        "已停止",
+		JobPauseStop:        "停止任务调度",
 		JobPauseToday:       "到当天",
 		JobPauseADayAgo:     "一天前",
 		JobPauseTwoDayAgo:   "两天前",
@@ -116,5 +116,19 @@ var (
 		JobPauseFourDayAgo:  "四天前",
 		JobPauseFiveDayAgo:  "五天前",
 		JobPauseAWeekAgo:    "一周前",
+	}
+	ApiModules = map[string]string{
+		ApiModuleCountry:         "[Country] 投放报表数据",
+		ApiModuleCountryCollect:  "[CountryCollect] 投放报表数据整理",
+		ApiModuleAds:             "[Ads] 变现报表数据",
+		ApiModuleAdsCollect:      "[AdsCollect] 变现报表数据整理",
+		ApiModuleApp:             "[App] 应用",
+		ApiModuleCampaign:        "[Campaign] 投放任务数据",
+		ApiModuleDictionary:      "[Dictionary] 定向字典数据",
+		ApiModuleRefreshToken:    "[RefreshToken] Token 刷新",
+		ApiModuleTargeting:       "[Targeting] 定向列表",
+		ApiModulePosition:        "[Position] 版位",
+		ApiModulePositionPrice:   "[PositionPrice] 版位底价",
+		ApiModulePositionElement: "[PositionElement] 版位元素",
 	}
 )

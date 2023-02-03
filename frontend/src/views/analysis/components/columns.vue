@@ -9,7 +9,7 @@
 
 <script>
 import DialogPanel from "@/components/DialogPanel"
-import { setReportComprehensiveColumns } from "@/api/report"
+import { setReportColumns } from "@/api/report"
 
 export default {
   name: "SelectColumns",
@@ -18,6 +18,10 @@ export default {
     Columns: {
       required: true,
       type: Array,
+    },
+    Module: {
+      required: true,
+      type: String,
     },
   },
   data() {
@@ -37,7 +41,7 @@ export default {
       this.visible = true
     },
     confirm() {
-      setReportComprehensiveColumns({ columns: this.selects })
+      setReportColumns({ columns: this.selects, module: this.Module })
         .then((res) => {
           this.$emit("confirm", this.selects)
           this.visible = false

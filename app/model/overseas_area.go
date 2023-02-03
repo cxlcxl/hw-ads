@@ -13,6 +13,7 @@ type OverseasArea struct {
 }
 
 var (
+	regionAreaKey    = "db:region:area"
 	regionKey        = "db:regions"
 	areaCountriesKey = "db:area_countries"
 )
@@ -23,6 +24,21 @@ func NewOverseasArea(db *gorm.DB) *OverseasArea {
 
 func (m *OverseasArea) TableName() string {
 	return "overseas_areas"
+}
+
+func (m *OverseasArea) Areas() (areas []*OverseasArea, err error) {
+	err = cache.New(m.DB).Query(regionAreaKey, &areas, func(db *gorm.DB, v interface{}) error {
+		return db.Table(m.TableName()).Find(v).Error
+	})
+	return
+}
+
+func (m *OverseasArea) AreaCreate(area *OverseasArea) (err error) {
+	err = m.Table(m.TableName()).Create(&area).Error
+	if err == nil {
+		_ = cache.New(m.DB).DelQueryRowCache(regionAreaKey, "")
+	}
+	return
 }
 
 type Region struct {

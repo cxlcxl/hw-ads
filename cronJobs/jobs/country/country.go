@@ -12,6 +12,9 @@ import (
 func Country() {
 	fmt.Println("================= country job start ==================")
 
+	defer func() {
+		_ = model.NewJob(vars.DBMysql).UpdateLastSchedule(vars.ApiModuleCountry)
+	}()
 	job, err := model.NewJob(vars.DBMysql).FindOneByApiModule(vars.ApiModuleCountry)
 	if err != nil {
 		log.Fatal("调度模块查询错误：", err)
@@ -50,6 +53,9 @@ func CountryManual(day time.Time, pauseRule int64) {
 	// 手动调度不改脚本自动调度的日期
 	fmt.Println("================= country job start ==================")
 
+	defer func() {
+		_ = model.NewJob(vars.DBMysql).UpdateLastSchedule(vars.ApiModuleCountry)
+	}()
 	now := time.Now()
 	if pauseRule == 0 {
 		if err := countryDoSchedule(day.Format(vars.DateFormat)); err != nil {
@@ -123,6 +129,9 @@ func countryDoSchedule(d string) (err error) {
 }
 
 func ReportCountryCollectManual(day time.Time, _ int64) {
+	defer func() {
+		_ = model.NewJob(vars.DBMysql).UpdateLastSchedule(vars.ApiModuleCountryCollect)
+	}()
 	if err := logic.NewCountryCollectLogic(day.Format(vars.DateFormat)).CountryCollect(); err != nil {
 		log.Fatal(err)
 	}

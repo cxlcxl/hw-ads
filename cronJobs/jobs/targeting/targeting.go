@@ -14,6 +14,9 @@ func Targeting() {
 	fmt.Println()
 	fmt.Println("================= Targeting job start ==================")
 
+	defer func() {
+		_ = model.NewJob(vars.DBMysql).UpdateLastSchedule(vars.ApiModuleTargeting)
+	}()
 	if err := logic.NewTargetingLogic().TargetingQuery(); err != nil {
 		log.Fatal(err)
 		return

@@ -51,7 +51,7 @@
         :limit="search.page_size" />
     </el-col>
 
-    <select-columns ref="column" :Columns="reportList.columns" @confirm="confirm" />
+    <select-columns ref="column" :Columns="reportList.columns" @confirm="confirm" module="comprehensive" />
   </el-row>
 </template>
 

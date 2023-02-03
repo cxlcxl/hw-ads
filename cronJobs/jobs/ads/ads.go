@@ -11,7 +11,9 @@ import (
 
 func ReportAds() {
 	fmt.Println("================= Ads job start ==================")
-
+	defer func() {
+		_ = model.NewJob(vars.DBMysql).UpdateLastSchedule(vars.ApiModuleAds)
+	}()
 	job, err := model.NewJob(vars.DBMysql).FindOneByApiModule(vars.ApiModuleAds)
 	if err != nil {
 		log.Fatal("调度模块查询错误：", err)
@@ -49,7 +51,9 @@ func ReportAds() {
 func ReportAdsManual(day time.Time, pauseRule int64) {
 	// 手动调度不改脚本自动调度的日期
 	fmt.Println("================= Ads job start ==================")
-
+	defer func() {
+		_ = model.NewJob(vars.DBMysql).UpdateLastSchedule(vars.ApiModuleAds)
+	}()
 	now := time.Now()
 	if pauseRule == 0 {
 		if err := adsDoSchedule(day.Format(vars.DateFormat)); err != nil {
@@ -123,6 +127,9 @@ func adsDoSchedule(d string) (err error) {
 }
 
 func ReportAdsCollectManual(day time.Time, _ int64) {
+	defer func() {
+		_ = model.NewJob(vars.DBMysql).UpdateLastSchedule(vars.ApiModuleAdsCollect)
+	}()
 	if err := logic.NewAdsCollectLogic(day.Format(vars.DateFormat)).AdsCollect(); err != nil {
 		log.Fatal(err)
 	}

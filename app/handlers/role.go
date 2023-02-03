@@ -1,4 +1,4 @@
-package h_rbac
+package handlers
 
 import (
 	"bs.mobgi.cc/app/model"

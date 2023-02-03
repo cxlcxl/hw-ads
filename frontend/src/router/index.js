@@ -5,9 +5,10 @@ Vue.use(Router);
 
 import Layout from "@/layout";
 import RBACRouter from "./modules/rbac-manage";
-import AccountRouter from "./modules/account";
+import OthersRouter from "./modules/others";
 import MarketingRouter from "./modules/marketing";
 import AnalysisRouter from "./modules/analysis";
+import SettingsRouter from "./modules/settings";
 
 export const constantRoutes = [
   {
@@ -102,8 +103,9 @@ export const constantRoutes = [
 export const asyncRoutes = [
   AnalysisRouter,
   MarketingRouter,
-  AccountRouter,
+  OthersRouter,
   RBACRouter,
+  SettingsRouter,
   { path: "*", redirect: "/404", hidden: true },
 ];
 

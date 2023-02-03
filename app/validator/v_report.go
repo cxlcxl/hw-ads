@@ -10,10 +10,12 @@ import (
 func fillUser(ctx *gin.Context, p interface{}) error {
 	u, _ := ctx.Get(vars.LoginUserKey)
 	switch p.(type) {
-	case *v_data.VReportComprehensiveColumn:
-		p.(*v_data.VReportComprehensiveColumn).User = u.(*vars.LoginUser)
 	case *v_data.VReportComprehensive:
 		p.(*v_data.VReportComprehensive).User = u.(*vars.LoginUser)
+	case *v_data.VReportColumn:
+		p.(*v_data.VReportColumn).User = u.(*vars.LoginUser)
+	case *v_data.VReportAds:
+		p.(*v_data.VReportAds).User = u.(*vars.LoginUser)
 	default:
 	}
 	return nil
@@ -24,7 +26,12 @@ func (v BsValidator) VReportComprehensive(ctx *gin.Context) {
 	bindData(ctx, &params, (&handlers.Report{}).Comprehensive, fillUser)
 }
 
-func (v BsValidator) VReportComprehensiveColumn(ctx *gin.Context) {
-	var params v_data.VReportComprehensiveColumn
-	bindData(ctx, &params, (&handlers.Report{}).ComprehensiveColumn, fillUser)
+func (v BsValidator) VReportAds(ctx *gin.Context) {
+	var params v_data.VReportAds
+	bindData(ctx, &params, (&handlers.Report{}).Ads, fillUser)
+}
+
+func (v BsValidator) VReportColumn(ctx *gin.Context) {
+	var params v_data.VReportColumn
+	bindData(ctx, &params, (&handlers.Report{}).Column, fillUser)
 }

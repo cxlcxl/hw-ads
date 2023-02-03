@@ -26,7 +26,7 @@ func ReportComprehensive(params *v_data.VReportComprehensive) (data []*Comprehen
 	}
 	// 2. 汇总变现报表数据
 	appIds := adsWhere(params, markets)
-	var _ads []*model.Comprehensive
+	var _ads []*model.Ads
 	groups := make([]string, 0)
 	for _, dimension := range params.Dimensions {
 		if dimension != "account_id" {
@@ -66,70 +66,14 @@ func marketColumns(dimensions []string) []string {
 	return rs
 }
 
-func adsColumns(dimensions []string) []string {
-	rs := append(ComprehensiveAdsSQLColumnsMap, "stat_day")
-	if utils.InArray("account_id", dimensions) {
-		rs = append(rs, "account_id")
-	} else {
-		rs = append(rs, "0 as account_id")
-	}
-	if utils.InArray("app_id", dimensions) {
-		rs = append(rs, "app_id")
-	}
-	if utils.InArray("country", dimensions) {
-		rs = append(rs, "country")
-	}
-	return rs
-}
-
-func adsWhere(params *v_data.VReportComprehensive, markets []*model.ReportMarketCollect) (appIds []string) {
-	if utils.InArray("app_id", params.Dimensions) {
-		tmp := make(map[string]struct{})
-		for _, market := range markets {
-			if _, ok := tmp[market.AppId]; ok {
-				continue
-			}
-			tmp[market.AppId] = struct{}{}
-			appIds = append(appIds, market.AppId)
-		}
-	}
-	return
-}
-
-func accountMap() map[int64]string {
-	rs := make(map[int64]string)
-	accounts, err := model.NewAct(vars.DBMysql).AllAccounts()
-	if err != nil {
-		return rs
-	}
-	for _, account := range accounts {
-		if account.AccountType == vars.AccountTypeMarket {
-			rs[account.Id] = account.AccountName
-		}
-	}
-	return rs
-}
-
-func regionCountryMap() map[string]string {
-	rs := make(map[string]string)
-	areas, err := model.NewOverseasArea(vars.DBMysql).AreaCountries()
-	if err != nil {
-		return rs
-	}
-	for _, area := range areas {
-		rs[area.CCode] = area.CName
-	}
-	return rs
-}
-
 func formatComprehensiveData(
-	params *v_data.VReportComprehensive, markets []*model.ReportMarketCollect, _ads []*model.Comprehensive,
+	params *v_data.VReportComprehensive, markets []*model.ReportMarketCollect, _ads []*model.Ads,
 ) (data []*ComprehensiveReport, err error) {
 	adsMap := adsFormat(_ads)
 	// 3.1 检查是否需要填充账户名称，需要则填充
 	_accountMap := make(map[int64]string)
 	if utils.InArray("account_id", params.Dimensions) {
-		_accountMap = accountMap()
+		_accountMap = accountMap(vars.AccountTypeMarket)
 	}
 	// 3.2 检查是否需要填充国家地区，需要则填充
 	areaMap := make(map[string]string)
@@ -141,7 +85,7 @@ func formatComprehensiveData(
 		unique := fmt.Sprintf("_%s_%s_%d_%s_", day, market.AppId, market.AccountId, market.Country)
 		ads, ok := adsMap[unique]
 		if !ok {
-			ads = &model.Comprehensive{}
+			ads = &model.Ads{}
 		}
 		var roi float64
 		if market.Cost == 0 {
@@ -194,8 +138,8 @@ func formatComprehensiveData(
 	return
 }
 
-func adsFormat(_ads []*model.Comprehensive) map[string]*model.Comprehensive {
-	rs := make(map[string]*model.Comprehensive)
+func adsFormat(_ads []*model.Ads) map[string]*model.Ads {
+	rs := make(map[string]*model.Ads)
 	for _, ad := range _ads {
 		unique := fmt.Sprintf("_%s_%s_%d_%s_", ad.StatDay.Format(vars.DateFormat), ad.AppId, ad.AccountId, ad.Country)
 		rs[unique] = ad
@@ -268,7 +212,7 @@ func calculateMarketingRateCost(market *model.ReportMarketCollect) {
 	}
 }
 
-func calculateMediationRateEarnings(ads *model.Comprehensive) {
+func calculateMediationRateEarnings(ads *model.Ads) {
 	if ads.AdRequests == 0 {
 		ads.AdRequestsMatchRate = 0
 	} else {
@@ -288,20 +232,6 @@ func calculateMediationRateEarnings(ads *model.Comprehensive) {
 		ads.ECpm = getRate(ads.Earnings*1000, ads.ShowCount, 4)
 		ads.ClickThroughRate = getRate(float64(ads.ClickCount)*100, ads.ShowCount, 2)
 	}
-}
-
-func formatCountries(countries [][]string) []string {
-	rs := make([]string, 0)
-	if len(countries) == 0 {
-		return rs
-	}
-	for _, country := range countries {
-		if len(country) != 2 {
-			continue
-		}
-		rs = append(rs, country[1])
-	}
-	return rs
 }
 
 func ReportComprehensiveColumns(columns, dimensions []string) (rs []*ReportColumn) {

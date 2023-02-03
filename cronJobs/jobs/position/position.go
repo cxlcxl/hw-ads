@@ -14,6 +14,9 @@ func Position() {
 	fmt.Println()
 	fmt.Println("================= Position job start ==================")
 
+	defer func() {
+		_ = model.NewJob(vars.DBMysql).UpdateLastSchedule(vars.ApiModulePosition)
+	}()
 	if err := logic.NewPositionLogic().PositionQuery(); err != nil {
 		log.Fatal(err)
 		return
@@ -36,6 +39,9 @@ func Price() {
 	fmt.Println()
 	fmt.Println("================= PositionPrice job start ==================")
 
+	defer func() {
+		_ = model.NewJob(vars.DBMysql).UpdateLastSchedule(vars.ApiModulePositionPrice)
+	}()
 	if err := logic.NewPositionPriceLogic().PriceQuery(); err != nil {
 		log.Fatal(err)
 		return
@@ -60,6 +66,9 @@ func Element() {
 	fmt.Println()
 	fmt.Println("================= PositionElement job start ==================")
 
+	defer func() {
+		_ = model.NewJob(vars.DBMysql).UpdateLastSchedule(vars.ApiModulePositionElement)
+	}()
 	if err := logic.NewPositionElementLogic().ElementQuery(); err != nil {
 		log.Fatal(err)
 		return

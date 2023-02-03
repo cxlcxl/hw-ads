@@ -8,9 +8,17 @@ export function reportComprehensive(data) {
   });
 }
 
-export function setReportComprehensiveColumns(data) {
+export function reportAds(data) {
   return request({
-    url: "/report/comprehensive/column",
+    url: "/report/ads",
+    method: "post",
+    data,
+  });
+}
+
+export function setReportColumns(data) {
+  return request({
+    url: "/report/column",
     method: "post",
     data,
   });

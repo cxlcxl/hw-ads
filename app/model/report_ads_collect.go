@@ -60,7 +60,7 @@ func (m *ReportAdsCollect) BatchInsert(collects []*ReportAdsCollect, collectActs
 }
 
 // AnalysisComprehensive 综合报表投放数据部分
-func (m *ReportAdsCollect) AnalysisComprehensive(appIds, dates, countries, selects, groups []string) (markets []*Comprehensive, err error) {
+func (m *ReportAdsCollect) AnalysisComprehensive(appIds, dates, countries, selects, groups []string) (markets []*Ads, err error) {
 	query := m.Table(m.TableName()).Select(selects).
 		Where("stat_day between ? and ?", dates[0], dates[1]).
 		Group("stat_day") // 变现数据以应用将数据匹配到投放数据上，所以应用必需分组

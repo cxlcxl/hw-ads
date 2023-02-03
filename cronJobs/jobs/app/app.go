@@ -11,7 +11,9 @@ import (
 
 func ReportApp() {
 	fmt.Println("================= App job start ==================")
-
+	defer func() {
+		_ = model.NewJob(vars.DBMysql).UpdateLastSchedule(vars.ApiModuleApp)
+	}()
 	if err := logic.NewAppQueryLogic().AppQuery(); err != nil {
 		log.Fatal(err)
 		return

@@ -13,6 +13,7 @@ import (
 
 var (
 	comprehensiveColumnKeyPrefix = "comprehensive"
+	adsColumnKeyPrefix           = "ads"
 )
 
 type Report struct{}
@@ -37,9 +38,29 @@ func (h *Report) Comprehensive(ctx *gin.Context, p interface{}) {
 	})
 }
 
-func (h *Report) ComprehensiveColumn(ctx *gin.Context, p interface{}) {
-	params := p.(*v_data.VReportComprehensiveColumn)
-	key := fmt.Sprintf("%s_%d", comprehensiveColumnKeyPrefix, params.User.UserId)
+func (h *Report) Ads(ctx *gin.Context, p interface{}) {
+	params := p.(*v_data.VReportAds)
+	list, total, err := servicereport.ReportAds(params)
+	if err != nil {
+		response.Fail(ctx, "请求失败："+err.Error())
+		return
+	}
+	if len(params.ShowColumns) == 0 {
+		key := fmt.Sprintf("%s_%d", adsColumnKeyPrefix, params.User.UserId)
+		if column, err := model.NewReportColumn(vars.DBMysql).GetColumn(key); err == nil && column.Columns != "" {
+			params.ShowColumns = strings.Split(column.Columns, ",")
+		}
+	}
+	response.Success(ctx, gin.H{
+		"total":   total,
+		"list":    list,
+		"columns": servicereport.ReportAdsColumns(params.ShowColumns, params.Dimensions),
+	})
+}
+
+func (h *Report) Column(ctx *gin.Context, p interface{}) {
+	params := p.(*v_data.VReportColumn)
+	key := fmt.Sprintf("%s_%d", params.Module, params.User.UserId)
 	val := map[string]interface{}{"columns": strings.Join(params.Columns, ",")}
 	if err := model.NewReportColumn(vars.DBMysql).UpdateColumn(key, val); err != nil {
 		response.Fail(ctx, "设置失败："+err.Error())

@@ -69,3 +69,30 @@ func (m *ReportAdsSource) CollectSources(day string) (realizations []*ReportAdsS
 		Group("stat_day,app_id,country").Find(&realizations).Error
 	return
 }
+
+// AnalysisAds 变现报表数据
+func (m *ReportAdsSource) AnalysisAds(
+	accountIds []int64, appIds, dates, countries, selects, groups []string, offset, limit int,
+) (ads []*Ads, total int64, err error) {
+	query := m.Table(m.TableName()).Select(selects).
+		Where("stat_day between ? and ?", dates[0], dates[1]).
+		Group("stat_day") // 变现数据以应用将数据匹配到投放数据上，所以应用必需分组
+	if len(appIds) > 0 {
+		query = query.Where("app_id in ?", appIds)
+	}
+	if len(countries) > 0 {
+		query = query.Where("country in ?", countries)
+	}
+	if len(accountIds) > 0 {
+		query = query.Where("ads_account_id in ?", accountIds)
+	}
+
+	for _, group := range groups {
+		query = query.Group(group)
+	}
+	if err = query.Count(&total).Error; err != nil {
+		return
+	}
+	err = query.Offset(offset).Limit(limit).Order("stat_day desc").Find(&ads).Error
+	return
+}

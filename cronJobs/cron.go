@@ -39,7 +39,7 @@ func main() {
 			log.Fatal("调度模块不存在：", moduleName)
 			return
 		}
-		parse, err := time.Parse("2006-01-02", day)
+		parse, err := time.Parse(vars.DateFormat, day)
 		if err != nil {
 			log.Fatal(fmt.Sprintf("日期格式错误：%s, 正确格式: %s", day, "2022-10-01"))
 			return

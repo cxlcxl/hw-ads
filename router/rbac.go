@@ -1,21 +1,21 @@
 package router
 
 import (
-	"bs.mobgi.cc/app/handlers/h_rbac"
+	"bs.mobgi.cc/app/handlers"
 	"bs.mobgi.cc/app/middleware"
 	"bs.mobgi.cc/app/validator"
 	"github.com/gin-gonic/gin"
 )
 
 func initRbacApis(r *gin.RouterGroup) {
-	r.GET("/sso-login", (&h_rbac.Sso{}).SsoLoginPath)
+	r.GET("/sso-login", (&handlers.Sso{}).SsoLoginPath)
 	r.POST("/login", (validator.BsValidator{}).VLogin) //用户登陆
 	r.POST("/sso-login", (validator.BsValidator{}).VSsoLogin)
 
 	r.Use(middleware.CheckUserLogin())
 	{
-		r.GET("/profile", (&h_rbac.User{}).Profile) //个人信息
-		r.POST("/logout", (&h_rbac.User{}).Logout)
+		r.GET("/profile", (&handlers.User{}).Profile) //个人信息
+		r.POST("/logout", (&handlers.User{}).Logout)
 
 		u := r.Group("/user")
 		{

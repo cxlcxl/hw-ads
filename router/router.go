@@ -2,6 +2,7 @@ package router
 
 import (
 	"bs.mobgi.cc/app/handlers"
+	"bs.mobgi.cc/app/validator"
 	"bs.mobgi.cc/app/vars"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -22,8 +23,16 @@ func Router() error {
 
 		initMarketingApis(group)
 		initReportApis(group)
+		initSettingsApis(group)
 
-		group.GET("/regions", (&handlers.Common{}).Regions)
+		group.GET("/regions", (&handlers.Region{}).Regions)
+		g := group.Group("/region")
+		{
+			g.GET("/area", (&handlers.Region{}).Areas)
+			g.GET("/country", (validator.BsValidator{}).VCountries)
+			g.POST("", (validator.BsValidator{}).VRegionCreate)
+			g.POST("/area-set", (validator.BsValidator{}).VRegionAreaSet)
+		}
 	}
 
 	return r.Run(vars.YmlConfig.GetString("HttpServer.Port"))

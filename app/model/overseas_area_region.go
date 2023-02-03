@@ -17,3 +17,13 @@ func NewOverseasAreaRegion(db *gorm.DB) *OverseasAreaRegion {
 func (m *OverseasAreaRegion) TableName() string {
 	return "overseas_area_regions"
 }
+
+func (m *OverseasAreaRegion) FindCCodesByAreaId(areaId int64) (codes []string, err error) {
+	err = m.Table(m.TableName()).Where("area_id = ?", areaId).Select("c_code").Find(&codes).Error
+	return
+}
+
+func (m *OverseasAreaRegion) AreaSet(v *OverseasAreaRegion) (err error) {
+	err = m.Table(m.TableName()).Create(&v).Error
+	return
+}

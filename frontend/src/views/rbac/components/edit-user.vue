@@ -1,6 +1,6 @@
 <template>
-  <dialog-panel title="用户修改" confirm-text="保存" :visible="visible" @cancel="cancel" @confirm="save" :confirm-loading="loading">
-    <el-form :model="userForm" ref="userForm" label-width="120px" size="small" :rules="userRules">
+  <dialog-panel title="用户修改" confirm-text="保存" :visible="visible" @cancel="cancel" @confirm="save" :confirm-loading="loading" width="388px">
+    <el-form :model="userForm" ref="userForm" label-width="90px" size="small" :rules="userRules">
       <el-form-item label="用户名称" prop="username">
         <el-input v-model="userForm.username" placeholder="请填写用户名" />
       </el-form-item>

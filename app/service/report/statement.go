@@ -1,5 +1,12 @@
 package servicereport
 
+import (
+	"bs.mobgi.cc/app/model"
+	"bs.mobgi.cc/app/utils"
+	"bs.mobgi.cc/app/validator/v_data"
+	"bs.mobgi.cc/app/vars"
+)
+
 type ReportColumn struct {
 	Key    string `json:"key"`
 	Label  string `json:"label"`
@@ -53,6 +60,27 @@ type ComprehensiveReport struct {
 	ARPU                 float64 `json:"arpu"`
 }
 
+// AdsReport 最终综合报表页展示的数据字段「需要和 AdsColumns 的 key 一致」
+type AdsReport struct {
+	StatDay           string  `json:"stat_day"`
+	Country           string  `json:"country"`
+	AccountId         int64   `json:"account_id"`
+	AppId             string  `json:"app_id"`
+	AppName           string  `json:"app_name"`
+	AccountName       string  `json:"account_name"`
+	RegionCountry     string  `json:"region_country"`
+	AdRequests        int64   `json:"ad_requests"`             // 到达服务器的请求数量
+	MatchedAdRequests int64   `json:"matched_ad_requests"`     // 匹配到的到达广告请求数量
+	ShowCount         int64   `json:"show_count"`              // 展示数
+	ClickCount        int64   `json:"click_count"`             // 点击数
+	RequestsMatchRate float64 `json:"requests_match_rate"`     //填充率
+	RequestsShowRate  float64 `json:"requests_show_rate"`      // 请求展示率',
+	ClickThroughRate  float64 `json:"click_through_rate"`      // 点击率',
+	Earnings          float64 `json:"earnings"`                // 收入',
+	ECpm              float64 `json:"ecpm" gorm:"column:ecpm"` // ECPM',
+	ARPU              float64 `json:"arpu"`
+}
+
 var (
 	// ComprehensiveColumns 综合报表展示字段
 	ComprehensiveColumns = []*ReportColumn{
@@ -80,7 +108,20 @@ var (
 		{Key: "ad_click_count", Label: "点击量(变现)", Align: "right", Min: 100},
 		{Key: "ad_requests_show_rate", Label: "展示率(变现)", Align: "right", Min: 100, Suffix: "%"},
 		{Key: "ad_click_through_rate", Label: "点击率(变现)", Align: "right", Min: 100, Suffix: "%"},
-		{Key: "arpu", Label: "ARPU(变现:$)", Align: "right", Min: 100},
+		//{Key: "arpu", Label: "ARPU(变现:$)", Align: "right", Min: 100},
+	}
+	// AdsColumns 变现报表展示字段
+	AdsColumns = []*ReportColumn{
+		{Key: "earnings", Label: "收入($)", Align: "right", Min: 100},
+		{Key: "ecpm", Label: "eCPM(变现:$)", Align: "right", Min: 100},
+		{Key: "ad_requests", Label: "请求(变现)", Align: "right", Min: 100},
+		{Key: "matched_ad_requests", Label: "填充(变现)", Align: "right", Min: 100},
+		{Key: "requests_match_rate", Label: "填充率(变现)", Align: "right", Min: 100, Suffix: "%"},
+		{Key: "show_count", Label: "曝光量(变现)", Align: "right", Min: 100},
+		{Key: "click_count", Label: "点击量(变现)", Align: "right", Min: 100},
+		{Key: "requests_show_rate", Label: "展示率(变现)", Align: "right", Min: 100, Suffix: "%"},
+		{Key: "click_through_rate", Label: "点击率(变现)", Align: "right", Min: 100, Suffix: "%"},
+		//{Key: "arpu", Label: "ARPU(变现:$)", Align: "right", Min: 100},
 	}
 	AccountColumn = &ReportColumn{Key: "account_name", Label: "账户", Align: "left", Min: 120, Fix: true, Show: true}
 	AppColumn     = &ReportColumn{Key: "app_name", Label: "应用", Align: "left", Min: 130, Fix: true, Show: true}
@@ -98,8 +139,8 @@ var (
 		"sum(`three_retain_count`) as `three_retain_count`",
 		"sum(`seven_retain_count`) as `seven_retain_count`",
 	}
-	// ComprehensiveAdsSQLColumnsMap 综合报表变现查询汇总字段「as 需要和数据库模型字段一直」
-	ComprehensiveAdsSQLColumnsMap = []string{
+	// AdsSQLColumnsMap 综合报表变现查询汇总字段「as 需要和数据库模型字段一直」
+	AdsSQLColumnsMap = []string{
 		"round(sum(`earnings`), 3) as `earnings`",
 		"sum(`ad_requests`) as `ad_requests`",
 		"sum(`matched_ad_requests`) as `matched_ad_requests`",
@@ -107,3 +148,73 @@ var (
 		"sum(`click_count`) as `click_count`",
 	}
 )
+
+func formatCountries(countries [][]string) []string {
+	rs := make([]string, 0)
+	if len(countries) == 0 {
+		return rs
+	}
+	for _, country := range countries {
+		if len(country) != 2 {
+			continue
+		}
+		rs = append(rs, country[1])
+	}
+	return rs
+}
+
+func adsWhere(params *v_data.VReportComprehensive, markets []*model.ReportMarketCollect) (appIds []string) {
+	if utils.InArray("app_id", params.Dimensions) {
+		tmp := make(map[string]struct{})
+		for _, market := range markets {
+			if _, ok := tmp[market.AppId]; ok {
+				continue
+			}
+			tmp[market.AppId] = struct{}{}
+			appIds = append(appIds, market.AppId)
+		}
+	}
+	return
+}
+
+func adsColumns(dimensions []string) []string {
+	rs := append(AdsSQLColumnsMap, "stat_day")
+	if utils.InArray("account_id", dimensions) {
+		rs = append(rs, "account_id")
+	} else {
+		rs = append(rs, "0 as account_id")
+	}
+	if utils.InArray("app_id", dimensions) {
+		rs = append(rs, "app_id")
+	}
+	if utils.InArray("country", dimensions) {
+		rs = append(rs, "country")
+	}
+	return rs
+}
+
+func accountMap(accountType int) map[int64]string {
+	rs := make(map[int64]string)
+	accounts, err := model.NewAct(vars.DBMysql).AllAccounts()
+	if err != nil {
+		return rs
+	}
+	for _, account := range accounts {
+		if account.AccountType == int64(accountType) {
+			rs[account.Id] = account.AccountName
+		}
+	}
+	return rs
+}
+
+func regionCountryMap() map[string]string {
+	rs := make(map[string]string)
+	areas, err := model.NewOverseasArea(vars.DBMysql).AreaCountries()
+	if err != nil {
+		return rs
+	}
+	for _, area := range areas {
+		rs[area.CCode] = area.CName
+	}
+	return rs
+}
