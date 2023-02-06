@@ -98,8 +98,8 @@ func formatComprehensiveData(
 			roi = utils.Round(ads.Earnings/market.Cost*100, 2)
 		}
 
-		calculateMarketingRateCost(market)
-		calculateMediationRateEarnings(ads)
+		cpm, cpd, cpi, cpa, cpc, ctr, cdr, dar, rc := calculateMarketingRateCost(market)
+		armr, arsr, ctr, ecpm := calculateMediationRateEarnings(ads)
 		data = append(data, &ComprehensiveReport{
 			StatDay:              day,
 			Country:              market.Country,
@@ -115,24 +115,24 @@ func formatComprehensiveData(
 			DownloadCount:        market.DownloadCount,
 			InstallCount:         market.InstallCount,
 			ActivateCount:        market.ActivateCount,
-			Cpm:                  market.Cpm,
-			Cpd:                  market.Cpd,
-			Cpi:                  market.Cpi,
-			Cpa:                  market.Cpa,
-			Cpc:                  market.Cpc,
-			ClickThroughRate:     market.ClickThroughRate,
-			ClickDownloadRate:    market.ClickDownloadRate,
-			DownloadActivateRate: market.DownloadActivateRate,
-			RetainCost:           market.RetainCost,
+			Cpm:                  cpm,
+			Cpd:                  cpd,
+			Cpi:                  cpi,
+			Cpa:                  cpa,
+			Cpc:                  cpc,
+			ClickThroughRate:     ctr,
+			ClickDownloadRate:    cdr,
+			DownloadActivateRate: dar,
+			RetainCost:           rc,
 			AdRequests:           ads.AdRequests,
 			MatchedAdRequests:    ads.MatchedAdRequests,
 			AdShowCount:          ads.ShowCount,
 			AdClickCount:         ads.ClickCount,
 			Earnings:             utils.Round(ads.Earnings, 3),
-			ECpm:                 ads.ECpm,
-			AdRequestsMatchRate:  ads.AdRequestsMatchRate,
-			AdRequestsShowRate:   ads.AdRequestsShowRate,
-			AdClickThroughRate:   ads.ClickThroughRate,
+			ECpm:                 ecpm,
+			AdRequestsMatchRate:  armr,
+			AdRequestsShowRate:   arsr,
+			AdClickThroughRate:   ctr,
 		})
 	}
 	return
@@ -154,84 +154,85 @@ func getRate(a float64, b, c int64) float64 {
 	return utils.Round(a/float64(b), int(c))
 }
 
-func calculateMarketingRateCost(market *model.ReportMarketCollect) {
+func calculateMarketingRateCost(market *model.ReportMarketCollect) (cpm, cpd, cpi, cpa, cpc, ctr, cdr, dar, rc float64) {
 	// 点击率
 	if market.ShowCount == 0 {
-		market.ClickThroughRate = 0
+		ctr = 0
 	} else {
-		market.ClickThroughRate = getRate(float64(market.ClickCount)*100, market.ShowCount, 2)
+		ctr = getRate(float64(market.ClickCount)*100, market.ShowCount, 2)
 	}
-
 	// 点击下载率
 	if market.ClickCount == 0 {
-		market.ClickDownloadRate = 0
+		cdr = 0
 	} else {
-		market.ClickDownloadRate = getRate(float64(market.DownloadCount)*100, market.ClickCount, 2)
+		cdr = getRate(float64(market.DownloadCount)*100, market.ClickCount, 2)
 	}
 	// 下载激活率
 	if market.DownloadCount == 0 {
-		market.DownloadActivateRate = 0
+		dar = 0
 	} else {
-		market.DownloadActivateRate = getRate(float64(market.ActivateCount)*100, market.DownloadCount, 2)
+		dar = getRate(float64(market.ActivateCount)*100, market.DownloadCount, 2)
 	}
 
 	if market.ShowCount == 0 {
-		market.Cpm = 0
+		cpm = 0
 	} else {
-		market.Cpm = getRate(market.Cost, market.ShowCount, 6)
+		cpm = getRate(market.Cost, market.ShowCount, 6)
 	}
 
 	if market.ClickCount == 0 {
-		market.Cpc = 0
+		cpc = 0
 	} else {
-		market.Cpc = getRate(market.Cost, market.ClickCount, 6)
+		cpc = getRate(market.Cost, market.ClickCount, 6)
 	}
 
 	if market.DownloadCount == 0 {
-		market.Cpd = 0
+		cpd = 0
 	} else {
-		market.Cpd = getRate(market.Cost, market.DownloadCount, 6)
+		cpd = getRate(market.Cost, market.DownloadCount, 6)
 	}
 
 	if market.InstallCount == 0 {
-		market.Cpi = 0
+		cpi = 0
 	} else {
-		market.Cpi = getRate(market.Cost, market.InstallCount, 6)
+		cpi = getRate(market.Cost, market.InstallCount, 6)
 	}
 
 	if market.ActivateCount == 0 {
-		market.Cpa = 0
+		cpa = 0
 	} else {
-		market.Cpa = getRate(market.Cost, market.ActivateCount, 6)
+		cpa = getRate(market.Cost, market.ActivateCount, 6)
 	}
 
 	if market.RetainCount == 0 {
-		market.RetainCost = 0
+		rc = 0
 	} else {
-		market.RetainCost = getRate(market.Cost, market.RetainCount, 6)
+		rc = getRate(market.Cost, market.RetainCount, 6)
 	}
+	return
 }
 
-func calculateMediationRateEarnings(ads *model.Ads) {
+func calculateMediationRateEarnings(ads *model.Ads) (armr, arsr, ctr, ecpm float64) {
 	if ads.AdRequests == 0 {
-		ads.AdRequestsMatchRate = 0
+		armr = 0
 	} else {
-		ads.AdRequestsMatchRate = getRate(float64(ads.MatchedAdRequests)*100, ads.AdRequests, 2)
+		armr = getRate(float64(ads.MatchedAdRequests)*100, ads.AdRequests, 2)
 	}
 
 	if ads.MatchedAdRequests == 0 {
-		ads.AdRequestsShowRate = 0
+		arsr = 0
 	} else {
-		ads.AdRequestsShowRate = getRate(float64(ads.ShowCount)*100, ads.MatchedAdRequests, 2)
+		arsr = getRate(float64(ads.ShowCount)*100, ads.MatchedAdRequests, 2)
 	}
 
 	if ads.ShowCount == 0 {
-		ads.ClickThroughRate = 0
-		ads.ECpm = 0
+		ctr = 0
+		ecpm = 0
 	} else {
-		ads.ECpm = getRate(ads.Earnings*1000, ads.ShowCount, 4)
-		ads.ClickThroughRate = getRate(float64(ads.ClickCount)*100, ads.ShowCount, 2)
+		ecpm = getRate(ads.Earnings*1000, ads.ShowCount, 4)
+		ctr = getRate(float64(ads.ClickCount)*100, ads.ShowCount, 2)
 	}
+	return
 }
 
 func ReportComprehensiveColumns(columns, dimensions []string) (rs []*ReportColumn) {

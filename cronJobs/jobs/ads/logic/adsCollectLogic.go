@@ -41,38 +41,30 @@ func (l *AdsCollectLogic) AdsCollect() (err error) {
 			for _, id := range actIds {
 				collectActs = append(collectActs, &model.ReportAdsCollectAct{
 					Ads: model.Ads{
-						StatDay:             source.StatDay,
-						Country:             source.Country,
-						AdsAccountId:        source.AccountId,
-						AccountId:           id,
-						AppId:               source.AppId,
-						AdRequests:          source.AdRequests,
-						MatchedAdRequests:   source.MatchedAdRequests,
-						ShowCount:           source.ShowCount,
-						ClickCount:          source.ClickCount,
-						Earnings:            source.Earnings,
-						AdRequestsMatchRate: getRate(float64(source.MatchedAdRequests), source.AdRequests, 4),
-						AdRequestsShowRate:  getRate(float64(source.ShowCount), source.MatchedAdRequests, 4),
-						ClickThroughRate:    getRate(float64(source.ClickCount), source.ShowCount, 4),
-						ECpm:                getRate(source.Earnings*1000, source.ShowCount, 4),
+						StatDay:           source.StatDay,
+						Country:           source.Country,
+						AdsAccountId:      source.AccountId,
+						AccountId:         id,
+						AppId:             source.AppId,
+						AdRequests:        source.AdRequests,
+						MatchedAdRequests: source.MatchedAdRequests,
+						ShowCount:         source.ShowCount,
+						ClickCount:        source.ClickCount,
+						Earnings:          source.Earnings,
 					},
 				})
 			}
 		}
 		collects = append(collects, &model.ReportAdsCollect{
-			StatDay:             source.StatDay,
-			Country:             source.Country,
-			AppId:               source.AppId,
-			AdsAccountId:        source.AccountId,
-			AdRequests:          source.AdRequests,
-			MatchedAdRequests:   source.MatchedAdRequests,
-			ShowCount:           source.ShowCount,
-			ClickCount:          source.ClickCount,
-			Earnings:            source.Earnings,
-			AdRequestsMatchRate: getRate(float64(source.MatchedAdRequests), source.AdRequests, 4),
-			AdRequestsShowRate:  getRate(float64(source.ShowCount), source.MatchedAdRequests, 4),
-			ClickThroughRate:    getRate(float64(source.ClickCount), source.ShowCount, 4),
-			ECpm:                getRate(source.Earnings*1000, source.ShowCount, 4),
+			StatDay:           source.StatDay,
+			Country:           source.Country,
+			AppId:             source.AppId,
+			AdsAccountId:      source.AccountId,
+			AdRequests:        source.AdRequests,
+			MatchedAdRequests: source.MatchedAdRequests,
+			ShowCount:         source.ShowCount,
+			ClickCount:        source.ClickCount,
+			Earnings:          source.Earnings,
 		})
 
 	}
