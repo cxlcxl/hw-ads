@@ -220,28 +220,20 @@ func (l *AdsQueryLogic) saveAdsData(accountId int64, data []*AdsList) (err error
 			if err != nil {
 				day, _ = time.Parse("2006-01-02 15", l.statDay+" 00")
 			}
-			eCpm := 0.0
-			if d.ShowCount > 0 {
-				eCpm = getRate(d.Earnings*1000, d.ShowCount, 6)
-			}
 			m[i] = &model.ReportAdsSource{
-				StatDay:             day,
-				StatHour:            uint8(day.Hour()),
-				Country:             d.Country,
-				AccountId:           accountId,
-				AppId:               "C" + d.AppId,
-				AdType:              d.AdType,
-				PlacementId:         d.PlacementId,
-				AdRequests:          d.ReachedAdRequests,
-				MatchedAdRequests:   d.MatchedReachedAdRequests,
-				ShowCount:           d.ShowCount,
-				ClickCount:          d.ClickCount,
-				AdRequestsMatchRate: d.AdRequestsMatchRate,
-				AdRequestsShowRate:  d.AdRequestsShowRate,
-				ClickThroughRate:    d.ClickThroughRate,
-				Earnings:            d.Earnings,
-				ECpm:                eCpm,
-				Timestamp:           model.Timestamp{CreatedAt: now, UpdatedAt: now},
+				StatDay:           day,
+				StatHour:          uint8(day.Hour()),
+				Country:           d.Country,
+				AccountId:         accountId,
+				AppId:             "C" + d.AppId,
+				AdType:            d.AdType,
+				PlacementId:       d.PlacementId,
+				AdRequests:        d.ReachedAdRequests,
+				MatchedAdRequests: d.MatchedReachedAdRequests,
+				ShowCount:         d.ShowCount,
+				ClickCount:        d.ClickCount,
+				Earnings:          d.Earnings,
+				Timestamp:         model.Timestamp{CreatedAt: now, UpdatedAt: now},
 			}
 		}
 
@@ -271,11 +263,4 @@ func (l *AdsQueryLogic) getClientInfo(accountId int64) (string, string) {
 	} else {
 		return "", ""
 	}
-}
-
-func getRate(a float64, b, c int64) float64 {
-	if b == 0 {
-		return 0
-	}
-	return utils.Round(a/float64(b), int(c))
 }

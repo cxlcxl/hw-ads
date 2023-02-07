@@ -82,7 +82,7 @@ type AdsList struct {
 	MatchedReachedAdRequests int64   `json:"matched_reached_ad_requests"`
 	ShowCount                int64   `json:"show_count"`
 	ClickCount               int64   `json:"click_count"`
-	AdRequestsMatchRate      float64 `json:"ad_requests_match_rate"`
-	AdRequestsShowRate       float64 `json:"ad_requests_show_rate"`
-	ClickThroughRate         float64 `json:"click_through_rate"`
+	//AdRequestsMatchRate      float64 `json:"ad_requests_match_rate"`
+	//AdRequestsShowRate       float64 `json:"ad_requests_show_rate"`
+	//ClickThroughRate         float64 `json:"click_through_rate"`
 }

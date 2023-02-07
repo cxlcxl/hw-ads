@@ -249,7 +249,7 @@ func (l *CountryQueryLogic) matchApp(pkgName string) *app {
 	return &app{appId: "", appName: ""}
 }
 
-func (l *CountryQueryLogic) saveCountryData(accountId int64, data []*CountryList) (err error) {
+func (l *CountryQueryLogic) saveCountryData(accountId int64, data []*Country) (err error) {
 	if len(data) > 0 {
 		m := make([]*model.ReportMarketSource, len(data))
 		now := time.Now()
@@ -260,36 +260,36 @@ func (l *CountryQueryLogic) saveCountryData(accountId int64, data []*CountryList
 			}
 			_app := l.matchApp(d.PackageName)
 			m[i] = &model.ReportMarketSource{
-				StatDay:              day,
-				StatHour:             uint8(day.Hour()),
-				Country:              d.Country,
-				AccountId:            accountId,
-				AppId:                _app.appId,
-				AppName:              _app.appName,
-				PkgName:              d.PackageName,
-				CampaignId:           d.CampaignId,
-				CampaignName:         d.CampaignName,
-				AdgroupId:            d.AdgroupId,
-				AdgroupName:          d.AdgroupName,
-				CreativeId:           d.CreativeId,
-				CreativeName:         d.CreativeName,
-				Cost:                 utils.StringToFloat(d.Cost),
-				ShowCount:            d.ShowCount,
-				ClickCount:           d.ClickCount,
-				DownloadCount:        d.DownloadCount,
-				InstallCount:         d.InstallCount,
-				ActivateCount:        d.ActiveCountNormalized,
-				RetainCount:          d.RetainCountNormalized,
-				ClickThroughRate:     getRate(float64(d.ClickCount), d.ShowCount, 6),
-				ClickDownloadRate:    getRate(float64(d.DownloadCount), d.ClickCount, 6),
-				DownloadActivateRate: getRate(float64(d.ActiveCountNormalized), d.DownloadCount, 6),
-				Cpm:                  utils.StringToFloat(d.Cpm),
-				Cpc:                  utils.StringToFloat(d.Cpc),
-				Cpd:                  utils.StringToFloat(d.Cpd),
-				Cpi:                  utils.StringToFloat(d.Cpi),
-				Cpa:                  utils.StringToFloat(d.Cpa),
-				RetainCost:           utils.StringToFloat(d.RetainCostNormalized),
-				Timestamp:            model.Timestamp{CreatedAt: now, UpdatedAt: now},
+				StatDay:       day,
+				StatHour:      uint8(day.Hour()),
+				Country:       d.Country,
+				AccountId:     accountId,
+				AppId:         _app.appId,
+				AppName:       _app.appName,
+				PkgName:       d.PackageName,
+				CampaignId:    d.CampaignId,
+				CampaignName:  d.CampaignName,
+				AdgroupId:     d.AdgroupId,
+				AdgroupName:   d.AdgroupName,
+				CreativeId:    d.CreativeId,
+				CreativeName:  d.CreativeName,
+				Cost:          utils.StringToFloat(d.Cost),
+				ShowCount:     d.ShowCount,
+				ClickCount:    d.ClickCount,
+				DownloadCount: d.DownloadCount,
+				InstallCount:  d.InstallCount,
+				ActivateCount: d.ActiveCountNormalized,
+				RetainCount:   d.RetainCountNormalized,
+				Cpm:           utils.StringToFloat(d.Cpm),
+				Cpc:           utils.StringToFloat(d.Cpc),
+				Cpd:           utils.StringToFloat(d.Cpd),
+				Cpi:           utils.StringToFloat(d.Cpi),
+				Cpa:           utils.StringToFloat(d.Cpa),
+				RetainCost:    utils.StringToFloat(d.RetainCostNormalized),
+				Timestamp:     model.Timestamp{CreatedAt: now, UpdatedAt: now},
+				//ClickThroughRate:     getRate(float64(d.ClickCount), d.ShowCount, 6),
+				//ClickDownloadRate:    getRate(float64(d.DownloadCount), d.ClickCount, 6),
+				//DownloadActivateRate: getRate(float64(d.ActiveCountNormalized), d.DownloadCount, 6),
 			}
 		}
 

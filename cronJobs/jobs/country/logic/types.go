@@ -53,7 +53,7 @@ type Filtering struct {
 type CountryResponse struct {
 	statements.BaseResponse
 	Data struct {
-		List     []*CountryList   `json:"list"`
+		List     []*Country       `json:"list"`
 		PageInfo statements.Pages `json:"page_info"`
 	} `json:"data"`
 }
@@ -65,7 +65,7 @@ type CountryPagesResponse struct {
 	} `json:"data"`
 }
 
-type CountryList struct {
+type Country struct {
 	StatDatetime          string `json:"stat_datetime"`
 	AdvertiserId          string `json:"advertiser_id"`
 	CampaignId            string `json:"campaign_id"`
@@ -81,32 +81,32 @@ type CountryList struct {
 	Cpc                   string `json:"cpc"`
 	Cpm                   string `json:"thousand_show_cost"`
 	Cost                  string `json:"cost"`
-	DownloadCount         int64  `json:"download_count"`
 	Cpd                   string `json:"download_cost"`
-	InstallCount          int64  `json:"install_count"`
 	Cpi                   string `json:"install_cost"`
-	BrowseCount           int64  `json:"browse_count"`
-	BrowseCost            string `json:"browse_cost"`
-	AppCustomCount        int64  `json:"app_custom_count"`
-	AppCustomCost         string `json:"app_custom_cost"`
-	WebCustomCount        int64  `json:"web_custom_count"`
-	WebCustomCost         string `json:"web_custom_cost"`
-	PlayCount             int64  `json:"play_count"`
-	PlayOverCount         int64  `json:"play_over_count"`
-	ThreeDayRetainCount   int64  `json:"three_day_retain_count"`
-	ThreeDayRetainCost    string `json:"three_day_retain_cost"`
-	ShareCount            int64  `json:"share_count"`
-	ShareCost             string `json:"share_cost"`
-	SevenDayRetainCount   int64  `json:"seven_day_retain_count"`
-	SevenDayRetainCost    string `json:"seven_day_retain_cost"`
-	ActiveCountNormalized int64  `json:"active_count_normalized"`
 	Cpa                   string `json:"active_cost_normalized"`
+	DownloadCount         int64  `json:"download_count"`
+	InstallCount          int64  `json:"install_count"`
+	ActiveCountNormalized int64  `json:"active_count_normalized"`
 	RetainCountNormalized int64  `json:"retain_count_normalized"`
 	RetainCostNormalized  string `json:"retain_cost_normalized"`
-	PayCountNormalized    int64  `json:"pay_count_normalized"`
-	PayCostNormalized     string `json:"pay_cost_normalized"`
-	Iaa                   string `json:"attribution_income_iaa"`
-	ThirtyRoi             string `json:"ad_income_thirty_day_roi"`
-	FifteenRoi            string `json:"ad_income_fifteen_day_roi"`
-	LtvHms                string `json:"ad_income_seven_day_ltv_hms"`
+	//SevenDayRetainCount   int64  `json:"seven_day_retain_count"`
+	//ThreeDayRetainCount   int64  `json:"three_day_retain_count"`
+	//ThreeDayRetainCost    string `json:"three_day_retain_cost"`
+	//SevenDayRetainCost    string `json:"seven_day_retain_cost"`
+	//AppCustomCount        int64  `json:"app_custom_count"`
+	//AppCustomCost         string `json:"app_custom_cost"`
+	//WebCustomCount        int64  `json:"web_custom_count"`
+	//WebCustomCost         string `json:"web_custom_cost"`
+	//PlayCount             int64  `json:"play_count"`
+	//PlayOverCount         int64  `json:"play_over_count"`
+	//BrowseCount           int64  `json:"browse_count"`
+	//BrowseCost            string `json:"browse_cost"`
+	//ShareCount            int64  `json:"share_count"`
+	//ShareCost             string `json:"share_cost"`
+	//PayCountNormalized    int64  `json:"pay_count_normalized"`
+	//PayCostNormalized     string `json:"pay_cost_normalized"`
+	//Iaa                   string `json:"attribution_income_iaa"`
+	//ThirtyRoi             string `json:"ad_income_thirty_day_roi"`
+	//FifteenRoi            string `json:"ad_income_fifteen_day_roi"`
+	//LtvHms                string `json:"ad_income_seven_day_ltv_hms"`
 }

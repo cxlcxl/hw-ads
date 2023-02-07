@@ -33,7 +33,7 @@ func ReportAds(params *v_data.VReportAds) (data []*AdsReport, total int64, err e
 }
 
 func _adsColumns(dimensions []string) []string {
-	rs := append(AdsSQLColumns)
+	rs := append(AdsReportColumns)
 	if utils.InArray("account_id", dimensions) {
 		rs = append(rs, "ads_account_id")
 	}
@@ -64,6 +64,10 @@ func formatAdsData(params *v_data.VReportAds, _ads []*model.Ads) (data []*AdsRep
 	}
 	data = make([]*AdsReport, len(_ads))
 	for i, ads := range _ads {
+		area, ok := areaMap[ads.Country]
+		if !ok {
+			area = &model.AreaCountry{}
+		}
 		f0, f1, f2, f3 := calculateAdsRate(ads)
 		data[i] = &AdsReport{
 			StatDay:           ads.StatDay.Format(vars.DateFormat),
@@ -72,8 +76,8 @@ func formatAdsData(params *v_data.VReportAds, _ads []*model.Ads) (data []*AdsRep
 			AppId:             ads.AppId,
 			AppName:           _appMap[ads.AppId],
 			AccountName:       _accountMap[ads.AdsAccountId],
-			AreaName:          areaMap[ads.Country].AreaName,
-			CountryName:       areaMap[ads.Country].CountryName,
+			AreaName:          area.AreaName,
+			CountryName:       area.CountryName,
 			AdRequests:        ads.AdRequests,
 			MatchedAdRequests: ads.MatchedAdRequests,
 			ShowCount:         ads.ShowCount,

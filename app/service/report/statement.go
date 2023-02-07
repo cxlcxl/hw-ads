@@ -152,6 +152,15 @@ var (
 		"sum(`show_count`) as `ad_show_count`",
 		"sum(`click_count`) as `ad_click_count`",
 	}
+	// AdsReportColumns 综合报表变现查询汇总字段「as 需要和数据库模型字段一直」
+	AdsReportColumns = []string{
+		"`stat_day`",
+		"round(sum(`earnings`), 3) as `earnings`",
+		"sum(`ad_requests`) as `ad_requests`",
+		"sum(`matched_ad_requests`) as `matched_ad_requests`",
+		"sum(`show_count`) as `show_count`",
+		"sum(`click_count`) as `click_count`",
+	}
 
 	sortableColumns = map[string]string{
 		"cost":     "t0.`cost`",

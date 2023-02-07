@@ -89,25 +89,20 @@ func (m *ReportMarketCollect) ReportComprehensive(
 
 	_os = append(_os, "t0.stat_day desc")
 	JoinOn := []string{"t0.stat_day = t1.stat_day"}
-	// 统计行数字段「只取需要的字段」
-	countSelects := []string{"stat_day"}
 	// 变现表「包含账户维度需要查与账户关联的表」
 	if utils.InArray("account_id", groups) {
 		JoinOn = append(JoinOn, "t0.account_id = t1.account_id")
 		_os = append(_os, "t0.account_id asc")
-		countSelects = append(countSelects, "account_id")
 	}
 
 	if utils.InArray("app_id", groups) {
 		JoinOn = append(JoinOn, "t0.app_id = t1.app_id")
 		_os = append(_os, "t0.app_id asc")
-		countSelects = append(countSelects, "app_id")
 	}
 
 	if utils.InArray("country", groups) {
 		JoinOn = append(JoinOn, "t0.country = t1.country")
 		_os = append(_os, "t0.country asc")
-		countSelects = append(countSelects, "country")
 	}
 
 	// 变现表「包含账户维度需要查与账户关联的表」
@@ -137,23 +132,14 @@ func (m *ReportMarketCollect) ReportComprehensive(
 		return
 	}
 
-	marketCount, _, err := marketBase(countSelects)
+	totalSql, ts, err := marketBase([]string{"1"})
 	if err != nil {
 		return
 	}
-	adsCount, _, err := adsBase(countSelects)
-	if err != nil {
+	if err = m.Raw(totalSql, ts...).Count(&total).Error; err != nil || total == 0 {
 		return
 	}
-	totalSql, _, err := squirrel.Select("count(1) as total").From(fmt.Sprintf("(%s) as t0", marketCount)).
-		LeftJoin(fmt.Sprintf("(%s) as t1 on %s", adsCount, strings.Join(JoinOn, " and "))).ToSql()
-	if err != nil {
-		return
-	}
-	if err = m.Raw(totalSql, values...).Scan(&total).Error; err != nil || total == 0 {
-		return
-	}
-	err = m.Debug().Raw(sql, values...).Find(&markets).Error
+	err = m.Raw(sql, values...).Find(&markets).Error
 	return
 }
 
