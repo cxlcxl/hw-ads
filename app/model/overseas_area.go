@@ -66,13 +66,14 @@ func (m *OverseasArea) GetRegions() (regions []*Region, err error) {
 }
 
 type AreaCountry struct {
-	CName string `json:"c_name"`
-	CCode string `json:"c_code"`
+	AreaName    string `json:"area_name"`
+	CountryName string `json:"country_name"`
+	CCode       string `json:"c_code"`
 }
 
 func (m *OverseasArea) AreaCountries() (areas []*AreaCountry, err error) {
 	err = cache.New(m.DB).Query(areaCountriesKey, &areas, func(db *gorm.DB, v interface{}) error {
-		sql := "select t0.c_code,concat('[', IF(t2.name is null, ' - ', t2.name), '] ',t0.c_name) as c_name " +
+		sql := "select t0.c_code,IF(t2.name is null, ' - ', t2.name) as area_name,t0.c_name as country_name " +
 			"from overseas_regions t0 " +
 			"left join overseas_area_regions t1 on t0.c_code = t1.c_code " +
 			"left join overseas_areas t2 on t1.area_id = t2.id " +

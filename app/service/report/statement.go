@@ -3,7 +3,6 @@ package servicereport
 import (
 	"bs.mobgi.cc/app/model"
 	"bs.mobgi.cc/app/utils"
-	"bs.mobgi.cc/app/validator/v_data"
 	"bs.mobgi.cc/app/vars"
 )
 
@@ -16,6 +15,7 @@ type ReportColumn struct {
 	Fix    bool   `json:"fix"`
 	Prefix string `json:"prefix"`
 	Suffix string `json:"suffix"`
+	Sort   string `json:"sort"`
 }
 
 // ComprehensiveReport 最终综合报表页展示的数据字段「需要和 ComprehensiveColumns 的 key 一致」
@@ -26,7 +26,8 @@ type ComprehensiveReport struct {
 	AppId                string  `json:"app_id"`
 	AppName              string  `json:"app_name"`
 	AccountName          string  `json:"account_name"`
-	RegionCountry        string  `json:"region_country"`
+	AreaName             string  `json:"area_name"`
+	CountryName          string  `json:"country_name"`
 	ROI                  float64 `json:"roi"`
 	Cost                 float64 `json:"cost"`
 	ShowCount            int64   `json:"show_count"`
@@ -68,7 +69,8 @@ type AdsReport struct {
 	AppId             string  `json:"app_id"`
 	AppName           string  `json:"app_name"`
 	AccountName       string  `json:"account_name"`
-	RegionCountry     string  `json:"region_country"`
+	AreaName          string  `json:"area_name"`
+	CountryName       string  `json:"country_name"`
 	AdRequests        int64   `json:"ad_requests"`             // 到达服务器的请求数量
 	MatchedAdRequests int64   `json:"matched_ad_requests"`     // 匹配到的到达广告请求数量
 	ShowCount         int64   `json:"show_count"`              // 展示数
@@ -84,9 +86,9 @@ type AdsReport struct {
 var (
 	// ComprehensiveColumns 综合报表展示字段
 	ComprehensiveColumns = []*ReportColumn{
-		{Key: "roi", Label: "ROI", Align: "right", Min: 100, Suffix: "%"},
-		{Key: "cost", Label: "花费($)", Align: "right", Min: 100},
-		{Key: "earnings", Label: "收入($)", Align: "right", Min: 100},
+		{Key: "roi", Label: "ROI", Align: "right", Min: 100, Suffix: "%", Sort: "1"},
+		{Key: "cost", Label: "花费($)", Align: "right", Min: 100, Sort: "custom"},
+		{Key: "earnings", Label: "收入($)", Align: "right", Min: 100, Sort: "custom"},
 		{Key: "ecpm", Label: "eCPM(变现:$)", Align: "right", Min: 100},
 		{Key: "show_count", Label: "展示量", Align: "right", Min: 100},
 		{Key: "cpm", Label: "CPM($)", Align: "right", Min: 100},
@@ -125,10 +127,12 @@ var (
 	}
 	AccountColumn = &ReportColumn{Key: "account_name", Label: "账户", Align: "left", Min: 120, Fix: true, Show: true}
 	AppColumn     = &ReportColumn{Key: "app_name", Label: "应用", Align: "left", Min: 130, Fix: true, Show: true}
-	CountryColumn = &ReportColumn{Key: "region_country", Label: "区域&国家", Align: "left", Min: 130, Fix: true, Show: true}
+	AreaColumn    = &ReportColumn{Key: "area_name", Label: "区域", Align: "left", Min: 100, Fix: true, Show: true}
+	CountryColumn = &ReportColumn{Key: "country_name", Label: "国家", Align: "left", Min: 120, Fix: true, Show: true}
 
-	// ComprehensiveMarketSQLColumnsMap 综合报表投放查询汇总字段「as 需要和数据库模型字段一直」
-	ComprehensiveMarketSQLColumnsMap = []string{
+	// MarketSQLColumns 综合报表投放查询汇总字段「as 需要和数据库模型字段一直」
+	MarketSQLColumns = []string{
+		"`stat_day`",
 		"round(sum(`cost`), 3) as `cost`",
 		"sum(`show_count`) as `show_count`",
 		"sum(`click_count`) as `click_count`",
@@ -139,19 +143,26 @@ var (
 		"sum(`three_retain_count`) as `three_retain_count`",
 		"sum(`seven_retain_count`) as `seven_retain_count`",
 	}
-	// AdsSQLColumnsMap 综合报表变现查询汇总字段「as 需要和数据库模型字段一直」
-	AdsSQLColumnsMap = []string{
+	// AdsSQLColumns 综合报表变现查询汇总字段「as 需要和数据库模型字段一直」
+	AdsSQLColumns = []string{
+		"`stat_day`",
 		"round(sum(`earnings`), 3) as `earnings`",
 		"sum(`ad_requests`) as `ad_requests`",
 		"sum(`matched_ad_requests`) as `matched_ad_requests`",
-		"sum(`show_count`) as `show_count`",
-		"sum(`click_count`) as `click_count`",
+		"sum(`show_count`) as `ad_show_count`",
+		"sum(`click_count`) as `ad_click_count`",
 	}
+
+	sortableColumns = map[string]string{
+		"cost":     "t0.`cost`",
+		"earnings": "t1.`earnings`",
+	}
+	orderBy = map[string]string{"descending": "desc", "ascending": "asc"}
 )
 
-func formatCountries(countries [][]string) []string {
+func formatCountries(countries [][]string, dimensions []string) []string {
 	rs := make([]string, 0)
-	if len(countries) == 0 {
+	if !utils.InArray("country", dimensions) || len(countries) == 0 {
 		return rs
 	}
 	for _, country := range countries {
@@ -163,22 +174,8 @@ func formatCountries(countries [][]string) []string {
 	return rs
 }
 
-func adsWhere(params *v_data.VReportComprehensive, markets []*model.ReportMarketCollect) (appIds []string) {
-	if utils.InArray("app_id", params.Dimensions) {
-		tmp := make(map[string]struct{})
-		for _, market := range markets {
-			if _, ok := tmp[market.AppId]; ok {
-				continue
-			}
-			tmp[market.AppId] = struct{}{}
-			appIds = append(appIds, market.AppId)
-		}
-	}
-	return
-}
-
 func adsColumns(dimensions []string) []string {
-	rs := append(AdsSQLColumnsMap, "stat_day")
+	rs := append(AdsSQLColumns)
 	if utils.InArray("account_id", dimensions) {
 		rs = append(rs, "account_id")
 	} else {
@@ -207,14 +204,14 @@ func accountMap(accountType int) map[int64]string {
 	return rs
 }
 
-func regionCountryMap() map[string]string {
-	rs := make(map[string]string)
+func regionCountryMap() map[string]*model.AreaCountry {
+	rs := make(map[string]*model.AreaCountry)
 	areas, err := model.NewOverseasArea(vars.DBMysql).AreaCountries()
 	if err != nil {
 		return rs
 	}
 	for _, area := range areas {
-		rs[area.CCode] = area.CName
+		rs[area.CCode] = area
 	}
 	return rs
 }

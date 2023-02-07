@@ -36,10 +36,10 @@
       </el-col>
     </el-form>
     <el-col :span="24">
-      <el-table v-loading="loadings.pageLoading" :data="reportList.list" highlight-current-row stripe border size="mini">
+      <el-table v-loading="loadings.pageLoading" :data="reportList.list" @sort-change="sortable" highlight-current-row stripe border size="mini">
         <el-table-column prop="stat_day" label="日期" width="90" align="center" fixed="left" />
         <el-table-column :label="item.label" :align="item.align" :fixed="item.fix" v-for="item in reportList.columns" :key="item.key" v-if="item.show"
-          :min-width="item.min" :show-overflow-tooltip="item.fix">
+          :min-width="item.min" :show-overflow-tooltip="item.fix" :sortable="item.sort|filterSort" :prop="item.key">
           <template slot-scope="scope">
             {{ item.prefix + scope.row[item.key] + item.suffix }}
           </template>
@@ -51,7 +51,7 @@
         :limit="search.page_size" />
     </el-col>
 
-    <select-columns ref="column" :Columns="reportList.columns" @confirm="confirm" module="comprehensive" />
+    <select-columns ref="column" :Columns="reportList.columns" @confirm="confirm" module-name="comprehensive" />
   </el-row>
 </template>
 
@@ -65,6 +65,7 @@ import { allAccounts } from "@/api/account"
 import { allApp } from "@/api/app"
 import SelectColumns from "./components/columns"
 const nowDate = new Date()
+const sorts = { custom: "custom", 1: true, 0: false }
 
 export default {
   // name: "Comprehensive", // 写上 name 可以使 keep-alive 生效
@@ -87,6 +88,8 @@ export default {
         app_ids: [],
         countries: [],
         show_columns: [],
+        order: "",
+        by: "",
         page: 1,
         page_size: 15,
       },
@@ -136,6 +139,11 @@ export default {
         ],
       },
     }
+  },
+  filters: {
+    filterSort(v) {
+      return sorts[v]
+    },
   },
   created() {
     this.setDefaultSearchDate()
@@ -234,6 +242,13 @@ export default {
     confirm(selected) {
       this.search.show_columns = selected
       this.getReportList()
+    },
+    sortable({ column, prop, order }) {
+      if (column.sortable === "custom") {
+        this.search.order = prop
+        this.search.by = order
+        this.getReportList()
+      }
     },
   },
 }

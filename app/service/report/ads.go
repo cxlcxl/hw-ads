@@ -9,7 +9,7 @@ import (
 
 // ReportAds 变现报表
 func ReportAds(params *v_data.VReportAds) (data []*AdsReport, total int64, err error) {
-	countries := formatCountries(params.Countries)
+	countries := formatCountries(params.Countries, params.Dimensions)
 	var _ads []*model.Ads
 	groups := make([]string, 0)
 	for _, dimension := range params.Dimensions {
@@ -33,7 +33,7 @@ func ReportAds(params *v_data.VReportAds) (data []*AdsReport, total int64, err e
 }
 
 func _adsColumns(dimensions []string) []string {
-	rs := append(AdsSQLColumnsMap, "stat_day")
+	rs := append(AdsSQLColumns)
 	if utils.InArray("account_id", dimensions) {
 		rs = append(rs, "ads_account_id")
 	}
@@ -53,7 +53,7 @@ func formatAdsData(params *v_data.VReportAds, _ads []*model.Ads) (data []*AdsRep
 		_accountMap = accountMap(vars.AccountTypeAds)
 	}
 	// 3.2 检查是否需要填充国家地区，需要则填充
-	areaMap := make(map[string]string)
+	areaMap := make(map[string]*model.AreaCountry)
 	if utils.InArray("country", params.Dimensions) {
 		areaMap = regionCountryMap()
 	}
@@ -72,7 +72,8 @@ func formatAdsData(params *v_data.VReportAds, _ads []*model.Ads) (data []*AdsRep
 			AppId:             ads.AppId,
 			AppName:           _appMap[ads.AppId],
 			AccountName:       _accountMap[ads.AdsAccountId],
-			RegionCountry:     areaMap[ads.Country],
+			AreaName:          areaMap[ads.Country].AreaName,
+			CountryName:       areaMap[ads.Country].CountryName,
 			AdRequests:        ads.AdRequests,
 			MatchedAdRequests: ads.MatchedAdRequests,
 			ShowCount:         ads.ShowCount,

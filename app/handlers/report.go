@@ -4,6 +4,7 @@ import (
 	"bs.mobgi.cc/app/model"
 	"bs.mobgi.cc/app/response"
 	servicereport "bs.mobgi.cc/app/service/report"
+	"bs.mobgi.cc/app/utils"
 	"bs.mobgi.cc/app/validator/v_data"
 	"bs.mobgi.cc/app/vars"
 	"fmt"
@@ -20,6 +21,15 @@ type Report struct{}
 
 func (h *Report) Comprehensive(ctx *gin.Context, p interface{}) {
 	params := p.(*v_data.VReportComprehensive)
+	if !utils.InArray("country", params.Dimensions) {
+		params.Countries = make([][]string, 0)
+	}
+	if !utils.InArray("account_id", params.Dimensions) {
+		params.AccountIds = make([]int64, 0)
+	}
+	if !utils.InArray("app_id", params.Dimensions) {
+		params.AppIds = make([]string, 0)
+	}
 	list, total, err := servicereport.ReportComprehensive(params)
 	if err != nil {
 		response.Fail(ctx, "请求失败："+err.Error())
@@ -40,6 +50,15 @@ func (h *Report) Comprehensive(ctx *gin.Context, p interface{}) {
 
 func (h *Report) Ads(ctx *gin.Context, p interface{}) {
 	params := p.(*v_data.VReportAds)
+	if !utils.InArray("country", params.Dimensions) {
+		params.Countries = make([][]string, 0)
+	}
+	if !utils.InArray("account_id", params.Dimensions) {
+		params.AccountIds = make([]int64, 0)
+	}
+	if !utils.InArray("app_id", params.Dimensions) {
+		params.AppIds = make([]string, 0)
+	}
 	list, total, err := servicereport.ReportAds(params)
 	if err != nil {
 		response.Fail(ctx, "请求失败："+err.Error())

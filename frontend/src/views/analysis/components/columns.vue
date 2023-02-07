@@ -19,7 +19,7 @@ export default {
       required: true,
       type: Array,
     },
-    Module: {
+    ModuleName: {
       required: true,
       type: String,
     },
@@ -41,7 +41,7 @@ export default {
       this.visible = true
     },
     confirm() {
-      setReportColumns({ columns: this.selects, module: this.Module })
+      setReportColumns({ columns: this.selects, module: this.ModuleName })
         .then((res) => {
           this.$emit("confirm", this.selects)
           this.visible = false

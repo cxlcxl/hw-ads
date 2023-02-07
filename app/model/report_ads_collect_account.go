@@ -47,27 +47,3 @@ func (m *ReportAdsCollectAct) BatchInsert(realizations []*ReportAdsCollectAct) (
 	}).CreateInBatches(realizations, 500).Error
 	return err
 }
-
-// AnalysisComprehensive 综合报表投放数据部分
-func (m *ReportAdsCollectAct) AnalysisComprehensive(
-	actIds []int64, appIds, dates, countries, selects, groups []string,
-) (ads []*Ads, err error) {
-	query := m.Table(m.TableName()).Select(selects).
-		Where("stat_day between ? and ?", dates[0], dates[1]).
-		Group("stat_day,account_id")
-	if len(appIds) > 0 {
-		query = query.Where("app_id in ?", appIds)
-	}
-	if len(actIds) > 0 {
-		query = query.Where("account_id in ?", actIds)
-	}
-	if len(countries) > 0 {
-		query = query.Where("country in ?", countries)
-	}
-
-	for _, group := range groups {
-		query = query.Group(group)
-	}
-	err = query.Find(&ads).Error
-	return
-}

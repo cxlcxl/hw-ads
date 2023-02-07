@@ -131,5 +131,5 @@ func WhereIn[T int64 | string](v []T) (string, []interface{}) {
 		conditions[i] = "?"
 		values[i] = t
 	}
-	return strings.Join(conditions, ","), values
+	return "(" + strings.Join(conditions, ",") + ")", values
 }

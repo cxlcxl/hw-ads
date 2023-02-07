@@ -51,7 +51,7 @@
         :limit="search.page_size" />
     </el-col>
 
-    <select-columns ref="column" :Columns="reportList.columns" @confirm="confirm" module="ads" />
+    <select-columns ref="column" :Columns="reportList.columns" @confirm="confirm" module-name="ads" />
   </el-row>
 </template>
 

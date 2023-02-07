@@ -9,6 +9,8 @@ type VReportComprehensive struct {
 	AppIds      []string   `json:"app_ids"`
 	Countries   [][]string `json:"countries"`
 	ShowColumns []string   `json:"show_columns" binding:"required"`
+	Order       string     `json:"order"`
+	By          string     `json:"by"`
 	Pagination
 	User *vars.LoginUser
 }
