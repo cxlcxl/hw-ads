@@ -1,5 +1,5 @@
 <template>
-  <drawer title="角色修改" confirm-text="保存" :visible="visible" @cancel="cancel" @confirm="save" :confirm-loading="loading" direction="ltr">
+  <dialog-panel title="角色修改" confirm-text="保存" :visible="visible" @cancel="cancel" @confirm="save" :confirm-loading="loading">
     <el-form :model="roleForm" ref="roleForm" label-width="100px" size="small">
       <el-form-item label="角色名称" prop="role_name" :rules="{required: true, message: '请填写角色名称'}">
         <el-input v-model="roleForm.role_name" />
@@ -7,28 +7,22 @@
       <el-form-item label="状态" prop="state">
         <el-switch v-model="roleForm.state" :active-value="1" :inactive-value="0" />
       </el-form-item>
-      <!--<el-form-item label="角色类型" prop="role_type" :rules="{required: true, message: '请选择角色类型'}">
-        <el-radio v-for="(name, val) in roleType" v-model="roleForm.role_type" :label="Number(val)">{{name}}</el-radio>
-      </el-form-item>
-      <el-form-item label="角色描述" prop="desc">
-        <el-input v-model="roleForm.desc"/>
-      </el-form-item>
       <el-form-item label="选择权限" prop="permissions" :rules="{required: true, message: '请选择权限'}">
-        <el-tree :data="permissions" show-checkbox node-key="permission" :props="defaultProps"
-                 @check-change="handleCheck" ref="tree" :default-checked-keys="roleForm.permissions"/>
-      </el-form-item>-->
+        <el-tree :data="permissions" show-checkbox node-key="permission" :props="defaultProps" @check-change="handleCheck" ref="tree"
+          :default-checked-keys="roleForm.permissions" />
+      </el-form-item>
     </el-form>
-  </drawer>
+  </dialog-panel>
 </template>
 
 <script>
-import Drawer from "@c/Drawer"
-import { roleUpdate, rolePermissions } from "@a/role"
+import DialogPanel from "@c/DialogPanel"
+import { roleUpdate, roleInfo } from "@a/role"
 import { removeArrayItem } from "@/utils"
 
 export default {
   components: {
-    Drawer,
+    DialogPanel,
   },
   props: {
     permissions: Array,
@@ -47,33 +41,39 @@ export default {
       },
       defaultProps: {
         children: "children",
-        label: "desc",
+        label: "p_name",
       },
     }
   },
   methods: {
     // Tips：el-tree 默认选中有bug，需设置 setCheckedNodes
     initUpdate(row) {
-      this.$set(this.roleForm, "id", row.id)
-      this.$set(this.roleForm, "role_name", row.role_name)
-      this.$set(this.roleForm, "state", row.state)
-      this.visible = true
-      /*Promise.all([
-          this.getRolePermissions(row.id)
-        ]).then(res => {
-          this.$set(this.roleForm, 'permissions', res[0])
+      // this.visible = true
+      roleInfo(row.id)
+        .then((res) => {
+          this.roleForm.id = res.data.id
+          this.roleForm.role_name = res.data.role_name
+          this.roleForm.state = res.data.state
+          this.roleForm.sys = res.data.sys
 
-
-          this.$refs.tree.setCheckedNodes(res[0])
-        }).catch(err => {
-        })*/
+          let ps = []
+          if (Array.isArray(res.data.permissions)) {
+            ps = res.data.permissions
+          }
+          this.roleForm.permissions = ps
+          this.visible = true
+          this.$refs.tree.setCheckedNodes(ps)
+        })
+        .catch((err) => {
+          console.log(err)
+        })
     },
     cancel() {
       this.$refs.roleForm.resetFields()
       this.visible = false
     },
     save() {
-      // this.$set(this.roleForm, 'permissions', this.$refs.tree.getCheckedKeys())
+      this.$set(this.roleForm, "permissions", this.$refs.tree.getCheckedKeys())
       this.$refs.roleForm.validate((v) => {
         if (v) {
           this.loading = true
@@ -100,17 +100,6 @@ export default {
       } else {
         this.roleForm.permissions = removeArrayItem(this.roleForm.permissions, data.permission)
       }
-    },
-    getRolePermissions(id) {
-      return new Promise((resolve, reject) => {
-        rolePermissions(id)
-          .then((res) => {
-            resolve(res.data)
-          })
-          .catch(() => {
-            reject()
-          })
-      })
     },
   },
 }

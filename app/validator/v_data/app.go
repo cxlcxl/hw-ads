@@ -1,25 +1,21 @@
 package v_data
 
 type VAppCreate struct {
-	AppName      string `json:"app_name" binding:"required"`
-	AppId        string `json:"app_id" binding:"required"`
-	AccountId    int64  `json:"account_id" binding:"required"`
-	AdvertiserId string `json:"advertiser_id" binding:"required"`
-	PkgName      string `json:"pkg_name" binding:"required"`
-	Channel      int64  `json:"channel" binding:"required"`
-	AppType      string `json:"app_type"`
-	Tags         string `json:"tags"`
+	AppName string `json:"app_name" binding:"required"`
+	AppId   string `json:"app_id" binding:"required"`
+	PkgName string `json:"pkg_name" binding:"required"`
+	Channel int64  `json:"channel" binding:"required"`
+	AppType string `json:"app_type"`
+	Tags    string `json:"tags"`
 }
 
 type VAppUpdate struct {
-	Id           int64  `json:"id" binding:"required"`
-	AppName      string `json:"app_name" binding:"required"`
-	AdvertiserId string `json:"advertiser_id" binding:"required"`
-	AccountId    int64  `json:"account_id" binding:"required"`
-	PkgName      string `json:"pkg_name" binding:"required"`
-	Channel      int64  `json:"channel" binding:"required"`
-	AppType      string `json:"app_type"`
-	Tags         string `json:"tags"`
+	Id      int64  `json:"id" binding:"required"`
+	AppName string `json:"app_name" binding:"required"`
+	PkgName string `json:"pkg_name" binding:"required"`
+	Channel int64  `json:"channel" binding:"required"`
+	AppType string `json:"app_type"`
+	Tags    string `json:"tags"`
 }
 
 type VAppList struct {

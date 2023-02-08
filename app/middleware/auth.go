@@ -35,6 +35,7 @@ func CheckUserLogin() gin.HandlerFunc {
 		}
 		loginUser := &vars.LoginUser{
 			UserId:   user.Id,
+			RoleId:   user.RoleId,
 			Username: user.Username,
 			Email:    user.Email,
 			Mobile:   user.Mobile,

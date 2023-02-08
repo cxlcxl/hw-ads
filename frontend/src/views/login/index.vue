@@ -17,10 +17,12 @@
 
           <el-form-item>
             <div style="text-align: center;">
-              <el-button :loading="loading" type="primary" size="medium" v-if="ssoPath !==''" @click="handleSsoLogin">SSO-Login
+              <el-button :loading="loading" type="primary" size="medium" @click.native.prevent="handleLogin">Login
               </el-button>
-              <el-button :loading="loading" size="medium" @click.native.prevent="handleLogin">Login
-              </el-button>
+            </div>
+            <div style="text-align: center; margin-top: 10px;" v-if="ssoPath !==''">
+              <span style="color: #606266; font-weight: 500; color: #409eff; cursor: pointer;text-decoration: underline;"
+                @click="handleSsoLogin">跳转单点登录 >>></span>
             </div>
           </el-form-item>
         </el-form>

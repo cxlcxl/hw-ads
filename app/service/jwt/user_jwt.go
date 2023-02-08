@@ -10,6 +10,7 @@ import (
 
 type UserTokenInfo struct {
 	Id       int64  `json:"id"`
+	RoleId   int64  `json:"role_id"`
 	Username string `json:"username"`
 	Email    string `json:"email"`
 	Mobile   string `json:"mobile"`
@@ -51,9 +52,10 @@ func ParseToken(token string) (*UserTokenInfo, error) {
 }
 
 // CreateUserToken 创建用户登陆 token
-func CreateUserToken(id, roelId int64, email, username, mobile string) (token string, err error) {
+func CreateUserToken(id, roleId int64, email, username, mobile string) (token string, err error) {
 	userToken := UserTokenInfo{
 		Id:       id,
+		RoleId:   roleId,
 		Username: username,
 		Email:    email,
 		Mobile:   mobile,

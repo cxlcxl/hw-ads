@@ -7,23 +7,17 @@
       <el-form-item label="应用名称" prop="app_name">
         <el-input v-model="appForm.app_name" placeholder="请填写应用名称" />
       </el-form-item>
-      <el-form-item prop="account_id" label="关联账户">
-        <el-select v-model="appForm.account_id" remote filterable placeholder="可输入名称查询" @change="handleChange" :remote-method="remoteMethod"
-          :loading="remoteLoading" style="width: 100%;">
-          <el-option v-for="item in accounts" :label="item.account_name" :value="Number(item.id)" />
-        </el-select>
-      </el-form-item>
       <el-form-item label="应用包名" prop="pkg_name">
         <el-input v-model="appForm.pkg_name" placeholder="请填写应用包名" />
       </el-form-item>
       <el-form-item label="渠道" prop="channel">
         <el-select v-model="appForm.channel" style="width: 100%;">
-          <el-option v-for="(key, val) in appChannel" :label="key" :value="Number(val)" />
+          <el-option v-for="(key, val) in appChannel" :label="key" :value="Number(val)" :key="val" />
         </el-select>
       </el-form-item>
       <el-form-item label="应用类型" prop="app_type">
         <el-select v-model="appForm.app_type" style="width: 100%;">
-          <el-option v-for="(key, val) in appType" :label="key" :value="val" />
+          <el-option v-for="(key, val) in appType" :label="key" :value="val" :key="val" />
         </el-select>
       </el-form-item>
       <el-form-item label="标签" prop="tags">
@@ -36,7 +30,6 @@
 <script>
 import DialogPanel from "@c/DialogPanel"
 import { appUpdate, appInfo } from "@a/app"
-import { searchAccounts, defaultAccounts, accountInfo } from "@a/account"
 
 export default {
   components: {
@@ -55,73 +48,32 @@ export default {
         id: 0,
         app_name: "",
         app_id: "",
-        account_id: "",
-        advertiser_id: "",
         pkg_name: "",
         tags: "",
         channel: "",
         app_type: "",
       },
-      accounts: [],
       userRules: {
         app_name: { required: true, message: "请填写应用名称" },
         channel: { required: true, message: "请选择渠道" },
         pkg_name: { required: true, message: "请填写应用包名" },
-        account_id: { required: true, message: "请关联账户" },
       },
     }
   },
   methods: {
     initUpdate(id) {
-      Promise.all([this.getDefaultAccounts()])
-        .then((r) => {
-          appInfo(id)
-            .then((res) => {
-              this.visible = true
-              this.appForm = res.data
-              if (!this.inAccounts(Number(this.appForm.account_id))) {
-                accountInfo(this.appForm.account_id)
-                  .then((res) => {
-                    this.accounts.push({ id: this.appForm.account_id, account_name: res.data.account_name })
-                  })
-                  .catch(() => {
-                    this.$message.error("关联账户请求错误")
-                  })
-              }
-            })
-            .catch(() => {
-              this.$message.error("请求错误")
-            })
+      appInfo(id)
+        .then((res) => {
+          this.visible = true
+          this.appForm = res.data
         })
-        .catch((e) => {})
+        .catch(() => {
+          this.$message.error("请求错误")
+        })
     },
     cancel() {
       this.$refs.appForm.resetFields()
       this.visible = false
-    },
-    getDefaultAccounts() {
-      return new Promise((resolve, reject) => {
-        defaultAccounts()
-          .then((res) => {
-            if (Array.isArray(res.data)) {
-              this.accounts = res.data
-            } else {
-              this.accounts = []
-            }
-            resolve()
-          })
-          .catch((err) => {
-            this.$message.error("请求错误")
-            reject()
-          })
-      })
-    },
-    handleChange(v) {
-      for (let i = 0; i < this.accounts.length; i++) {
-        if (Number(v) === this.accounts[i].id) {
-          this.$set(this.appForm, "advertiser_id", this.accounts[i].advertiser_id)
-        }
-      }
     },
     save() {
       this.$refs.appForm.validate((v) => {
@@ -141,35 +93,6 @@ export default {
           return false
         }
       })
-    },
-    remoteMethod(query) {
-      if (query.trim() !== "") {
-        this.remoteLoading = true
-        searchAccounts(query)
-          .then((res) => {
-            this.remoteLoading = false
-            if (Array.isArray(res.data)) {
-              this.accounts = res.data
-            } else {
-              this.accounts = []
-            }
-          })
-          .catch(() => {
-            this.remoteLoading = false
-          })
-      } else {
-        this.options = []
-      }
-    },
-    inAccounts(id) {
-      let has = false
-      for (let i = 0; i < this.accounts.length; i++) {
-        if (Number(this.accounts[i].id) === id) {
-          has = true
-          break
-        }
-      }
-      return has
     },
   },
 }

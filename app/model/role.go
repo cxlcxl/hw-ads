@@ -2,18 +2,15 @@ package model
 
 import (
 	"gorm.io/gorm"
-	"time"
 )
 
 type Role struct {
 	connectDb
 
-	Id        int64     `json:"id"`
-	RoleName  string    `json:"role_name"`
-	State     int64     `json:"state"`      // 1正常0停用
-	Sys       int64     `json:"sys"`        // 角色所属系统
-	CreatedAt time.Time `json:"created_at"` // 添加时间
-	UpdatedAt time.Time `json:"updated_at"` // 最后一次修改时间
+	Id       int64  `json:"id"`
+	RoleName string `json:"role_name"`
+	State    uint8  `json:"state"` // 1正常0停用
+	Sys      uint8  `json:"sys"`   // 角色所属系统
 }
 
 func (m *Role) TableName() string {
@@ -37,6 +34,22 @@ func (m *Role) CreateRole(role *Role) error {
 	return m.Table(m.TableName()).Create(role).Error
 }
 
-func (m *Role) UpdateRole(d map[string]interface{}, id int64) error {
-	return m.Table(m.TableName()).Where("id = ?", id).Updates(d).Error
+func (m *Role) FindRoleById(id int64) (role *Role, err error) {
+	err = m.Table(m.TableName()).Where("id = ?", id).First(&role).Error
+	return
+}
+
+func (m *Role) UpdateRole(d map[string]interface{}, id int64, prs []*PR) error {
+	return m.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Table(m.TableName()).Where("id = ?", id).Updates(d).Error; err != nil {
+			return err
+		}
+		if err := NewPR(tx).PermissionDelete(id); err != nil {
+			return err
+		}
+		if err := NewPR(tx).PermissionCreate(prs); err != nil {
+			return err
+		}
+		return nil
+	})
 }

@@ -59,7 +59,15 @@ func (l User) Profile(ctx *gin.Context) {
 		response.Fail(ctx, "用户信息获取失败")
 		return
 	}
-	response.Success(ctx, user.(*vars.LoginUser))
+	permissions, _ := model.NewPR(vars.DBMysql).GetRolePermissions(user.(*vars.LoginUser).RoleId)
+	response.Success(ctx, gin.H{
+		"user_id":     user.(*vars.LoginUser).UserId,
+		"username":    user.(*vars.LoginUser).Username,
+		"email":       user.(*vars.LoginUser).Email,
+		"mobile":      user.(*vars.LoginUser).Mobile,
+		"role_id":     user.(*vars.LoginUser).RoleId,
+		"permissions": permissions,
+	})
 }
 
 func (l User) Logout(ctx *gin.Context) {
@@ -131,8 +139,4 @@ func (l *User) UserUpdate(ctx *gin.Context, p interface{}) {
 		go serviceuser.UpdatePass(user.SsoUid, params.Pass)
 	}
 	response.Success(ctx, nil)
-}
-
-func (l *User) PermissionList(ctx *gin.Context, p interface{}) {
-	response.Success(ctx, []interface{}{})
 }

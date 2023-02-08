@@ -19,12 +19,12 @@
         </el-form-item>
       </el-form>
     </el-col>
-    <el-col :span="24">
-      <el-button type="primary" icon="el-icon-download" size="mini" @click="pullApp">拉取应用</el-button>
+    <!-- <el-col :span="24">
       <el-button type="primary" icon="el-icon-plus" size="mini" @click="add">添加应用</el-button>
-    </el-col>
+      <el-button type="primary" icon="el-icon-download" size="mini" @click="pullApp">拉取应用</el-button>
+    </el-col> -->
     <el-col :span="24">
-      <el-table v-loading="loading" :data="appList.data" highlight-current-row stripe border size="mini" style="margin-top: 15px">
+      <el-table v-loading="loading" :data="appList.data" highlight-current-row stripe border size="mini">
         <el-table-column prop="id" label="ID" width="80" align="center" />
         <el-table-column prop="app_name" label="应用名称" min-width="120" show-overflow-tooltip />
         <el-table-column prop="app_id" label="AppID" width="140" />

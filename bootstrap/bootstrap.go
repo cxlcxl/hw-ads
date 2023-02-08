@@ -2,8 +2,11 @@ package bootstrap
 
 import (
 	validator2 "bs.mobgi.cc/app/validator"
+	"github.com/casbin/casbin/v2"
+	gormadapter "github.com/casbin/gorm-adapter/v3"
 	"log"
 	"os"
+	"time"
 
 	"bs.mobgi.cc/app/vars"
 	"bs.mobgi.cc/library/config"
@@ -20,6 +23,7 @@ func init() {
 
 	initDatabase()
 	initRedis()
+	initCasbin()
 
 	// 创建软连接、更好的管理静态资源
 	initFoldersLink()
@@ -67,4 +71,33 @@ func initFoldersLink() {
 	if err := os.Symlink(vars.BasePath+"/storage/app", vars.BasePath+"/web/storage"); err != nil {
 		log.Fatal(err.Error())
 	}
+}
+
+func initCasbin() {
+	//sub := "alice" // the user that wants to access a resource.
+	//obj := "data1" // the resource that is going to be accessed.
+	//act := "read" // the operation that the user performs on the resource.
+	if _, err := os.Stat(vars.BasePath + "/config/casbin.conf"); err != nil {
+		log.Fatal("Casbin 认证配置文件不存在：", vars.BasePath+"/config/casbin.conf")
+		return
+	}
+	tableName := vars.YmlConfig.GetString("Casbin.TableName")
+	adapter, err := gormadapter.NewAdapterByDBUseTableName(vars.DBMysql, "", tableName)
+	if err != nil {
+		log.Fatal("初始化 Casbin 适配器（Adapter）失败：", err)
+		return
+	}
+
+	enforcer, err := casbin.NewSyncedEnforcer(vars.BasePath+"/config/casbin.conf", adapter)
+	if err != nil {
+		log.Fatal("初始化 Casbin 执行器（Enforcer）失败：", err)
+		return
+	}
+
+	if err = enforcer.LoadPolicy(); err != nil {
+		log.Fatal("Casbin LoadPolicy 失败：", err)
+	}
+	// 每 20s 刷新验证规则
+	enforcer.StartAutoLoadPolicy(time.Second * time.Duration(vars.YmlConfig.GetInt("Casbin.RefreshTime")))
+	vars.Casbin = enforcer
 }

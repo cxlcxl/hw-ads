@@ -17,7 +17,7 @@ func initRbacApis(r *gin.RouterGroup) {
 		r.GET("/profile", (&handlers.User{}).Profile) //个人信息
 		r.POST("/logout", (&handlers.User{}).Logout)
 
-		u := r.Group("/user")
+		u := r.Group("/user", middleware.CheckPermission())
 		{
 			//角色列表
 			u.GET("/list", (validator.BsValidator{}).VUserList)
@@ -30,7 +30,7 @@ func initRbacApis(r *gin.RouterGroup) {
 			//用户删除
 			u.POST("/destroy")
 		}
-		role := r.Group("/role")
+		role := r.Group("/role", middleware.CheckPermission())
 		{
 			//角色列表
 			role.GET("/list", (validator.BsValidator{}).VRoleList)
@@ -42,14 +42,15 @@ func initRbacApis(r *gin.RouterGroup) {
 			role.GET("/:id", (validator.BsValidator{}).VRoleInfo)
 			//角色删除
 			role.POST("/destroy")
+			role.GET("/permissions", (validator.BsValidator{}).VRolePermissions)
 		}
-		permission := r.Group("/permission")
+		permission := r.Group("/permission", middleware.CheckPermission())
 		{
-			permission.GET("/list", (validator.BsValidator{}).VPermissionList)
-			permission.POST("/create")
-			permission.POST("/update")
+			permission.GET("/tree", (&handlers.RolePermission{}).PermissionTree)
+			permission.POST("/create", (validator.BsValidator{}).VPermissionCreate)
+			permission.POST("/update", (validator.BsValidator{}).VPermissionUpdate)
 			permission.GET("/info")
-			permission.POST("/destroy")
+			permission.POST("/destroy", (validator.BsValidator{}).VPermissionDestroy)
 		}
 	}
 }

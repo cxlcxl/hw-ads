@@ -5,12 +5,14 @@ type VRoleList struct {
 	State    uint8  `json:"state" form:"state" binding:"numeric"`
 }
 type VRoleCreate struct {
-	RoleName string `json:"role_name" form:"role_name" binding:"required"`
+	RoleName    string   `json:"role_name" form:"role_name" binding:"required"`
+	Permissions []string `json:"permissions" binding:"required"`
 }
 type VRoleUpdate struct {
-	Id       int64  `json:"id" form:"id" binding:"required"`
-	RoleName string `json:"role_name" form:"role_name" binding:"required"`
-	State    uint8  `json:"state" form:"state" binding:"numeric"`
+	Id          int64    `json:"id" form:"id" binding:"required"`
+	RoleName    string   `json:"role_name" form:"role_name" binding:"required"`
+	State       uint8    `json:"state" form:"state" binding:"numeric"`
+	Permissions []string `json:"permissions" binding:"required"`
 }
 
 type VUserList struct {
@@ -39,9 +41,22 @@ type VLogin struct {
 	Pass  string `json:"pass" binding:"required,pass"`
 }
 
-type VPermissionList struct {
+type VPermissionCreate struct {
+	Permission string `json:"permission" binding:"required"`
+	PName      string `json:"p_name" binding:"required"`
+	Method     string `json:"method" binding:"required"`
+	Pid        int64  `json:"pid" binding:"numeric"`
+}
+
+type VPermissionUpdate struct {
+	Id int64 `json:"id" binding:"required,numeric"`
+	VPermissionCreate
 }
 
 type VSsoLoginData struct {
 	Ticket string `json:"ticket" binding:"required,alphanum"`
+}
+
+type VRolePermissions struct {
+	Id int64 `form:"id" binding:"required,numeric"`
 }

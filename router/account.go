@@ -2,21 +2,27 @@ package router
 
 import (
 	"bs.mobgi.cc/app/handlers"
+	"bs.mobgi.cc/app/middleware"
 	"bs.mobgi.cc/app/validator"
 	"github.com/gin-gonic/gin"
 )
 
 func initAccountApis(g *gin.RouterGroup) {
+	gp := g.Group("/account", middleware.CheckPermission())
+	{
+		gp.POST("/refresh/:id", (validator.BsValidator{}).VAccountRefreshToken)
+		gp.POST("/create", (validator.BsValidator{}).VAccountCreate)
+		gp.POST("/update", (validator.BsValidator{}).VAccountUpdate)
+
+		gp.GET("/:id", (validator.BsValidator{}).VAccountInfo)
+		gp.GET("/auth", (&handlers.Account{}).AccountAuth)
+		gp.GET("/list", (validator.BsValidator{}).VAccountList)
+	}
+
 	group := g.Group("/account")
 	{
 		group.POST("/token")
-		group.POST("/refresh/:id", (validator.BsValidator{}).VAccountRefreshToken)
-		group.POST("/create", (validator.BsValidator{}).VAccountCreate)
-		group.POST("/update", (validator.BsValidator{}).VAccountUpdate)
 
-		group.GET("/:id", (validator.BsValidator{}).VAccountInfo)
-		group.GET("/auth", (&handlers.Account{}).AccountAuth)
-		group.GET("/list", (validator.BsValidator{}).VAccountList)
 		group.GET("/search", (validator.BsValidator{}).VAccountSearch)
 		group.GET("/default", (validator.BsValidator{}).VAccountDefault)
 		group.GET("/all", (validator.BsValidator{}).VAllAccounts)

@@ -90,6 +90,7 @@ func (rc *RedisCache) setCache(cacheKey string, v interface{}) error {
 	return nil
 }
 
+// SetExpire 设置缓存时长 单位秒
 func (rc *RedisCache) SetExpire(expire int) *RedisCache {
 	rc.expire = expire
 	return rc

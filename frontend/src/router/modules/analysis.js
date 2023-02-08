@@ -4,7 +4,7 @@ const analysisRouter = {
   path: "/analysis",
   component: Layout,
   redirect: "/analysis/list",
-  meta: { title: "统计报表", icon: "el-icon-data-line" },
+  meta: { title: "报表统计", icon: "el-icon-data-line" },
   children: [
     {
       path: "comprehensive",

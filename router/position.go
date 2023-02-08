@@ -1,6 +1,7 @@
 package router
 
 import (
+	"bs.mobgi.cc/app/middleware"
 	"bs.mobgi.cc/app/response"
 	"bs.mobgi.cc/app/validator"
 	"bs.mobgi.cc/app/vars"
@@ -8,7 +9,7 @@ import (
 )
 
 func initPositionApis(g *gin.RouterGroup) {
-	group := g.Group("/position")
+	group := g.Group("/position", middleware.CheckPermission())
 	{
 		group.GET("category", func(ctx *gin.Context) {
 			response.Success(ctx, vars.CreativeCategory)

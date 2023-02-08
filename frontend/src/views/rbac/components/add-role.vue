@@ -1,5 +1,5 @@
 <template>
-  <drawer title="角色创建" confirm-text="添加" :visible="visible" @cancel="cancel" @confirm="add" :confirm-loading="loading" direction="ltr">
+  <dialog-panel title="角色创建" confirm-text="添加" :visible="visible" @cancel="cancel" @confirm="add" :confirm-loading="loading">
     <el-form :model="roleForm" ref="roleForm" label-width="100px" size="small">
       <el-form-item label="角色名称" prop="role_name" :rules="{required: true, message: '请填写角色名称'}">
         <el-input v-model="roleForm.role_name" />
@@ -8,17 +8,17 @@
         <el-tree :data="permissions" show-checkbox node-key="id" :props="defaultProps" @check-change="handleCheck" ref="permission_tree" />
       </el-form-item>
     </el-form>
-  </drawer>
+  </dialog-panel>
 </template>
 
 <script>
-import Drawer from "@c/Drawer"
+import DialogPanel from "@c/DialogPanel"
 import { roleCreate } from "@a/role"
 import { removeArrayItem } from "@/utils"
 
 export default {
   components: {
-    Drawer,
+    DialogPanel,
   },
   props: {
     permissions: Array,
@@ -35,7 +35,7 @@ export default {
       },
       defaultProps: {
         children: "children",
-        label: "desc",
+        label: "p_name",
       },
     }
   },

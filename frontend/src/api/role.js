@@ -42,10 +42,17 @@ export function roleDestroy(id) {
   });
 }
 
+export function roleInfo(id) {
+  return request({
+    url: "/role/" + id,
+    method: "get",
+  });
+}
+
 // 权限部分
 export function permissionList() {
   return request({
-    url: "/permission/list",
+    url: "/permission/tree",
     method: "get",
   });
 }

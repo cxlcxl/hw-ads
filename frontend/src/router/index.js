@@ -4,7 +4,7 @@ import Router from "vue-router";
 Vue.use(Router);
 
 import Layout from "@/layout";
-import RBACRouter from "./modules/rbac-manage";
+import RBACRouter from "./modules/rbac";
 import OthersRouter from "./modules/others";
 import MarketingRouter from "./modules/marketing";
 import AnalysisRouter from "./modules/analysis";

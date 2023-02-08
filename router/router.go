@@ -2,6 +2,7 @@ package router
 
 import (
 	"bs.mobgi.cc/app/handlers"
+	"bs.mobgi.cc/app/middleware"
 	"bs.mobgi.cc/app/validator"
 	"bs.mobgi.cc/app/vars"
 	"github.com/gin-gonic/gin"
@@ -26,7 +27,7 @@ func Router() error {
 		initSettingsApis(group)
 
 		group.GET("/regions", (&handlers.Region{}).Regions)
-		g := group.Group("/region")
+		g := group.Group("/region", middleware.CheckPermission())
 		{
 			g.GET("/area", (&handlers.Region{}).Areas)
 			g.GET("/country", (validator.BsValidator{}).VCountries)

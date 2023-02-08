@@ -1,6 +1,7 @@
 package vars
 
 import (
+	"github.com/casbin/casbin/v2"
 	"log"
 	"os"
 	"strings"
@@ -15,6 +16,7 @@ var (
 	DBMysql   *gorm.DB
 	YmlConfig config_interface.YamlConfigInterface
 	DBRedis   *myRedis.DBRedis
+	Casbin    *casbin.SyncedEnforcer
 )
 
 type LoginUser struct {
@@ -22,7 +24,7 @@ type LoginUser struct {
 	Username string `json:"username"`
 	Email    string `json:"email"`
 	Mobile   string `json:"mobile"`
-	RoleId   int64  `json:"roleId"`
+	RoleId   int64  `json:"role_id"`
 }
 type TicketInfo struct {
 	AppCode   string `json:"app_code"`
