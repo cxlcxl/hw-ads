@@ -21,7 +21,7 @@
       <el-col :span="24" class="search-container">
         <el-form-item v-if="search.dimensions.includes('account_id')" label="账户">
           <el-select v-model="search.account_ids" placeholder="账户选择" class="w260" multiple collapse-tags clearable filterable>
-            <el-option :key="item.id" :label="item.account_name" :value="item.id" v-for="item in accounts" v-show="item.account_type === 1" />
+            <el-option :key="item.id" :label="item.account_name" :value="item.id" v-for="item in accounts" v-show="item.account_type === 2" />
           </el-select>
         </el-form-item>
         <el-form-item v-if="search.dimensions.includes('app_id')" label="应用">
@@ -36,10 +36,10 @@
       </el-col>
     </el-form>
     <el-col :span="24">
-      <el-table v-loading="loadings.pageLoading" :data="reportList.list" highlight-current-row stripe border size="mini">
+      <el-table v-loading="loadings.pageLoading" :data="reportList.list" highlight-current-row stripe border size="mini" show-summary>
         <el-table-column prop="stat_day" label="日期" width="90" align="center" fixed="left" />
         <el-table-column :label="item.label" :align="item.align" :fixed="item.fix" v-for="item in reportList.columns" :key="item.key" v-if="item.show"
-          :min-width="item.min" :show-overflow-tooltip="item.fix">
+          :min-width="item.min" :show-overflow-tooltip="item.fix" :prop="item.key">
           <template slot-scope="scope">
             {{ item.prefix + scope.row[item.key] + item.suffix }}
           </template>
@@ -97,6 +97,7 @@ export default {
         list: [],
         total: 0,
         columns: [],
+        summaries: {},
       },
       pickerOptions: {
         shortcuts: [
@@ -234,6 +235,23 @@ export default {
     confirm(selected) {
       this.search.show_columns = selected
       this.getReportList()
+    },
+    getSummaries(param) {
+      const { columns } = param
+      const sums = []
+      columns.forEach((column, index) => {
+        if (index === 0) {
+          sums[index] = "合计"
+        } else {
+          switch (column.property) {
+            case "earnings":
+              sums[index] = this.reportList.summaries.earnings
+              break
+          }
+        }
+      })
+
+      return sums
     },
   },
 }

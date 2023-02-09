@@ -16,7 +16,7 @@ func Router() error {
 		r.Use(corsNext())
 	}
 
-	group := r.Group("/api")
+	group := r.Group(vars.ApiPrefix)
 	{
 		initRbacApis(group)
 		initAccountApis(group)

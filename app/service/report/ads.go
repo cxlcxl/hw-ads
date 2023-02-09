@@ -11,18 +11,10 @@ import (
 func ReportAds(params *v_data.VReportAds) (data []*AdsReport, total int64, err error) {
 	countries := formatCountries(params.Countries, params.Dimensions)
 	var _ads []*model.Ads
-	groups := make([]string, 0)
-	for _, dimension := range params.Dimensions {
-		if dimension != "account_id" {
-			groups = append(groups, dimension)
-		} else {
-			groups = append(groups, "ads_account_id")
-		}
-	}
 	offset := utils.GetPages(params.Page, params.PageSize)
 	_ads, total, err = model.NewRAS(vars.DBMysql).AnalysisAds(
 		params.AccountIds, params.AppIds, params.DateRange, countries, _adsColumns(params.Dimensions),
-		groups, int(offset), int(params.PageSize),
+		params.Dimensions, int(offset), int(params.PageSize),
 	)
 	if err != nil {
 		return nil, 0, err
@@ -35,7 +27,7 @@ func ReportAds(params *v_data.VReportAds) (data []*AdsReport, total int64, err e
 func _adsColumns(dimensions []string) []string {
 	rs := append(AdsReportColumns)
 	if utils.InArray("account_id", dimensions) {
-		rs = append(rs, "ads_account_id")
+		rs = append(rs, "account_id")
 	}
 	if utils.InArray("app_id", dimensions) {
 		rs = append(rs, "app_id")
@@ -72,10 +64,10 @@ func formatAdsData(params *v_data.VReportAds, _ads []*model.Ads) (data []*AdsRep
 		data[i] = &AdsReport{
 			StatDay:           ads.StatDay.Format(vars.DateFormat),
 			Country:           ads.Country,
-			AccountId:         ads.AdsAccountId,
+			AccountId:         ads.AccountId,
 			AppId:             ads.AppId,
 			AppName:           _appMap[ads.AppId],
-			AccountName:       _accountMap[ads.AdsAccountId],
+			AccountName:       _accountMap[ads.AccountId],
 			AreaName:          area.AreaName,
 			CountryName:       area.CountryName,
 			AdRequests:        ads.AdRequests,

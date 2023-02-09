@@ -10,7 +10,7 @@ const settingsRouter = {
       path: "cron",
       name: "Cron",
       component: () => import("@v/settings/cron"),
-      meta: { title: "任务调度" },
+      meta: { title: "任务调度", auth: "settings/cron" },
     },
   ],
 };

@@ -27,8 +27,8 @@ func CheckPermission() gin.HandlerFunc {
 			if user.(*vars.LoginUser).RoleId == 1 {
 				ctx.Next()
 			} else {
-				requestUrl := ctx.Request.URL.Path    // 路由例如 /admin/user/index
-				method := methods[ctx.Request.Method] // 方法 GET/POST/PUT...
+				requestUrl := urlParse(ctx.Request.URL.Path) // 路由例如 /admin/user/index
+				method := methods[ctx.Request.Method]        // 方法 GET/POST/PUT...
 				// 判断所拥有的的角色是否具有某个权限即可
 				ok, err := vars.Casbin.Enforce(strconv.Itoa(int(user.(*vars.LoginUser).RoleId)), requestUrl, method)
 				if err != nil {
@@ -45,4 +45,8 @@ func CheckPermission() gin.HandlerFunc {
 			}
 		}
 	}
+}
+
+func urlParse(u string) string {
+	return u[len(vars.ApiPrefix)+1:]
 }

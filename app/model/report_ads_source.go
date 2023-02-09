@@ -79,7 +79,7 @@ func (m *ReportAdsSource) AnalysisAds(
 		query = query.Where("country in ?", countries)
 	}
 	if len(accountIds) > 0 {
-		query = query.Where("ads_account_id in ?", accountIds)
+		query = query.Where("account_id in ?", accountIds)
 	}
 
 	for _, group := range groups {

@@ -26,8 +26,8 @@ type Ads struct {
 	Earnings          float64   `json:"earnings"`            // 收入',
 }
 
-// NewRACC ReportAdsCollectAct 实例
-func NewRACC(db *gorm.DB) *ReportAdsCollectAct {
+// NewRACA ReportAdsCollectAct 实例
+func NewRACA(db *gorm.DB) *ReportAdsCollectAct {
 	return &ReportAdsCollectAct{connectDb: connectDb{DB: db}}
 }
 

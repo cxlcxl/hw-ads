@@ -42,7 +42,7 @@ func (m *ReportAdsCollect) BatchInsert(collects []*ReportAdsCollect, collectActs
 			return err
 		}
 
-		if err = NewRACC(tx).BatchInsert(collectActs); err != nil {
+		if err = NewRACA(tx).BatchInsert(collectActs); err != nil {
 			return err
 		}
 		return nil

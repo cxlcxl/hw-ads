@@ -108,11 +108,11 @@ func (m *ReportMarketCollect) ReportComprehensive(
 	// 变现表「包含账户维度需要查与账户关联的表」
 	adsTable := NewRAC(nil).TableName()
 	if utils.InArray("account_id", groups) {
-		adsTable = NewRACC(nil).TableName()
+		adsTable = NewRACA(nil).TableName()
 	}
 	var values []interface{}
-	marketBase := m.comprehensiveBaseSQL(m.TableName(), actIds, appIds, countries, dates, groups)
-	adsBase := m.comprehensiveBaseSQL(adsTable, actIds, appIds, countries, dates, groups)
+	marketBase := m.ComprehensiveBaseSQL(m.TableName(), actIds, appIds, countries, dates, groups)
+	adsBase := m.ComprehensiveBaseSQL(adsTable, actIds, appIds, countries, dates, groups)
 	marketQuery, ms, err := marketBase(marketSelects)
 	if err != nil {
 		return
@@ -143,12 +143,15 @@ func (m *ReportMarketCollect) ReportComprehensive(
 	return
 }
 
-func (m *ReportMarketCollect) comprehensiveBaseSQL(
+func (m *ReportMarketCollect) ComprehensiveBaseSQL(
 	tableName string, actIds []int64, appIds, countries, dates, groups []string,
 ) func(selects []string) (string, []interface{}, error) {
 	return func(s []string) (baseSQL string, values []interface{}, err error) {
-		sql := squirrel.Select(s...).From(tableName).Where("stat_day between ? and ?", dates[0], dates[1]).GroupBy(groups...)
+		sql := squirrel.Select(s...).From(tableName).Where("stat_day between ? and ?", dates[0], dates[1])
 
+		if len(groups) > 0 {
+			sql = sql.GroupBy(groups...)
+		}
 		// 组合维度筛选后的过滤条件
 		if len(actIds) > 0 {
 			in, vs := utils.WhereIn(actIds)
@@ -171,4 +174,41 @@ func (m *ReportMarketCollect) comprehensiveBaseSQL(
 		return
 	}
 
+}
+
+type Summaries struct {
+	Cost     float64 `json:"cost"`
+	Earnings float64 `json:"earnings"`
+	Roi      float64 `json:"roi"`
+	ECpm     float64 `json:"ecpm"`
+}
+
+func (m *ReportMarketCollect) ComprehensiveSummaries(
+	dates []string, actIds []int64, appIds, countries, marketSelects, adsSelects []string,
+) (summaries Summaries) {
+	groups := make([]string, 0)
+	marketSummary := m.ComprehensiveBaseSQL(m.TableName(), actIds, appIds, countries, dates, groups)
+	mSummary, mVs, err := marketSummary(marketSelects)
+	if err != nil {
+		return
+	}
+	if err = m.Raw(mSummary, mVs...).First(&summaries).Error; err != nil {
+		return
+	}
+
+	query := m.Debug().Table(NewRAC(nil).TableName()).
+		Where("stat_day between ? and ?", dates[0], dates[1]).Select(adsSelects).Limit(1)
+	// 组合维度筛选后的过滤条件
+	if len(actIds) > 0 {
+		actWhere := fmt.Sprintf("app_id in (select app_id from %s where account_id in ?)", NewAppAct(nil).TableName())
+		query = query.Where(actWhere, actIds)
+	}
+	if len(appIds) > 0 {
+		query = query.Where("app_id in ?", appIds)
+	}
+	if len(countries) > 0 {
+		query = query.Where("country in ?", countries)
+	}
+	query.Scan(&summaries)
+	return
 }

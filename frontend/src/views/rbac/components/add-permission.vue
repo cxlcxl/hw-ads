@@ -8,7 +8,7 @@
         <el-input v-model="permissionForm.p_name" />
       </el-form-item>
       <el-form-item label="路由地址" prop="permission" :rules="{required: true, message: '请填写路由地址'}">
-        <el-input v-model="permissionForm.permission" placeholder="请严格填写，示例：/api/user/list" />
+        <el-input v-model="permissionForm.permission" placeholder="请严格填写，示例：user/list" />
       </el-form-item>
       <el-form-item label="请求类型" prop="method" :rules="{required: true, message: '请选择允许的请求类型'}">
         <el-radio-group v-model="permissionForm.method" size="mini">
@@ -36,7 +36,7 @@ export default {
       permissionForm: {
         parent_name: "",
         p_name: "",
-        permission: "/api/",
+        permission: "",
         method: "*",
         pid: 0,
       },

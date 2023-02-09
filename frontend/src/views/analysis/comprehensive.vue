@@ -36,7 +36,8 @@
       </el-col>
     </el-form>
     <el-col :span="24">
-      <el-table v-loading="loadings.pageLoading" :data="reportList.list" @sort-change="sortable" highlight-current-row stripe border size="mini">
+      <el-table v-loading="loadings.pageLoading" :data="reportList.list" @sort-change="sortable" highlight-current-row stripe border size="mini"
+        show-summary :summary-method="getSummaries">
         <el-table-column prop="stat_day" label="日期" width="90" align="center" fixed="left" />
         <el-table-column :label="item.label" :align="item.align" :fixed="item.fix" v-for="item in reportList.columns" :key="item.key" v-if="item.show"
           :min-width="item.min" :show-overflow-tooltip="item.fix" :sortable="item.sort|filterSort" :prop="item.key">
@@ -100,6 +101,7 @@ export default {
         list: [],
         total: 0,
         columns: [],
+        summaries: {},
       },
       pickerOptions: {
         shortcuts: [
@@ -161,6 +163,7 @@ export default {
               this.reportList.columns = res.data.columns
               this.reportList.list = res.data.list
               this.reportList.total = res.data.total
+              this.reportList.summaries = res.data.summaries
               this.loadings.pageLoading = false
             })
             .catch((err) => {
@@ -249,6 +252,29 @@ export default {
         this.search.by = order
         this.getReportList()
       }
+    },
+    getSummaries(param) {
+      const { columns } = param
+      const sums = []
+      columns.forEach((column, index) => {
+        if (index === 0) {
+          sums[index] = "合计"
+        } else {
+          switch (column.property) {
+            case "cost":
+              sums[index] = this.reportList.summaries.cost
+              break
+            case "earnings":
+              sums[index] = this.reportList.summaries.earnings
+              break
+            case "roi":
+              sums[index] = this.reportList.summaries.roi + "%"
+              break
+          }
+        }
+      })
+
+      return sums
     },
   },
 }

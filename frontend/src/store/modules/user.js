@@ -70,7 +70,7 @@ const actions = {
           if (!data) {
             reject("获取用户信息失败，请重新登陆.");
           }
-          data.roles = [data.role];
+          data.roles = [data.role_id];
           commit("SET_LOGIN_INFO", data);
           resolve(data);
         })

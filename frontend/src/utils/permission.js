@@ -26,11 +26,7 @@ export function rolesHasSuperAdmin(roles) {
     if (roles.length === 0) {
       return false;
     }
-    for (let i = 0; i < roles.length; i++) {
-      if (roles[i].id === 1) {
-        return true;
-      }
-    }
+    return roles.includes(1);
   } else if (Object.prototype.toString.call(roles) === "[Object Object]") {
     if (roles.id === 1) {
       return true;

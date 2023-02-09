@@ -297,10 +297,3 @@ func (l *CountryQueryLogic) saveCountryData(accountId int64, data []*Country) (e
 	}
 	return nil
 }
-
-func getRate(a float64, b, c int64) float64 {
-	if b == 0 {
-		return 0
-	}
-	return utils.Round(a/float64(b), int(c))
-}

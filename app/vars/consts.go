@@ -1,6 +1,8 @@
 package vars
 
 const (
+	ApiPrefix = "/api"
+
 	ConfigKeyPrefix = "mobgi_ads_config_"
 	LoginUserKey    = "mobgi_ads_login_user"
 

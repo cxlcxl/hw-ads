@@ -220,3 +220,22 @@ func comprehensiveOrders(order, by string) (orders []string) {
 	}
 	return
 }
+
+// ReportComprehensiveSummaries 综合报表汇总数据
+func ReportComprehensiveSummaries(params *v_data.VReportComprehensive) (summaries model.Summaries) {
+	countries := formatCountries(params.Countries, params.Dimensions)
+	summaries = model.NewRMC(vars.DBMysql).ComprehensiveSummaries(
+		params.DateRange, params.AccountIds, params.AppIds, countries,
+		[]string{"round(sum(`cost`), 3) as `cost`"}, []string{"round(sum(`earnings`), 3) as `earnings`"},
+	)
+	if summaries.Cost == 0 {
+		if summaries.Earnings == 0 {
+			summaries.Roi = 0
+		} else {
+			summaries.Roi = 100
+		}
+	} else {
+		summaries.Roi = utils.Round(summaries.Earnings/summaries.Cost*100, 2)
+	}
+	return
+}
