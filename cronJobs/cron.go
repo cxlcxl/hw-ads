@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/robfig/cron/v3"
 	"log"
+	"sync"
 	"time"
 )
 
@@ -17,6 +18,7 @@ var (
 	day        string
 	pauseRule  int
 	_cron      *cron.Cron
+	o          sync.Once
 )
 
 type schedule struct {
@@ -55,20 +57,19 @@ func main() {
 			entries:  make(map[string]cron.EntryID),
 		}
 		_cron = cron.New()
-		firstStart := true
+		defer _cron.Stop()
+
 		for v := range listener {
 			fmt.Println("刷新调度：", v)
 
 			s.taskScheduling()
 
-			if firstStart {
+			o.Do(func() {
 				fmt.Println(">>>>>>>>>>>>>>>>>>>>>>>>>> CRON START <<<<<<<<<<<<<<<<<<<<<<<<<<")
 				_cron.Start()
-			}
-			firstStart = false
+			})
 		}
 
-		defer _cron.Stop()
 		select {} // 阻塞进程
 	}
 }
@@ -81,20 +82,19 @@ func (s *schedule) taskScheduling() {
 		fmt.Println("调度启动失败", err)
 		return
 	}
-	now := time.Now()
+	//now := time.Now()
 	for _, job := range _jobs {
 		if job.PauseRule == vars.JobPauseStop {
 			continue
 		}
-		pauseDay := now.AddDate(0, 0, -1*int(job.PauseRule))
-		if job.StatDay.After(pauseDay) {
-			continue
-		}
-
+		//pauseDay := now.AddDate(0, 0, -1*int(job.PauseRule))
+		//if job.StatDay.After(pauseDay) {
+		//	continue
+		//}
 		version, ok := s.versions[job.ApiModule]
 		if !ok {
 			if fn, _ok := scripts.ScheduleJobs[job.ApiModule]; _ok {
-				fmt.Println("添加：", job.ApiModule, job.Version)
+				fmt.Printf("添加调度模块：%s，版本：%d \r\n", job.ApiModule, job.Version)
 				s.versions[job.ApiModule] = job.Version
 				entryId, _ := _cron.AddFunc(job.JobSchedule, fn)
 				s.entries[job.ApiModule] = entryId
@@ -111,7 +111,7 @@ func (s *schedule) taskScheduling() {
 				}
 				entryId, _ := _cron.AddFunc(job.JobSchedule, fn)
 				s.entries[job.ApiModule] = entryId
-				fmt.Println("替换：", job.ApiModule, job.Version)
+				fmt.Printf("替换调度模块：%s，版本：%d \r\n", job.ApiModule, job.Version)
 			}
 		}
 	}

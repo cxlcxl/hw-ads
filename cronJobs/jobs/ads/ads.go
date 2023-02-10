@@ -36,10 +36,10 @@ func ReportAds() {
 			log.Fatal(err)
 			return
 		}
-		jobDay = jobDay.AddDate(0, 0, 1)
 		if err = model.NewJob(vars.DBMysql).UpdateJobDayByModule(vars.ApiModuleAds, jobDay.Format(vars.DateFormat)); err != nil {
 			fmt.Println("数据库调度时间修改失败: ", err)
 		}
+		jobDay = jobDay.AddDate(0, 0, 1)
 		time.Sleep(time.Millisecond * 500)
 	}
 
