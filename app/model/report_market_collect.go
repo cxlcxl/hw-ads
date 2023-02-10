@@ -123,20 +123,24 @@ func (m *ReportMarketCollect) ReportComprehensive(
 		return
 	}
 	values = append(values, as...)
-	sql, _, err := squirrel.
+
+	query := squirrel.
 		Select("t0.*,t1.`earnings`,t1.`ad_requests`,t1.`matched_ad_requests`,t1.`ad_show_count`,t1.`ad_click_count`").
 		From(fmt.Sprintf("(%s) as t0", marketQuery)).
 		LeftJoin(fmt.Sprintf("(%s) as t1 on %s", adsQuery, strings.Join(JoinOn, " and "))).
-		OrderBy(_os...).Offset(offset).Limit(limit).ToSql()
-	if err != nil {
-		return
+		OrderBy(_os...)
+	if limit > 0 {
+		totalSql, ts, err := marketBase([]string{"1"})
+		if err != nil {
+			return nil, 0, err
+		}
+		if err = m.Raw(totalSql, ts...).Count(&total).Error; err != nil || total == 0 {
+			return nil, 0, err
+		}
+		query = query.Offset(offset).Limit(limit)
 	}
-
-	totalSql, ts, err := marketBase([]string{"1"})
+	sql, _, err := query.ToSql()
 	if err != nil {
-		return
-	}
-	if err = m.Raw(totalSql, ts...).Count(&total).Error; err != nil || total == 0 {
 		return
 	}
 	err = m.Raw(sql, values...).Find(&markets).Error
@@ -184,31 +188,54 @@ type Summaries struct {
 }
 
 func (m *ReportMarketCollect) ComprehensiveSummaries(
-	dates []string, actIds []int64, appIds, countries, marketSelects, adsSelects []string,
+	dates []string, actIds []int64, appIds, countries, marketSelects, adsSelects, groups []string,
 ) (summaries Summaries) {
-	groups := make([]string, 0)
-	marketSummary := m.ComprehensiveBaseSQL(m.TableName(), actIds, appIds, countries, dates, groups)
-	mSummary, mVs, err := marketSummary(marketSelects)
+	JoinOn := []string{"t0.stat_day = t1.stat_day"}
+	// 变现表「包含账户维度需要查与账户关联的表」
+	if utils.InArray("account_id", groups) {
+		JoinOn = append(JoinOn, "t0.account_id = t1.account_id")
+		marketSelects = append(marketSelects, "account_id")
+		adsSelects = append(adsSelects, "account_id")
+	}
+
+	if utils.InArray("app_id", groups) {
+		JoinOn = append(JoinOn, "t0.app_id = t1.app_id")
+		marketSelects = append(marketSelects, "app_id")
+		adsSelects = append(adsSelects, "app_id")
+	}
+
+	if utils.InArray("country", groups) {
+		JoinOn = append(JoinOn, "t0.country = t1.country")
+		marketSelects = append(marketSelects, "country")
+		adsSelects = append(adsSelects, "country")
+	}
+
+	// 变现表「包含账户维度需要查与账户关联的表」
+	adsTable := NewRAC(nil).TableName()
+	if utils.InArray("account_id", groups) {
+		adsTable = NewRACA(nil).TableName()
+	}
+	var values []interface{}
+	marketBase := m.ComprehensiveBaseSQL(m.TableName(), actIds, appIds, countries, dates, groups)
+	adsBase := m.ComprehensiveBaseSQL(adsTable, actIds, appIds, countries, dates, groups)
+	marketQuery, ms, err := marketBase(marketSelects)
 	if err != nil {
 		return
 	}
-	if err = m.Raw(mSummary, mVs...).First(&summaries).Error; err != nil {
+	values = append(values, ms...)
+	adsQuery, as, err := adsBase(adsSelects)
+	if err != nil {
 		return
 	}
+	values = append(values, as...)
 
-	query := m.Debug().Table(NewRAC(nil).TableName()).
-		Where("stat_day between ? and ?", dates[0], dates[1]).Select(adsSelects).Limit(1)
-	// 组合维度筛选后的过滤条件
-	if len(actIds) > 0 {
-		actWhere := fmt.Sprintf("app_id in (select app_id from %s where account_id in ?)", NewAppAct(nil).TableName())
-		query = query.Where(actWhere, actIds)
+	sql, _, err := squirrel.
+		Select("sum(t0.`cost`) as `cost`,sum(t1.`earnings`) as earnings").
+		From(fmt.Sprintf("(%s) as t0", marketQuery)).
+		LeftJoin(fmt.Sprintf("(%s) as t1 on %s", adsQuery, strings.Join(JoinOn, " and "))).ToSql()
+	if err != nil {
+		return
 	}
-	if len(appIds) > 0 {
-		query = query.Where("app_id in ?", appIds)
-	}
-	if len(countries) > 0 {
-		query = query.Where("country in ?", countries)
-	}
-	query.Scan(&summaries)
+	m.Raw(sql, values...).First(&summaries)
 	return
 }

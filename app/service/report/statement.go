@@ -125,6 +125,7 @@ var (
 		{Key: "click_through_rate", Label: "点击率(变现)", Align: "right", Min: 100, Suffix: "%"},
 		//{Key: "arpu", Label: "ARPU(变现:$)", Align: "right", Min: 100},
 	}
+	DateColumn    = &ReportColumn{Key: "stat_day", Label: "日期", Align: "center", Min: 90, Fix: true, Show: true}
 	AccountColumn = &ReportColumn{Key: "account_name", Label: "账户", Align: "left", Min: 120, Fix: true, Show: true}
 	AppColumn     = &ReportColumn{Key: "app_name", Label: "应用", Align: "left", Min: 130, Fix: true, Show: true}
 	AreaColumn    = &ReportColumn{Key: "area_name", Label: "区域", Align: "left", Min: 100, Fix: true, Show: true}

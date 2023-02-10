@@ -37,7 +37,6 @@
     </el-form>
     <el-col :span="24">
       <el-table v-loading="loadings.pageLoading" :data="reportList.list" highlight-current-row stripe border size="mini" show-summary>
-        <el-table-column prop="stat_day" label="日期" width="90" align="center" fixed="left" />
         <el-table-column :label="item.label" :align="item.align" :fixed="item.fix" v-for="item in reportList.columns" :key="item.key" v-if="item.show"
           :min-width="item.min" :show-overflow-tooltip="item.fix" :prop="item.key">
           <template slot-scope="scope">

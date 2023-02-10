@@ -41,11 +41,15 @@ func (h *Report) Comprehensive(ctx *gin.Context, p interface{}) {
 			params.ShowColumns = strings.Split(column.Columns, ",")
 		}
 	}
+	var summaries model.Summaries
+	if params.Download == 0 {
+		summaries = servicereport.ReportComprehensiveSummaries(params)
+	}
 	response.Success(ctx, gin.H{
 		"total":     total,
 		"list":      list,
 		"columns":   servicereport.ReportComprehensiveColumns(params.ShowColumns, params.Dimensions),
-		"summaries": servicereport.ReportComprehensiveSummaries(params),
+		"summaries": summaries,
 	})
 }
 

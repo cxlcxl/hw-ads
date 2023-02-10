@@ -8,6 +8,14 @@ export function reportComprehensive(data) {
   });
 }
 
+export function downloadComprehensive(data) {
+  return request({
+    url: "/report/comprehensive-download",
+    method: "post",
+    data,
+  });
+}
+
 export function reportAds(data) {
   return request({
     url: "/report/ads",

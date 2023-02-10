@@ -13,6 +13,7 @@
         </el-form-item>
         <el-form-item label="">
           <el-button type="primary" icon="el-icon-search" class="item" @click="doSearch">查询</el-button>
+          <el-button icon="el-icon-download" class="item" @click="download">下载数据</el-button>
         </el-form-item>
         <el-form-item label="" style="float: right;">
           <el-button type="danger" icon="el-icon-s-tools" class="item" @click="selectColumns" circle />
@@ -38,7 +39,6 @@
     <el-col :span="24">
       <el-table v-loading="loadings.pageLoading" :data="reportList.list" @sort-change="sortable" highlight-current-row stripe border size="mini"
         show-summary :summary-method="getSummaries">
-        <el-table-column prop="stat_day" label="日期" width="90" align="center" fixed="left" />
         <el-table-column :label="item.label" :align="item.align" :fixed="item.fix" v-for="item in reportList.columns" :key="item.key" v-if="item.show"
           :min-width="item.min" :show-overflow-tooltip="item.fix" :sortable="item.sort|filterSort" :prop="item.key">
           <template slot-scope="scope">
@@ -91,6 +91,7 @@ export default {
         show_columns: [],
         order: "",
         by: "",
+        download: 0,
         page: 1,
         page_size: 15,
       },
@@ -233,6 +234,40 @@ export default {
     doSearch() {
       this.search.page = 1
       this.getReportList()
+    },
+    download() {
+      this.loadings.pageLoading = true
+      this.search.download = 1
+      reportComprehensive(this.search)
+        .then((res) => {
+          this.search.download = 0
+          this.loadings.downloadLoading = false
+          import("@/vendor/Export2Excel")
+            .then((excel) => {
+              const tHeader = []
+              res.data.columns.map((item) => {
+                if (item.show) {
+                  tHeader.push(item.label)
+                }
+              })
+              const data = excel.formatJson(res.data)
+              if (data.length === 0) {
+                this.$message.info("没有筛选到需导出的数据")
+                this.loadings.pageLoading = false
+                return
+              }
+              excel.export_json_to_excel({ header: tHeader, data, filename: "综合报表数据" })
+              this.loadings.pageLoading = false
+            })
+            .catch((err) => {
+              console.log(err)
+              this.loadings.pageLoading = false
+            })
+        })
+        .catch(() => {
+          this.search.download = 0
+          this.loadings.pageLoading = false
+        })
     },
     setDefaultSearchDate() {
       let s = new Date()

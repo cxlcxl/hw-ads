@@ -11,7 +11,7 @@ import (
 func TestAnalysisComprehensive(t *testing.T) {
 	empty := []string{}
 	dates := []string{"2023-01-27", "2023-01-27"}
-	d, total, err := model.NewRMC(vars.DBMysql).ReportComprehensive(
+	d, total, _, err := model.NewRMC(vars.DBMysql).ReportComprehensive(
 		dates,
 		[]int64{},
 		empty, empty, servicereport.MarketSQLColumns, servicereport.AdsSQLColumns, []string{"stat_day", "account_id", "app_id"},

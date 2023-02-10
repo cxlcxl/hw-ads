@@ -11,6 +11,7 @@ type VReportComprehensive struct {
 	ShowColumns []string   `json:"show_columns" binding:"required"`
 	Order       string     `json:"order"`
 	By          string     `json:"by"`
+	Download    int64      `json:"download"`
 	Pagination
 	User *vars.LoginUser
 }

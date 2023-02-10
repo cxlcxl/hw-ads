@@ -13,11 +13,15 @@ func ReportComprehensive(params *v_data.VReportComprehensive) (data []*Comprehen
 	countries := formatCountries(params.Countries, params.Dimensions)
 	// 1. 汇总报表数据
 	offset := utils.GetPages(params.Page, params.PageSize)
+	pageSize := uint64(params.PageSize)
+	if params.Download == 1 {
+		pageSize = 0
+	}
 	groups := append(params.Dimensions, "stat_day")
 	comprehensives, total, err := model.NewRMC(vars.DBMysql).ReportComprehensive(
 		params.DateRange, params.AccountIds, params.AppIds, countries,
 		marketColumns(params.Dimensions), adsColumns(params.Dimensions),
-		groups, comprehensiveOrders(params.Order, params.By), uint64(offset), uint64(params.PageSize),
+		groups, comprehensiveOrders(params.Order, params.By), uint64(offset), pageSize,
 	)
 	if err != nil {
 		return nil, 0, err
@@ -26,21 +30,19 @@ func ReportComprehensive(params *v_data.VReportComprehensive) (data []*Comprehen
 		return
 	}
 	// 2. 数据整理
-	data, err = formatComprehensiveData(params, comprehensives)
+	data, err = formatComprehensiveData(params.Dimensions, comprehensives)
 	return
 }
 
-func formatComprehensiveData(
-	params *v_data.VReportComprehensive, comprehensives []*model.ComprehensiveReport,
-) (data []*ComprehensiveReport, err error) {
+func formatComprehensiveData(dimensions []string, comprehensives []*model.ComprehensiveReport) (data []*ComprehensiveReport, err error) {
 	// 3.1 检查是否需要填充账户名称，需要则填充
 	_accountMap := make(map[int64]string)
-	if utils.InArray("account_id", params.Dimensions) {
+	if utils.InArray("account_id", dimensions) {
 		_accountMap = accountMap(vars.AccountTypeMarket)
 	}
 	// 3.2 检查是否需要填充国家地区，需要则填充
 	areaMap := make(map[string]*model.AreaCountry)
-	if utils.InArray("country", params.Dimensions) {
+	if utils.InArray("country", dimensions) {
 		areaMap = regionCountryMap()
 	}
 	for _, report := range comprehensives {
@@ -189,6 +191,7 @@ func ReportComprehensiveColumns(columns, dimensions []string) (rs []*ReportColum
 	if len(columns) == 0 {
 		forceShow = true
 	}
+	rs = append(rs, DateColumn)
 	if utils.InArray("account_id", dimensions) {
 		rs = append(rs, AccountColumn)
 	}
@@ -224,9 +227,11 @@ func comprehensiveOrders(order, by string) (orders []string) {
 // ReportComprehensiveSummaries 综合报表汇总数据
 func ReportComprehensiveSummaries(params *v_data.VReportComprehensive) (summaries model.Summaries) {
 	countries := formatCountries(params.Countries, params.Dimensions)
+	groups := append(params.Dimensions, "stat_day")
 	summaries = model.NewRMC(vars.DBMysql).ComprehensiveSummaries(
 		params.DateRange, params.AccountIds, params.AppIds, countries,
-		[]string{"round(sum(`cost`), 3) as `cost`"}, []string{"round(sum(`earnings`), 3) as `earnings`"},
+		[]string{"stat_day", "round(sum(`cost`), 3) as `cost`"},
+		[]string{"stat_day", "round(sum(`earnings`), 3) as `earnings`"}, groups,
 	)
 	if summaries.Cost == 0 {
 		if summaries.Earnings == 0 {

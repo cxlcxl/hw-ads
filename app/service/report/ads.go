@@ -102,6 +102,7 @@ func ReportAdsColumns(columns, dimensions []string) (rs []*ReportColumn) {
 	if len(columns) == 0 {
 		forceShow = true
 	}
+	rs = append(rs, DateColumn)
 	if utils.InArray("account_id", dimensions) {
 		rs = append(rs, AccountColumn)
 	}
