@@ -42,7 +42,7 @@ func (h *Report) Comprehensive(ctx *gin.Context, p interface{}) {
 		}
 	}
 	var summaries model.Summaries
-	if params.Download == 0 {
+	if params.Download == 0 && total > 0 {
 		summaries = servicereport.ReportComprehensiveSummaries(params)
 	}
 	response.Success(ctx, gin.H{

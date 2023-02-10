@@ -62,7 +62,7 @@ func (m *OverseasRegion) FindCountries(areaId int64, k string, offset, limit int
 		sql += " and t1.area_id is null"
 	}
 	if k != "" {
-		sql += "c_code = ? or c_name like ?"
+		sql += " and (t0.c_code = ? or t0.c_name like ?)"
 		val = append(val, k, "%"+k+"%")
 	}
 	if err = m.Raw(count+sql+"", val...).Scan(&total).Error; err != nil {

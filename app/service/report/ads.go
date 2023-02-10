@@ -61,12 +61,16 @@ func formatAdsData(params *v_data.VReportAds, _ads []*model.Ads) (data []*AdsRep
 			area = &model.AreaCountry{}
 		}
 		f0, f1, f2, f3 := calculateAdsRate(ads)
+		appName := _appMap[ads.AppId]
+		if appName == "" {
+			appName = ads.AppId
+		}
 		data[i] = &AdsReport{
 			StatDay:           ads.StatDay.Format(vars.DateFormat),
 			Country:           ads.Country,
 			AccountId:         ads.AccountId,
 			AppId:             ads.AppId,
-			AppName:           _appMap[ads.AppId],
+			AppName:           appName,
 			AccountName:       _accountMap[ads.AccountId],
 			AreaName:          area.AreaName,
 			CountryName:       area.CountryName,
