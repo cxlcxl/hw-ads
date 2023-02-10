@@ -7,6 +7,7 @@ import (
 	"bs.mobgi.cc/cronJobs/jobs"
 	"bs.mobgi.cc/library/curl"
 	"fmt"
+	"sync"
 	"time"
 )
 
@@ -21,6 +22,7 @@ type AdsQueryLogic struct {
 	doneChan     chan struct{}
 	pageDoneChan chan struct{}
 	clientInfo   map[int64]*client
+	mu           sync.Mutex
 }
 
 func NewAdsQueryLogic(day string) *AdsQueryLogic {
@@ -34,6 +36,7 @@ func NewAdsQueryLogic(day string) *AdsQueryLogic {
 		pageRequests: 0,
 		pageSize:     vars.YmlConfig.GetInt64("MarketingApis.PageSize"),
 		url:          vars.YmlConfig.GetString("MarketingApis.Reports.AdsQuery"),
+		mu:           sync.Mutex{},
 	}
 }
 
@@ -213,6 +216,8 @@ func (l *AdsQueryLogic) setFailed(param *queryParam, page int64) {
 
 func (l *AdsQueryLogic) saveAdsData(accountId int64, data []*AdsList) (err error) {
 	if len(data) > 0 {
+		l.mu.Lock() // 防止 Mysql 事务抱死锁错误
+		defer l.mu.Unlock()
 		m := make([]*model.ReportAdsSource, len(data))
 		now := time.Now()
 		for i, d := range data {
@@ -236,7 +241,20 @@ func (l *AdsQueryLogic) saveAdsData(accountId int64, data []*AdsList) (err error
 				Timestamp:         model.Timestamp{CreatedAt: now, UpdatedAt: now},
 			}
 		}
-
+		//if producer, err := queue.NewKafkaProducer("report_ads_source", "ads"); err == nil {
+		//	_ = producer.SendMessages(func(s string, encoder sarama.StringEncoder) (msg []*sarama.ProducerMessage) {
+		//		for _, source := range m {
+		//			if marshal, err := json.Marshal(source); err == nil {
+		//				msg = append(msg, &sarama.ProducerMessage{
+		//					Topic: s,
+		//					Key:   encoder,
+		//					Value: sarama.ByteEncoder(marshal),
+		//				})
+		//			}
+		//		}
+		//		return
+		//	})
+		//}
 		return model.NewRAS(vars.DBMysql).BatchInsert(m)
 	}
 	return nil

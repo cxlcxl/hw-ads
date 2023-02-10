@@ -9,8 +9,8 @@ Token:
   ExpiresAt: 259200
 
 Mysql:
-  Host: ""
-  Port: 3306
+  Host: "111.230.169.231"
+  Port: 21077
   Database: "hiads"
   Prefix: ""
   Username: "root"
@@ -23,7 +23,7 @@ Mysql:
   SlowQuery: 2 # 慢 SQL
 
 Redis:
-  Host: "127.0.0.1:6379"
+  Host: "192.168.48.61:6379"
   Password:
   Db: 0
   KeyPrefix: "mobgi:ads:"
@@ -31,6 +31,13 @@ Redis:
   BLFalsePositive: 0.01
   BLKeyPrefix: "mobgi:ads:filter:"
   ExpireTime: 3600 # s
+
+Casbin:
+  RefreshTime: 120 # s
+  TableName: "role_permission_rules"
+
+Kafka:
+  Host: "192.168.48.3:9092"
 
 Sso:
   AppCode: "HW_ADS_DEV"
@@ -57,6 +64,12 @@ FileUploadSetting:
   ReturnPath: "/web/storage/upload"
 
 MarketingApis:
+  Authorize:
+    CodeUrl: "https://login.cloud.huawei.com/oauth2/v2/authorize"
+    TokenUrl: "https://login.cloud.huawei.com/oauth2/v2/token"
+    RedirectUri: "http://localhost:19527/#/marketing/callback"
+    Refresh: "https://oauth-login.cloud.huawei.com/oauth2/v2/token"
+    Scope: "https://www.huawei.com/auth/account/base.profile https://ads.cloud.huawei.com/report https://ads.cloud.huawei.com/promotion https://ads.cloud.huawei.com/tools https://ads.cloud.huawei.com/account https://ads.cloud.huawei.com/finance"
   Client: # 拉数据刷新 token 专用
     Id: ""
     Secret: ""
