@@ -69,7 +69,7 @@ const nowDate = new Date()
 const sorts = { custom: "custom", 1: true, 0: false }
 
 export default {
-  // name: "Comprehensive", // 写上 name 可以使 keep-alive 生效
+  name: "Comprehensive", // 写上 name 可以使 keep-alive 生效
   components: { Page, SelectColumns },
   filters: {
     timeFormat(t) {

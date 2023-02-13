@@ -45,6 +45,11 @@ func (v BsValidator) VUserUpdate(ctx *gin.Context) {
 	bindData(ctx, &params, (&handlers.User{}).UserUpdate)
 }
 
+func (v BsValidator) VSelfUpdate(ctx *gin.Context) {
+	var params v_data.VSelfUpdate
+	bindData(ctx, &params, (&handlers.User{}).SelfUpdate, fillUser)
+}
+
 func (v BsValidator) VUserInfo(ctx *gin.Context) {
 	bindRouteData(ctx, "id", (&handlers.User{}).UserInfo)
 }

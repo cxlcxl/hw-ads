@@ -66,7 +66,7 @@ import SelectColumns from "./components/columns"
 const nowDate = new Date()
 
 export default {
-  // name: "Ads", // 写上 name 可以使 keep-alive 生效
+  name: "Ads", // 写上 name 可以使 keep-alive 生效
   components: { Page, SelectColumns },
   filters: {
     timeFormat(t) {

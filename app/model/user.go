@@ -39,6 +39,14 @@ func (m *User) FindUserByEmail(email string) (user *User, err error) {
 	return
 }
 
+func (m *User) FindUserBySso(email, ssoUid string) (user *User, err error) {
+	err = m.Table(m.TableName()).Where("email = ? or sso_uid = ?", email, ssoUid).First(&user).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	return
+}
+
 func (m *User) FindUserById(id int64) (user *User, err error) {
 	err = m.Table(m.TableName()).Where("id = ?", id).First(&user).Error
 	return

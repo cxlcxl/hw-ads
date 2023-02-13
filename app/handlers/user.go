@@ -140,3 +140,19 @@ func (l *User) UserUpdate(ctx *gin.Context, p interface{}) {
 	}
 	response.Success(ctx, nil)
 }
+
+func (l *User) SelfUpdate(ctx *gin.Context, p interface{}) {
+	params := p.(*v_data.VSelfUpdate)
+	d := map[string]interface{}{
+		"username":   params.Username,
+		"email":      params.Email,
+		"mobile":     params.Mobile,
+		"updated_at": time.Now(),
+	}
+	err := model.NewUser(vars.DBMysql).UpdateUser(d, params.User.UserId)
+	if err != nil {
+		response.Fail(ctx, "修改失败："+err.Error())
+		return
+	}
+	response.Success(ctx, nil)
+}

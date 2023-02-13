@@ -24,7 +24,7 @@ func UpdatePass(uid, pass string) {
 }
 
 func SsoLogin(u *vars.SsoLoginResData) (user *model.User, err error) {
-	user, err = model.NewUser(vars.DBMysql).FindUserByEmail(u.Email)
+	user, err = model.NewUser(vars.DBMysql).FindUserBySso(u.Email, u.SsoUid)
 	if err != nil {
 		return nil, err
 	}

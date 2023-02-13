@@ -39,12 +39,16 @@ func AuthorizeCodeUrl(id int64, clientId, secret string) (url string, err error)
 	if !strings.HasSuffix(baseUrl, "?") {
 		baseUrl += "?"
 	}
+	conf, err := model.NewSysConfig(vars.DBMysql).FindOneByKey("MarketingApis.Authorize.RedirectUri")
+	if err != nil {
+		return "", errors.New("获取重定向授权地址失败，请检查是否填写地址配置")
+	}
 	params := curl.HttpBuildQuery(map[string]string{
 		"response_type": "code",
 		"access_type":   "offline",
 		"client_id":     clientId,
 		"state":         state,
-		"redirect_uri":  vars.YmlConfig.GetString("MarketingApis.Authorize.RedirectUri"),
+		"redirect_uri":  conf.Val,
 		"scope":         vars.YmlConfig.GetString("MarketingApis.Authorize.Scope"),
 	})
 	authorizeValue := fmt.Sprintf("%d-%s-%s", id, clientId, secret)

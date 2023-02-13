@@ -1,5 +1,7 @@
 package v_data
 
+import "bs.mobgi.cc/app/vars"
+
 type VRoleList struct {
 	RoleName string `json:"role_name" form:"role_name"`
 	State    uint8  `json:"state" form:"state" binding:"numeric"`
@@ -29,6 +31,14 @@ type VUserCreate struct {
 	State    uint8  `json:"state" form:"state" binding:"numeric"`
 	RoleId   int64  `json:"role_id" form:"role_id" binding:"required,numeric"`
 	Pass     string `json:"pass" form:"pass"`
+}
+
+type VSelfUpdate struct {
+	Username string `json:"username" form:"username" binding:"required"`
+	Email    string `json:"email" form:"email" binding:"required,email"`
+	Mobile   string `json:"mobile" form:"mobile"`
+
+	User *vars.LoginUser
 }
 
 type VUserUpdate struct {
