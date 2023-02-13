@@ -12,6 +12,25 @@ func (v BsValidator) VSettingsCronInfo(ctx *gin.Context) {
 	bindRouteData(ctx, "id", (&handlers.Settings{}).CronInfo)
 }
 
+func (v BsValidator) VSettingsConfigs(ctx *gin.Context) {
+	var p v_data.VSettingsConfigs
+	bindData(ctx, &p, (&handlers.Settings{}).Configs)
+}
+
+func (v BsValidator) VSettingsConfigCreate(ctx *gin.Context) {
+	var p v_data.VSettingsConfigCreate
+	bindData(ctx, &p, (&handlers.Settings{}).ConfigCreate)
+}
+
+func (v BsValidator) VSettingsConfig(ctx *gin.Context) {
+	bindRouteData(ctx, "id", (&handlers.Settings{}).Config)
+}
+
+func (v BsValidator) VSettingsConfigUpdate(ctx *gin.Context) {
+	var p v_data.VSettingsConfigUpdate
+	bindData(ctx, &p, (&handlers.Settings{}).ConfigUpdate)
+}
+
 func (v BsValidator) VSettingsCronUpdate(ctx *gin.Context) {
 	var p v_data.VSettingsCronUpdate
 	bindData(ctx, &p, (&handlers.Settings{}).CronUpdate, bindId)

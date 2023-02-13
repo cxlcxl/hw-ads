@@ -14,5 +14,10 @@ func initSettingsApis(g *gin.RouterGroup) {
 		group.GET("/cron/:id", (validator.BsValidator{}).VSettingsCronInfo)
 		group.POST("/cron/:id", (validator.BsValidator{}).VSettingsCronUpdate)
 		group.POST("/cron/schedule", (validator.BsValidator{}).VSettingsCronSchedule)
+
+		group.GET("/configs", (validator.BsValidator{}).VSettingsConfigs)
+		group.POST("/config", (validator.BsValidator{}).VSettingsConfigCreate)
+		group.POST("/config/:id", (validator.BsValidator{}).VSettingsConfigUpdate)
+		group.GET("/config/:id", (validator.BsValidator{}).VSettingsConfig)
 	}
 }

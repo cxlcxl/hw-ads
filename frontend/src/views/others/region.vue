@@ -58,7 +58,7 @@ import RegionCreate from "./components/region-add.vue"
 import RegionAreaSet from "./components/region-area-set.vue"
 
 export default {
-  // name:"Region",
+  name: "Region",
   components: { Page, RegionCreate, RegionAreaSet },
   data() {
     return {

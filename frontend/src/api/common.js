@@ -67,3 +67,34 @@ export function settingsCronSchedule(data) {
     data,
   });
 }
+
+export function sysConfigs(params) {
+  return request({
+    url: "/settings/configs",
+    method: "get",
+    params,
+  });
+}
+
+export function confCreate(data) {
+  return request({
+    url: "/settings/config",
+    method: "post",
+    data,
+  });
+}
+
+export function confInfo(id) {
+  return request({
+    url: "/settings/config/" + id,
+    method: "get",
+  });
+}
+
+export function confUpdate(data, id) {
+  return request({
+    url: "/settings/config/" + id,
+    method: "post",
+    data,
+  });
+}

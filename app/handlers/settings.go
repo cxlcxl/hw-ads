@@ -3,6 +3,7 @@ package handlers
 import (
 	"bs.mobgi.cc/app/model"
 	"bs.mobgi.cc/app/response"
+	"bs.mobgi.cc/app/utils"
 	"bs.mobgi.cc/app/validator/v_data"
 	"bs.mobgi.cc/app/vars"
 	"bs.mobgi.cc/cronJobs/job_data/scripts"
@@ -85,6 +86,67 @@ func (h *Settings) CronSchedule(ctx *gin.Context, p interface{}) {
 			return
 		}
 		go job(t, params.PauseRule)
+	}
+	response.Success(ctx, nil)
+}
+
+func (h *Settings) Configs(ctx *gin.Context, p interface{}) {
+	params := p.(*v_data.VSettingsConfigs)
+	offset := utils.GetPages(params.Page, params.PageSize)
+	configs, total, err := model.NewSysConfig(vars.DBMysql).List(params.Key, params.Desc, params.State, offset, params.PageSize)
+	if err != nil {
+		response.Fail(ctx, "查询错误: "+err.Error())
+		return
+	}
+	response.Success(ctx, gin.H{"total": total, "list": configs})
+}
+
+func (h *Settings) Config(ctx *gin.Context, v string) {
+	id, err := strconv.ParseInt(v, 0, 64)
+	if err != nil {
+		response.Fail(ctx, "参数错误")
+		return
+	}
+	config, err := model.NewSysConfig(vars.DBMysql).FindOneById(id)
+	if err != nil {
+		response.Fail(ctx, "查询错误: "+err.Error())
+		return
+	}
+	response.Success(ctx, config)
+}
+
+func (h *Settings) ConfigCreate(ctx *gin.Context, p interface{}) {
+	params := p.(*v_data.VSettingsConfigCreate)
+	err := model.NewSysConfig(vars.DBMysql).CreateConfig(model.SysConfig{
+		Key:    params.Key,
+		Val:    params.Val,
+		Desc:   params.Desc,
+		State:  1,
+		Bak1:   params.Bak1,
+		Bak2:   params.Bak2,
+		Remark: params.Remark,
+	})
+	if err != nil {
+		response.Fail(ctx, "创建失败: "+err.Error())
+		return
+	}
+	response.Success(ctx, nil)
+}
+
+func (h *Settings) ConfigUpdate(ctx *gin.Context, p interface{}) {
+	params := p.(*v_data.VSettingsConfigUpdate)
+	err := model.NewSysConfig(vars.DBMysql).UpdateConfig(params.Id, map[string]interface{}{
+		"_k":     params.Key,
+		"_v":     params.Val,
+		"_desc":  params.Desc,
+		"state":  params.State,
+		"bak1":   params.Bak1,
+		"bak2":   params.Bak2,
+		"remark": params.Remark,
+	})
+	if err != nil {
+		response.Fail(ctx, "修改失败: "+err.Error())
+		return
 	}
 	response.Success(ctx, nil)
 }

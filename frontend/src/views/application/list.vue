@@ -63,7 +63,7 @@ import UpdateApplication from "./components/edit-app"
 import PullApplication from "./components/pull-app"
 
 export default {
-  name: "AppList",
+  name: "App",
   components: { Page, CreateApplication, UpdateApplication, PullApplication },
   data() {
     return {

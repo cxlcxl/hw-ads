@@ -66,7 +66,7 @@ import Page from "@c/Page"
 import { parseTime } from "@/utils"
 
 export default {
-  // name: 'UserList',
+  name: "User",
   components: {
     UserCreate,
     UserUpdate,

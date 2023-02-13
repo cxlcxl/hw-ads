@@ -53,7 +53,7 @@ import CronUpdate from "./components/edit.vue"
 import CronSchedule from "./components/schedule.vue"
 
 export default {
-  // name: 'Cron',
+  name: "Cron",
   components: { CronUpdate, CronSchedule },
   data() {
     return {
