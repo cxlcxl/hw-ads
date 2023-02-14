@@ -1,32 +1,32 @@
 <template>
-  <dialog-panel title="添加账户" confirm-text="添加" :visible="visible" @cancel="cancel" @confirm="add" :confirm-loading="loading">
+  <dialog-panel title="添加账户" confirm-text="添加" :visible="visible" @cancel="cancel" @confirm="add" :confirm-loading="loading" width="500px">
     <el-form :model="accountForm" ref="accountForm" label-width="120px" size="small" :rules="userRules">
       <el-form-item label="账号名称" prop="account_name">
         <el-input v-model="accountForm.account_name" placeholder="请填写账号名称" />
       </el-form-item>
       <el-form-item label="账号类型" prop="account_type">
         <el-select v-model="accountForm.account_type" style="width: 100%;">
-          <el-option v-for="(key, val) in accountTypes" :label="key" :value="Number(val)" />
+          <el-option v-for="(key, val) in accountTypes" :label="key" :value="Number(val)" :key="val" />
         </el-select>
       </el-form-item>
-      <el-form-item label="广告主 ID" prop="advertiser_id">
+      <el-form-item label="广告主 ID" prop="advertiser_id" v-show="accountForm.account_type === Vars.AccountTypeMarket">
         <el-input v-model="accountForm.advertiser_id" placeholder="请填写广告主 ID" />
       </el-form-item>
-      <el-form-item label="开发者 ID" prop="developer_id">
+      <el-form-item label="开发者 ID" prop="developer_id" v-show="accountForm.account_type === Vars.AccountTypeAds">
         <el-input v-model="accountForm.developer_id" placeholder="请填写开发者 ID" />
       </el-form-item>
-      <el-form-item label="ClientID" prop="client_id">
+      <el-form-item label="ClientID" prop="client_id" v-show="accountForm.account_type === Vars.AccountTypeAds">
         <el-input v-model="accountForm.client_id" />
       </el-form-item>
-      <el-form-item label="Secret" prop="secret">
+      <el-form-item label="Secret" prop="secret" v-show="accountForm.account_type === Vars.AccountTypeAds">
         <el-input v-model="accountForm.secret" />
       </el-form-item>
-      <el-form-item prop="parent_id" label="上级账户">
+      <!-- <el-form-item prop="parent_id" label="上级账户">
         <el-select v-model="accountForm.parent_id" remote filterable placeholder="可输入名称查询" :remote-method="remoteMethod" :loading="remoteLoading"
           style="width: 100%;">
           <el-option v-for="item in accounts" :label="item.account_name" :value="Number(item.id)" />
         </el-select>
-      </el-form-item>
+      </el-form-item> -->
     </el-form>
   </dialog-panel>
 </template>
@@ -34,6 +34,7 @@
 <script>
 import DialogPanel from "@c/DialogPanel"
 import { accountCreate, parentAccounts } from "@a/account"
+import Vars from "@/vars.js"
 
 export default {
   components: {
@@ -44,6 +45,7 @@ export default {
   },
   data() {
     return {
+      Vars,
       visible: false,
       loading: false,
       remoteLoading: false,

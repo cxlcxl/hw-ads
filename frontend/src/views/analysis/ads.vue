@@ -21,7 +21,8 @@
       <el-col :span="24" class="search-container">
         <el-form-item v-if="search.dimensions.includes('account_id')" label="账户">
           <el-select v-model="search.account_ids" placeholder="账户选择" class="w260" multiple collapse-tags clearable filterable>
-            <el-option :key="item.id" :label="item.account_name" :value="item.id" v-for="item in accounts" v-show="item.account_type === 2" />
+            <el-option :key="item.id" :label="item.account_name" :value="item.id" v-for="item in accounts"
+              v-show="item.account_type === Vars.AccountTypeAds" />
           </el-select>
         </el-form-item>
         <el-form-item v-if="search.dimensions.includes('app_id')" label="应用">
@@ -63,6 +64,7 @@ import { regions } from "@/api/common"
 import { allAccounts } from "@/api/account"
 import { allApp } from "@/api/app"
 import SelectColumns from "./components/columns"
+import Vars from "@/vars.js"
 const nowDate = new Date()
 
 export default {
@@ -75,6 +77,7 @@ export default {
   },
   data() {
     return {
+      Vars,
       requestDimensions,
       loadings: {
         pageLoading: false,
@@ -91,6 +94,7 @@ export default {
       },
       accounts: [],
       apps: [],
+      appRels: {},
       regions: [],
       reportList: {
         list: [],

@@ -19,12 +19,12 @@ type VAppUpdate struct {
 }
 
 type VAppList struct {
-	Page     int64  `form:"page" binding:"required"`
-	PageSize int64  `form:"page_size" binding:"required"`
-	AppId    string `form:"app_id,optional"`
-	AppName  string `form:"app_name,optional"`
-	AppType  string `form:"app_type,optional"`
-	Channel  int64  `form:"channel,optional"`
+	Pagination
+	AppId      string  `json:"app_id,optional"`
+	AppName    string  `json:"app_name,optional"`
+	AppType    string  `json:"app_type,optional"`
+	Channel    int64   `json:"channel,optional"`
+	AccountIds []int64 `json:"account_ids"`
 }
 
 type VAppCampaignList struct {

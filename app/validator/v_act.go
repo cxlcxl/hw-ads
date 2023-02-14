@@ -39,6 +39,11 @@ func (v BsValidator) VAccountCreate(ctx *gin.Context) {
 	bindData(ctx, &params, (&handlers.Account{}).AccountCreate)
 }
 
+func (v BsValidator) VAccountAuth(ctx *gin.Context) {
+	var params v_data.VAccountAuth
+	bindData(ctx, &params, (&handlers.Account{}).AccountAuthToken)
+}
+
 func (v BsValidator) VAccountRefreshToken(ctx *gin.Context) {
 	bindRouteData(ctx, "id", (&handlers.Account{}).RefreshToken)
 }

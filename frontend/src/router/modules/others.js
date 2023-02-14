@@ -10,19 +10,19 @@ const userRouter = {
   children: [
     {
       path: "account",
-      name: "AccountList",
+      name: "Account",
       component: () => import("@v/account/list"),
       meta: { title: "账户列表", auth: "account/list" },
     },
     {
       path: "app",
-      name: "AppList",
+      name: "App",
       component: () => import("@v/application/list"),
       meta: { title: "应用列表", auth: "app/list" },
     },
     {
       path: "region",
-      name: "RegionList",
+      name: "Region",
       component: () => import("@v/others/region"),
       meta: { title: "区域管理", auth: "region" },
     },

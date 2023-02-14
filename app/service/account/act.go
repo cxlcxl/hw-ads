@@ -34,7 +34,7 @@ func AuthorizeCodeUrl(id int64, clientId, secret string) (url string, err error)
 	if token != nil && time.Now().Before(time.Unix(token.ExpiredAt-300, 0)) {
 		return "", errors.New("TOKEN 尚未过期，无需重新认证")
 	}
-	state := utils.MD5(fmt.Sprintf("%d-%s-%s", id, clientId, time.Now().String()))
+	state := utils.MD5(fmt.Sprintf("%d-%s-%d", id, clientId, time.Now().Unix()))
 	baseUrl := vars.YmlConfig.GetString("MarketingApis.Authorize.CodeUrl")
 	if !strings.HasSuffix(baseUrl, "?") {
 		baseUrl += "?"
@@ -56,4 +56,23 @@ func AuthorizeCodeUrl(id int64, clientId, secret string) (url string, err error)
 		return "", err
 	}
 	return baseUrl + params, nil
+}
+
+func SetToken(token *model.Token) (err error) {
+	t, err := model.NewToken(vars.DBMysql).FindByAccountId(token.AccountId)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return err
+	}
+	if t == nil {
+		return model.NewToken(vars.DBMysql).TokenCreate(token)
+	} else {
+		v := map[string]interface{}{
+			"access_token":  token.AccessToken,
+			"refresh_token": token.RefreshToken,
+			"expired_at":    token.ExpiredAt,
+			"updated_at":    token.UpdatedAt,
+			"token_type":    token.TokenType,
+		}
+		return model.NewToken(vars.DBMysql).TokenUpdate(v, t.Id)
+	}
 }

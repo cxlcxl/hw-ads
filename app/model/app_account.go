@@ -52,6 +52,12 @@ func (m *AppAccount) FindAppIdsByAccountIds(accountIds []int64) (appIds []string
 	return
 }
 
+func (m *AppAccount) FindAccountIdsByAppIds(appIds []string) (v []*AppAccount, err error) {
+	m.Table(m.TableName()).Where("app_id in ? and account_type = ?", appIds, vars.AccountTypeMarket).
+		Select("app_id,account_id").Find(&v)
+	return
+}
+
 func (m *AppAccount) FlushInfo() (err error) {
 	err = m.Raw(fmt.Sprintf("truncate `%s`", m.TableName())).Error
 	return

@@ -36,6 +36,10 @@ func (m *Token) TokenUpdate(d map[string]interface{}, id int64) (err error) {
 	err = m.Table(m.TableName()).Where("id = ?", id).Updates(d).Error
 	return
 }
+func (m *Token) TokenCreate(token *Token) (err error) {
+	err = m.Table(m.TableName()).Create(token).Error
+	return
+}
 
 func (m *Token) GetAccessTokenList() (tokens []*Token, err error) {
 	err = m.Table(m.TableName()).Find(&tokens).Error

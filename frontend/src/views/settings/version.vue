@@ -7,7 +7,7 @@
       <el-timeline>
         <el-timeline-item :timestamp="item.date" placement="top" v-for="item in versionList" :key="item.v" color="#409eff">
           <el-card>
-            <h3>版本：{{item.v}}</h3>
+            <h3>{{item.v}}</h3>
             <p v-for="t in item.fixs" class="v-text">{{t}}</p>
           </el-card>
         </el-timeline-item>
@@ -24,7 +24,7 @@ export default {
   // name: "Version",
   data() {
     return {
-      versionList: [{ date: "2023-02-12", v: "v1.0.0", fixs: ["更新了什么什么"] }],
+      versionList: [],
     }
   },
   mounted() {

@@ -18,6 +18,11 @@ type VAccountSearch struct {
 	AccountName string `form:"account_name,optional"`
 }
 
+type VAccountAuth struct {
+	AuthorizationCode string `json:"authorization_code" binding:"required"`
+	State             string `json:"state" binding:"required"`
+}
+
 type VAccountCreate struct {
 	ParentId     int64  `json:"parent_id"`
 	AccountName  string `json:"account_name" binding:"required"`

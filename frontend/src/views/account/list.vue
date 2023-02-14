@@ -8,12 +8,12 @@
         <el-form-item>
           <el-select v-model="search.account_type" class="w130">
             <el-option label="全部账户类型" :value="0" />
-            <el-option v-for="(key, val) in account_types" :label="key" :value="Number(val)" />
+            <el-option v-for="(key, val) in account_types" :label="key" :value="Number(val)" :key="val" />
           </el-select>
         </el-form-item>
         <el-form-item>
           <el-select v-model="search.state" class="w100">
-            <el-option v-for="(key, val) in accountList.state" :label="key" :value="Number(val)" />
+            <el-option v-for="(key, val) in accountList.state" :label="key" :value="Number(val)" :key="val" />
           </el-select>
         </el-form-item>
         <el-form-item label="">
@@ -46,13 +46,13 @@
         <el-table-column prop="created_at" label="添加时间" width="140" align="center">
           <template slot-scope="scope">{{scope.row.created_at|timeFormat}}</template>
         </el-table-column>
-        <el-table-column align="center" label="操作" width="130">
+        <el-table-column align="center" label="操作" width="110">
           <template slot-scope="scope">
             <el-button-group class="table-operate">
               <el-button type="primary" plain @click.native.prevent="editRow(scope.row.id)">编辑</el-button>
-              <template v-if="scope.row.account_type === 1">
-                <el-button type="primary" plain @click.native.prevent="doRefresh(scope.row.id)" v-if="scope.row.is_auth === 1">刷新</el-button>
-                <el-button type="primary" plain @click.native.prevent="doAuth(scope.row.id)" v-else>认证</el-button>
+              <template v-if="scope.row.account_type === Vars.AccountTypeMarket">
+                <!-- <el-button type="primary" plain @click.native.prevent="doRefresh(scope.row.id)" v-if="scope.row.is_auth === 1">刷新认证</el-button> -->
+                <el-button type="primary" plain @click.native.prevent="doAuth(scope.row.id)">认证</el-button>
               </template>
             </el-button-group>
           </template>
@@ -74,6 +74,7 @@ import AccountCreate from "./components/add-act"
 import AccountUpdate from "./components/edit-act"
 import Page from "@c/Page"
 import { parseTime } from "@/utils"
+import Vars from "@/vars.js"
 
 export default {
   name: "Account",
@@ -84,6 +85,7 @@ export default {
   },
   data() {
     return {
+      Vars,
       loadings: {
         pageLoading: false,
       },

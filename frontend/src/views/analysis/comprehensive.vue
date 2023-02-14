@@ -21,13 +21,14 @@
       </el-col>
       <el-col :span="24" class="search-container">
         <el-form-item v-if="search.dimensions.includes('account_id')" label="账户">
-          <el-select v-model="search.account_ids" placeholder="账户选择" class="w260" multiple collapse-tags clearable filterable>
-            <el-option :key="item.id" :label="item.account_name" :value="item.id" v-for="item in accounts" v-show="item.account_type === 1" />
+          <el-select v-model="search.account_ids" placeholder="账户选择" class="w260" multiple collapse-tags clearable filterable @change="conditionApp">
+            <el-option :key="item.id" :label="item.account_name" :value="item.id" v-for="item in accounts"
+              v-show="item.account_type === Vars.AccountTypeMarket" />
           </el-select>
         </el-form-item>
         <el-form-item v-if="search.dimensions.includes('app_id')" label="应用">
           <el-select v-model="search.app_ids" placeholder="应用选择" class="w260" multiple collapse-tags clearable filterable>
-            <el-option :key="item.app_id" :label="item.app_name" :value="item.app_id" v-for="item in apps" />
+            <el-option :key="item.app_id" :label="item.app_name" :value="item.app_id" v-for="item in apps" v-show="item.show" />
           </el-select>
         </el-form-item>
         <el-form-item v-if="search.dimensions.includes('country')" label="区域">
@@ -63,8 +64,9 @@ import { requestDimensions } from "./data"
 import { reportComprehensive } from "@/api/report"
 import { regions } from "@/api/common"
 import { allAccounts } from "@/api/account"
-import { allApp } from "@/api/app"
+import { allApp, appActRel } from "@/api/app"
 import SelectColumns from "./components/columns"
+import Vars from "@/vars.js"
 const nowDate = new Date()
 const sorts = { custom: "custom", 1: true, 0: false }
 
@@ -78,6 +80,7 @@ export default {
   },
   data() {
     return {
+      Vars,
       requestDimensions,
       loadings: {
         pageLoading: false,
@@ -97,6 +100,7 @@ export default {
       },
       accounts: [],
       apps: [],
+      appRels: {},
       regions: [],
       reportList: {
         list: [],
@@ -157,7 +161,7 @@ export default {
   methods: {
     getReportList() {
       this.loadings.pageLoading = true
-      Promise.all([this.getAllAccounts(), this.getAllApps(), this.getRegions()])
+      Promise.all([this.getAllAccounts(), this.getAllApps(), this.getRegions(), this.getAppRels()])
         .then((res) => {
           reportComprehensive(this.search)
             .then((res) => {
@@ -200,6 +204,21 @@ export default {
         allApp()
           .then((res) => {
             this.apps = res.data
+            resolve()
+          })
+          .catch((err) => {
+            reject(err)
+          })
+      })
+    },
+    getAppRels() {
+      return new Promise((resolve, reject) => {
+        if (this.appRels.length > 0) {
+          return resolve()
+        }
+        appActRel()
+          .then((res) => {
+            this.appRels = res.data
             resolve()
           })
           .catch((err) => {
@@ -310,6 +329,22 @@ export default {
       })
 
       return sums
+    },
+    conditionApp(ids) {
+      if (ids.length === 0) {
+        return true
+      }
+      let appIds = []
+      for (let i = 0; i < ids.length; i++) {
+        appIds = appIds.concat(this.appRels[ids[i]])
+      }
+      for (let i = 0; i < this.apps.length; i++) {
+        if (appIds.includes(this.apps[i].app_id)) {
+          this.apps[i].show = true
+        } else {
+          this.apps[i].show = false
+        }
+      }
     },
   },
 }

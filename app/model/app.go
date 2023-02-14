@@ -9,14 +9,15 @@ import (
 type App struct {
 	connectDb
 
-	Id        int64  `json:"id"`
-	AppId     string `json:"app_id"`     // 第三方应用ID，例如华为APP ID : C10134672；可能存在GP的应用ID 32位
-	AppName   string `json:"app_name"`   // 应用名称
-	PkgName   string `json:"pkg_name"`   // 应用包名或BundleID
-	Channel   int64  `json:"channel"`    // 系统平台(渠道)：华为 AppGallery；GooglePlay; AppStore
-	Tags      string `json:"tags"`       // 应用标签
-	IconUrl   string `json:"icon_url"`   // 图标
-	ProductId string `json:"product_id"` // 产品ID，创建任务时需要
+	Id         int64   `json:"id"`
+	AppId      string  `json:"app_id"`     // 第三方应用ID，例如华为APP ID : C10134672；可能存在GP的应用ID 32位
+	AppName    string  `json:"app_name"`   // 应用名称
+	PkgName    string  `json:"pkg_name"`   // 应用包名或BundleID
+	Channel    int64   `json:"channel"`    // 系统平台(渠道)：华为 AppGallery；GooglePlay; AppStore
+	Tags       string  `json:"tags"`       // 应用标签
+	IconUrl    string  `json:"icon_url"`   // 图标
+	ProductId  string  `json:"product_id"` // 产品ID，创建任务时需要
+	AccountIds []int64 `json:"account_ids" gorm:"-"`
 
 	Timestamp
 }
@@ -38,7 +39,7 @@ func NewApp(db *gorm.DB) *App {
 	return &App{connectDb: connectDb{DB: db}}
 }
 
-func (m *App) AppList(appId, appName string, channel int64, offset, limit int64) (apps []*App, total int64, err error) {
+func (m *App) AppList(appId, appName string, channel int64, actIds []int64, offset, limit int64) (apps []*App, total int64, err error) {
 	query := m.Table(m.TableName()).Order("id desc")
 	if len(appId) > 0 {
 		query = query.Where("app_id like ?", "%"+appId+"%")
@@ -48,6 +49,9 @@ func (m *App) AppList(appId, appName string, channel int64, offset, limit int64)
 	}
 	if channel > 0 {
 		query = query.Where("channel = ?", channel)
+	}
+	if len(actIds) > 0 {
+		query = query.Where("app_id in (select app_id from app_accounts where account_id in ?)", actIds)
 	}
 	if err = query.Count(&total).Error; err != nil {
 		return

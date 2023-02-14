@@ -21,7 +21,7 @@ func initAccountApis(g *gin.RouterGroup) {
 
 	group := g.Group("/account")
 	{
-		group.POST("/token")
+		group.POST("/token", (validator.BsValidator{}).VAccountAuth)
 
 		group.GET("/search", (validator.BsValidator{}).VAccountSearch)
 		group.GET("/default", (validator.BsValidator{}).VAccountDefault)

@@ -3,6 +3,11 @@
     <el-col :span="24" class="search-container">
       <el-form ref="_search" :model="search" inline size="small">
         <el-form-item>
+          <el-select v-model="search.account_ids" placeholder="投放账户选择" class="w260" multiple collapse-tags clearable filterable>
+            <el-option :key="item.id" :label="item.account_name" :value="item.id" v-for="item in accounts" v-show="item.account_type === 1" />
+          </el-select>
+        </el-form-item>
+        <el-form-item>
           <el-input v-model="search.app_name" class="w150" clearable placeholder="应用名" />
         </el-form-item>
         <el-form-item>
@@ -26,10 +31,15 @@
     <el-col :span="24">
       <el-table v-loading="loading" :data="appList.data" highlight-current-row stripe border size="mini">
         <el-table-column prop="id" label="ID" width="80" align="center" />
-        <el-table-column prop="app_name" label="应用名称" min-width="120" show-overflow-tooltip />
-        <el-table-column prop="app_id" label="AppID" width="140" />
+        <el-table-column prop="app_name" label="应用名称" width="180" show-overflow-tooltip />
+        <el-table-column prop="app_id" label="AppID" width="100" align="center" />
         <el-table-column label="渠道" width="120" align="center">
           <template slot-scope="scope">{{appList.app_channel[scope.row.channel]}}</template>
+        </el-table-column>
+        <el-table-column label="关联投放账户" prop="account_ids" min-width="150" show-overflow-tooltip>
+          <template slot-scope="scope">
+            {{scope.row.account_ids|accountsFilter(accounts)}}
+          </template>
         </el-table-column>
         <el-table-column label="应用包名" prop="pkg_name" min-width="150" show-overflow-tooltip />
         <el-table-column prop="created_at" label="添加时间" width="140" align="center">
@@ -58,6 +68,7 @@
 import { appList } from "@a/app"
 import { parseTime } from "@/utils"
 import Page from "@c/Page"
+import { allAccounts } from "@/api/account"
 import CreateApplication from "./components/add-app"
 import UpdateApplication from "./components/edit-app"
 import PullApplication from "./components/pull-app"
@@ -72,9 +83,11 @@ export default {
         app_name: "",
         app_id: "",
         channel: 0,
+        account_ids: [],
         page: 1,
         page_size: 10,
       },
+      accounts: [],
       appList: {
         total: 0,
         app_channel: {},
@@ -89,6 +102,17 @@ export default {
     timeFormat(timestamp) {
       return parseTime(timestamp)
     },
+    accountsFilter(ids, acts) {
+      let names = ""
+      if (Array.isArray(ids) && ids.length > 0) {
+        acts.forEach((item) => {
+          if (ids.includes(item.id)) {
+            names = names + item.account_name + "、"
+          }
+        })
+      }
+      return names
+    },
   },
   methods: {
     add() {
@@ -97,21 +121,43 @@ export default {
     pullApp() {
       this.$refs.appPull.initPull()
     },
+    getAllAccounts() {
+      return new Promise((resolve, reject) => {
+        if (this.accounts.length > 0) {
+          resolve()
+        } else {
+          allAccounts()
+            .then((res) => {
+              this.accounts = res.data
+              resolve()
+            })
+            .catch((err) => {
+              reject(err)
+            })
+        }
+      })
+    },
     doSearch() {
       this.search.page = 1
       this.getApplicationList()
     },
     getApplicationList() {
       this.loading = true
-      appList(this.search)
+      Promise.all([this.getAllAccounts()])
         .then((res) => {
-          const { list, total, app_channel } = res.data
-          this.appList.data = list
-          this.appList.total = total
-          this.appList.app_channel = app_channel
-          this.loading = false
+          appList(this.search)
+            .then((res) => {
+              const { list, total, app_channel } = res.data
+              this.appList.data = list
+              this.appList.total = total
+              this.appList.app_channel = app_channel
+              this.loading = false
+            })
+            .catch((err) => {
+              this.loading = false
+            })
         })
-        .catch((err) => {
+        .catch(() => {
           this.loading = false
         })
     },

@@ -12,6 +12,7 @@ func initAppApis(g *gin.RouterGroup) {
 	{
 		group.GET("/all", (&handlers.App{}).AllApp)
 		group.GET("/campaign-list", (validator.BsValidator{}).VAppCampaignList)
+		group.GET("/relation", (&handlers.App{}).AppRelations)
 	}
 	gp := g.Group("/app", middleware.CheckPermission())
 	{
@@ -20,6 +21,6 @@ func initAppApis(g *gin.RouterGroup) {
 		gp.POST("/update", (validator.BsValidator{}).VAppUpdate)
 
 		gp.GET("/:id", (validator.BsValidator{}).VAppInfo)
-		gp.GET("/list", (validator.BsValidator{}).VAppList)
+		gp.POST("/list", (validator.BsValidator{}).VAppList)
 	}
 }

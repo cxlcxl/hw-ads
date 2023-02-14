@@ -7,9 +7,11 @@ import (
 	"bs.mobgi.cc/app/utils"
 	"bs.mobgi.cc/app/validator/v_data"
 	"bs.mobgi.cc/app/vars"
+	"bs.mobgi.cc/cronJobs/jobs"
 	"bs.mobgi.cc/library/curl"
 	"github.com/gin-gonic/gin"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -242,6 +244,61 @@ func (h *Account) AccountCreate(ctx *gin.Context, p interface{}) {
 	if err := model.NewAct(vars.DBMysql).AccountCreate(d); err != nil {
 		response.Fail(ctx, "请求错误："+err.Error())
 		return
+	}
+	response.Success(ctx, nil)
+}
+
+func (h *Account) AccountAuthToken(ctx *gin.Context, p interface{}) {
+	params := p.(*v_data.VAccountAuth)
+	authorizeValue := vars.DBRedis.GetString("authorize:" + params.State)
+	if authorizeValue == "" {
+		response.Fail(ctx, "授权码丢失，请重试")
+		return
+	}
+	split := strings.Split(authorizeValue, "-")
+	id, err := strconv.ParseInt(split[0], 0, 64)
+	if err != nil {
+		response.Fail(ctx, "请求错误："+err.Error())
+		return
+	}
+	conf, err := model.NewSysConfig(vars.DBMysql).FindOneByKey("MarketingApis.Authorize.RedirectUri")
+	if err != nil {
+		response.Fail(ctx, "获取重定向授权地址失败，请检查是否填写地址配置")
+		return
+	}
+	data := map[string]string{
+		"grant_type":    "authorization_code",
+		"code":          params.AuthorizationCode,
+		"client_id":     split[1],
+		"client_secret": split[2],
+		"redirect_uri":  conf.Val,
+	}
+	post := curl.New(vars.YmlConfig.GetString("MarketingApis.Authorize.TokenUrl")).Post().QueryData(data)
+	var at jobs.AccessToken
+	if err = post.Request(&at, curl.FormHeader()); err != nil {
+		response.Fail(ctx, "请求错误："+err.Error())
+		return
+	}
+	if at.Error != 0 {
+		response.Fail(ctx, "华为接口调用失败："+at.ErrorDescription)
+		return
+	}
+
+	err = serviceaccount.SetToken(&model.Token{
+		AccountId:    id,
+		AccessToken:  at.AccessToken,
+		RefreshToken: at.RefreshToken,
+		ExpiredAt:    time.Unix(at.ExpiresIn, 0),
+		TokenType:    at.TokenType,
+		Timestamp: model.Timestamp{
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		},
+	})
+	if err != nil {
+		response.Fail(ctx, "保存 TOKEN 失败："+err.Error())
+		return
+
 	}
 	response.Success(ctx, nil)
 }

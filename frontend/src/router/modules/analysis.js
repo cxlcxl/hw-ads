@@ -14,7 +14,7 @@ const analysisRouter = {
     },
     {
       path: "ads",
-      name: "AnalysisAds",
+      name: "Ads",
       component: () => import("@v/analysis/ads"),
       meta: { title: "变现报表", auth: "report/ads" },
     },

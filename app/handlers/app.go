@@ -3,6 +3,7 @@ package handlers
 import (
 	"bs.mobgi.cc/app/model"
 	"bs.mobgi.cc/app/response"
+	serviceapp "bs.mobgi.cc/app/service/app"
 	"bs.mobgi.cc/app/utils"
 	"bs.mobgi.cc/app/validator/v_data"
 	"bs.mobgi.cc/app/vars"
@@ -16,7 +17,7 @@ type App struct{}
 func (h *App) AppList(ctx *gin.Context, p interface{}) {
 	params := p.(*v_data.VAppList)
 	offset := utils.GetPages(params.Page, params.PageSize)
-	apps, total, err := model.NewApp(vars.DBMysql).AppList(params.AppId, params.AppName, params.Channel, offset, params.PageSize)
+	apps, total, err := model.NewApp(vars.DBMysql).AppList(params.AppId, params.AppName, params.Channel, params.AccountIds, offset, params.PageSize)
 	if err != nil {
 		response.Fail(ctx, "查询失败："+err.Error())
 		return
@@ -24,7 +25,7 @@ func (h *App) AppList(ctx *gin.Context, p interface{}) {
 
 	response.Success(ctx, gin.H{
 		"total":       total,
-		"list":        apps,
+		"list":        serviceapp.GetAppBelongsAccounts(apps),
 		"app_channel": vars.AppChannel,
 	})
 }
@@ -109,4 +110,17 @@ func (h *App) AllApp(ctx *gin.Context) {
 		return
 	}
 	response.Success(ctx, apps)
+}
+
+func (h *App) AppRelations(ctx *gin.Context) {
+	apps, err := model.NewAppAct(vars.DBMysql).CollectAdsApps()
+	if err != nil {
+		response.Fail(ctx, "请求失败："+err.Error())
+		return
+	}
+	tmp := make(map[int64][]string)
+	for _, app := range apps {
+		tmp[app.AccountId] = append(tmp[app.AccountId], app.AppId)
+	}
+	response.Success(ctx, tmp)
 }

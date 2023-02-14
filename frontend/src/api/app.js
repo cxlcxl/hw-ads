@@ -1,10 +1,10 @@
 import request from "@/utils/request";
 
-export function appList(params) {
+export function appList(data) {
   return request({
     url: "/app/list",
-    method: "get",
-    params,
+    method: "post",
+    data,
   });
 }
 
@@ -51,5 +51,12 @@ export function appPull(data) {
     url: "/app/pull",
     method: "post",
     data,
+  });
+}
+
+export function appActRel() {
+  return request({
+    url: "/app/relation",
+    method: "get",
   });
 }

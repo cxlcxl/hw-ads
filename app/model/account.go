@@ -42,7 +42,7 @@ func (m *Account) FindAccountById(id int64) (act *Account, err error) {
 }
 
 func (m *Account) AccountList(accountType, state int64, accountName string, offset, limit int64) (ls []*Account, total int64, err error) {
-	tbl := m.Table(m.TableName()).Where("state = ?", state).Order("updated_at desc")
+	tbl := m.Table(m.TableName()).Where("state = ?", state).Order("id desc")
 	if len(accountName) > 0 {
 		tbl = tbl.Where("account_name like ?", "%"+accountName+"%")
 	}
@@ -76,7 +76,20 @@ func (m *Account) AllAccounts() (accounts []*BelongAccount, err error) {
 }
 
 func (m *Account) AccountCreate(act *Account) (err error) {
-	err = m.Table(m.TableName()).Create(act).Error
+	err = m.Transaction(func(tx *gorm.DB) error {
+		if err = tx.Table(m.TableName()).Create(act).Error; err != nil {
+			return err
+		}
+		if err = tx.Table(NewToken(nil).TableName()).Create(&Token{
+			AccountId: act.Id,
+			ExpiredAt: act.CreatedAt,
+			TokenType: "Bearer",
+			Timestamp: Timestamp{CreatedAt: act.CreatedAt, UpdatedAt: act.CreatedAt},
+		}).Error; err != nil {
+			return err
+		}
+		return nil
+	})
 	return
 }
 
