@@ -18,6 +18,12 @@ const settingsRouter = {
       component: () => import("@v/settings/config"),
       meta: { title: "系统配置", auth: "settings/config" },
     },
+    {
+      path: "version",
+      name: "Version",
+      component: () => import("@v/settings/version"),
+      meta: { title: "版本更新" },
+    },
   ],
 };
 

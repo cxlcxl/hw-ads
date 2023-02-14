@@ -8,8 +8,11 @@ import (
 )
 
 func initSettingsApis(g *gin.RouterGroup) {
+	g.GET("/settings/version", (&handlers.Settings{}).VersionInfo)
+
 	group := g.Group("/settings", middleware.CheckPermission())
 	{
+
 		group.GET("/cron", (&handlers.Settings{}).Cron)
 		group.GET("/cron/:id", (validator.BsValidator{}).VSettingsCronInfo)
 		group.POST("/cron/:id", (validator.BsValidator{}).VSettingsCronUpdate)

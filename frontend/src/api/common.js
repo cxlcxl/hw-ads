@@ -7,6 +7,13 @@ export function regions() {
   });
 }
 
+export function versionInfo() {
+  return request({
+    url: "/settings/version",
+    method: "get",
+  });
+}
+
 export function overseasAreas() {
   return request({
     url: "/region/area",

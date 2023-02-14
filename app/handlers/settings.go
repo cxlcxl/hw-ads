@@ -14,6 +14,10 @@ import (
 
 type Settings struct{}
 
+func (h *Settings) VersionInfo(ctx *gin.Context) {
+	response.Success(ctx, vars.VersionInfo)
+}
+
 func (h *Settings) Cron(ctx *gin.Context) {
 	jobs, err := model.NewJob(vars.DBMysql).GetJobs()
 	if err != nil {

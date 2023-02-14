@@ -188,54 +188,19 @@ type Summaries struct {
 }
 
 func (m *ReportMarketCollect) ComprehensiveSummaries(
-	dates []string, actIds []int64, appIds, countries, marketSelects, adsSelects, groups []string,
+	dates []string, actIds []int64, appIds, countries, marketSelects []string,
 ) (summaries Summaries) {
-	JoinOn := []string{"t0.stat_day = t1.stat_day"}
+	query := m.Table(m.TableName()).Where("stat_day between ? and ?", dates[0], dates[1]).Select(marketSelects)
 	// 变现表「包含账户维度需要查与账户关联的表」
-	if utils.InArray("account_id", groups) {
-		JoinOn = append(JoinOn, "t0.account_id = t1.account_id")
-		marketSelects = append(marketSelects, "account_id")
-		adsSelects = append(adsSelects, "account_id")
+	if len(actIds) > 0 {
+		query = query.Where("account_id in ?", actIds)
 	}
-
-	if utils.InArray("app_id", groups) {
-		JoinOn = append(JoinOn, "t0.app_id = t1.app_id")
-		marketSelects = append(marketSelects, "app_id")
-		adsSelects = append(adsSelects, "app_id")
+	if len(appIds) > 0 {
+		query = query.Where("app_id in ?", appIds)
 	}
-
-	if utils.InArray("country", groups) {
-		JoinOn = append(JoinOn, "t0.country = t1.country")
-		marketSelects = append(marketSelects, "country")
-		adsSelects = append(adsSelects, "country")
+	if len(countries) > 0 {
+		query = query.Where("country in ?", countries)
 	}
-
-	// 变现表「包含账户维度需要查与账户关联的表」
-	adsTable := NewRAC(nil).TableName()
-	if utils.InArray("account_id", groups) {
-		adsTable = NewRACA(nil).TableName()
-	}
-	var values []interface{}
-	marketBase := m.ComprehensiveBaseSQL(m.TableName(), actIds, appIds, countries, dates, groups)
-	adsBase := m.ComprehensiveBaseSQL(adsTable, actIds, appIds, countries, dates, groups)
-	marketQuery, ms, err := marketBase(marketSelects)
-	if err != nil {
-		return
-	}
-	values = append(values, ms...)
-	adsQuery, as, err := adsBase(adsSelects)
-	if err != nil {
-		return
-	}
-	values = append(values, as...)
-
-	sql, _, err := squirrel.
-		Select("sum(t0.`cost`) as `cost`,sum(t1.`earnings`) as earnings").
-		From(fmt.Sprintf("(%s) as t0", marketQuery)).
-		LeftJoin(fmt.Sprintf("(%s) as t1 on %s", adsQuery, strings.Join(JoinOn, " and "))).ToSql()
-	if err != nil {
-		return
-	}
-	m.Raw(sql, values...).First(&summaries)
+	query.Scan(&summaries)
 	return
 }

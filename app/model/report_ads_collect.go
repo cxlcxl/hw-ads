@@ -50,3 +50,23 @@ func (m *ReportAdsCollect) BatchInsert(collects []*ReportAdsCollect, collectActs
 
 	return err
 }
+
+func (m *ReportAdsCollect) ComprehensiveAdsEarningsSummary(
+	dates []string, actIds []int64, appIds, countries, adsSelects []string,
+) (summaries Summaries) {
+	query := m.Table(m.TableName()).Select(adsSelects).
+		Where("stat_day between ? and ?", dates[0], dates[1])
+	// 变现表「包含账户维度需要查与账户关联的表」
+	if len(actIds) > 0 {
+		query = query.Where("app_id in (select app_id from app_accounts where account_id in ?)", actIds)
+	}
+
+	if len(appIds) > 0 {
+		query = query.Where("app_id in ?", appIds)
+	}
+	if len(countries) > 0 {
+		query = query.Where("country in ?", countries)
+	}
+	query.Scan(&summaries)
+	return
+}

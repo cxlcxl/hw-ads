@@ -50,7 +50,10 @@ func (l *AppQueryLogic) AppQuery() (err error) {
 		l.pageRequests++
 		go l.queryPages(token)
 	}
-
+	// 正式调度前，清楚历史关联
+	if err = model.NewAppAct(vars.DBMysql).FlushInfo(); err != nil {
+		return err
+	}
 	for {
 		select {
 		case runParam, ok := <-l.runChan:
