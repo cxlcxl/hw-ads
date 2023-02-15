@@ -59,6 +59,6 @@ func (m *AppAccount) FindAccountIdsByAppIds(appIds []string) (v []*AppAccount, e
 }
 
 func (m *AppAccount) FlushInfo() (err error) {
-	err = m.Raw(fmt.Sprintf("truncate `%s`", m.TableName())).Error
+	err = m.Exec(fmt.Sprintf("truncate `%s`", m.TableName())).Error
 	return
 }
