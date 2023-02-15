@@ -49,7 +49,7 @@
 <script>
 import { settingsCron } from "@a/common"
 import { parseTime } from "@/utils"
-import CronUpdate from "./components/edit.vue"
+import CronUpdate from "./components/cron-edit.vue"
 import CronSchedule from "./components/schedule.vue"
 
 export default {

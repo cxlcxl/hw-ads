@@ -56,7 +56,6 @@ const actions = {
   generateRoutes({ commit }, auths) {
     return new Promise((resolve) => {
       const { roles, permissions } = auths;
-      console.log(auths);
       let accessedRoutes;
       if (rolesHasSuperAdmin(roles)) {
         accessedRoutes = asyncRoutes || [];

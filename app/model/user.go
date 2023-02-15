@@ -10,17 +10,18 @@ import (
 type User struct {
 	connectDb
 
-	Id        int64     `json:"id"`
-	SsoUid    string    `json:"sso_uid"`
-	Email     string    `json:"email"`                  // 登陆邮箱
-	Username  string    `json:"username"`               // 用户名
-	Mobile    string    `json:"mobile"`                 // 手机号
-	State     uint8     `json:"state"`                  // 账号状态
-	RoleId    int64     `json:"role_id"`                // 角色ID
-	Secret    string    `json:"-" gorm:"column:secret"` // 密码加密符
-	Pass      string    `json:"-" gorm:"column:pass"`   // 密码
-	CreatedAt time.Time `json:"created_at"`             // 添加时间
-	UpdatedAt time.Time `json:"updated_at"`             // 最后一次修改时间
+	Id         int64     `json:"id"`
+	SsoUid     string    `json:"sso_uid"`
+	Email      string    `json:"email"`                  // 登陆邮箱
+	Username   string    `json:"username"`               // 用户名
+	Mobile     string    `json:"mobile"`                 // 手机号
+	State      uint8     `json:"state"`                  // 账号状态
+	RoleId     int64     `json:"role_id"`                // 角色ID
+	IsInternal uint8     `json:"is_internal" gorm:"-"`   // 是否内部账号 ---- 暂时没发布字段
+	Secret     string    `json:"-" gorm:"column:secret"` // 密码加密符
+	Pass       string    `json:"-" gorm:"column:pass"`   // 密码
+	CreatedAt  time.Time `json:"created_at"`             // 添加时间
+	UpdatedAt  time.Time `json:"updated_at"`             // 最后一次修改时间
 }
 
 func (m *User) TableName() string {
@@ -32,7 +33,7 @@ func NewUser(db *gorm.DB) *User {
 }
 
 func (m *User) FindUserByEmail(email string) (user *User, err error) {
-	err = m.Table(m.TableName()).Where("email = ?", email).First(&user).Error
+	err = m.Table(m.TableName()).Where("email = ?", email).First(&user).Error //  and is_internal = 1
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}
@@ -40,7 +41,7 @@ func (m *User) FindUserByEmail(email string) (user *User, err error) {
 }
 
 func (m *User) FindUserBySso(email, ssoUid string) (user *User, err error) {
-	err = m.Table(m.TableName()).Where("email = ? or sso_uid = ?", email, ssoUid).First(&user).Error
+	err = m.Table(m.TableName()).Where("email = ? or sso_uid = ?", email, ssoUid).First(&user).Error // Where("is_internal = 1").
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}

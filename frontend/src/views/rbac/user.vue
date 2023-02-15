@@ -31,9 +31,14 @@
         <el-table-column label="角色">
           <template slot-scope="scope">{{ scope.row.role_id|userRolesFilter(roles) }}</template>
         </el-table-column>
-        <el-table-column label="状态" width="90" align="center">
+        <el-table-column label="状态" width="80" align="center">
           <template slot-scope="scope">
             {{ scope.row.state === 1 ? '正常' : '停用' }}
+          </template>
+        </el-table-column>
+        <el-table-column label="内部账号" width="80" align="center">
+          <template slot-scope="scope">
+            {{ scope.row.is_internal === 1 ? '是' : '否' }}
           </template>
         </el-table-column>
         <el-table-column prop="created_at" label="添加时间" width="140" align="center">

@@ -92,15 +92,16 @@ func (l *User) UserCreate(ctx *gin.Context, p interface{}) {
 	params := p.(*v_data.VUserCreate)
 	s := utils.GenerateSecret(0)
 	user := &model.User{
-		Email:     params.Email,
-		Username:  params.Username,
-		Mobile:    params.Mobile,
-		State:     1,
-		RoleId:    params.RoleId,
-		Secret:    s,
-		Pass:      utils.Password(params.Pass, s),
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		Email:      params.Email,
+		Username:   params.Username,
+		Mobile:     params.Mobile,
+		State:      1,
+		RoleId:     params.RoleId,
+		IsInternal: params.IsInternal,
+		Secret:     s,
+		Pass:       utils.Password(params.Pass, s),
+		CreatedAt:  time.Now(),
+		UpdatedAt:  time.Now(),
 	}
 	err := model.NewUser(vars.DBMysql).CreateUser(user)
 	if err != nil {
@@ -118,11 +119,12 @@ func (l *User) UserUpdate(ctx *gin.Context, p interface{}) {
 		return
 	}
 	d := map[string]interface{}{
-		"username":   params.Username,
-		"email":      params.Email,
-		"mobile":     params.Mobile,
-		"role_id":    params.RoleId,
-		"state":      params.State,
+		"username": params.Username,
+		"email":    params.Email,
+		"mobile":   params.Mobile,
+		"role_id":  params.RoleId,
+		"state":    params.State,
+		//"is_internal": params.IsInternal,
 		"updated_at": time.Now(),
 	}
 	updatePass := false

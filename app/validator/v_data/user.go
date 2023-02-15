@@ -25,12 +25,13 @@ type VUserList struct {
 }
 
 type VUserCreate struct {
-	Username string `json:"username" form:"username" binding:"required"`
-	Email    string `json:"email" form:"email" binding:"required,email"`
-	Mobile   string `json:"mobile" form:"mobile"`
-	State    uint8  `json:"state" form:"state" binding:"numeric"`
-	RoleId   int64  `json:"role_id" form:"role_id" binding:"required,numeric"`
-	Pass     string `json:"pass" form:"pass"`
+	Username   string `json:"username" form:"username" binding:"required"`
+	Email      string `json:"email" form:"email" binding:"required,email"`
+	Mobile     string `json:"mobile" form:"mobile"`
+	State      uint8  `json:"state" form:"state" binding:"numeric"`
+	IsInternal uint8  `json:"is_internal" form:"is_internal" binding:"numeric"`
+	RoleId     int64  `json:"role_id" form:"role_id" binding:"required,numeric"`
+	Pass       string `json:"pass" form:"pass"`
 }
 
 type VSelfUpdate struct {

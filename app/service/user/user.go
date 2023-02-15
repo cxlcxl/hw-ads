@@ -31,14 +31,15 @@ func SsoLogin(u *vars.SsoLoginResData) (user *model.User, err error) {
 	if user == nil {
 		s := utils.GenerateSecret(0)
 		user = &model.User{
-			SsoUid:    u.SsoUid,
-			Email:     u.Email,
-			Username:  u.Username,
-			Mobile:    u.Mobile,
-			Secret:    s,
-			State:     1,
-			Pass:      utils.Password(vars.SystemDefaultPass, s),
-			CreatedAt: time.Now(),
+			SsoUid:     u.SsoUid,
+			Email:      u.Email,
+			Username:   u.Username,
+			Mobile:     u.Mobile,
+			Secret:     s,
+			State:      1,
+			IsInternal: 1,
+			Pass:       utils.Password(vars.SystemDefaultPass, s),
+			CreatedAt:  time.Now(),
 		}
 		err = model.NewUser(vars.DBMysql).CreateUser(user)
 	} else {

@@ -18,6 +18,12 @@
       <el-form-item label="状态" prop="state">
         <el-switch v-model="userForm.state" :active-value="1" :inactive-value="0" />
       </el-form-item>
+      <el-form-item label="内部账号" prop="is_internal">
+        <el-radio-group v-model="userForm.is_internal">
+          <el-radio :label="1">是</el-radio>
+          <el-radio :label="0">否</el-radio>
+        </el-radio-group>
+      </el-form-item>
       <el-form-item label="登录密码" prop="pass">
         <el-input v-model="userForm.pass" placeholder="字母开头，数字特殊字符 [@.&!#?,%$] 的 6 - 18 位" />
       </el-form-item>
@@ -66,6 +72,7 @@ export default {
       userForm: {
         id: 0,
         role_id: 0,
+        is_internal: 1,
         username: "",
         email: "",
         mobile: "",

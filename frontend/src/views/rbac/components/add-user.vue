@@ -15,6 +15,12 @@
           <el-option v-for="item in roles" :key="item.id" :label="item.role_name" :value="item.id" />
         </el-select>
       </el-form-item>
+      <el-form-item label="内部账号" prop="is_internal">
+        <el-radio-group v-model="userForm.is_internal">
+          <el-radio :label="1">是</el-radio>
+          <el-radio :label="0">否</el-radio>
+        </el-radio-group>
+      </el-form-item>
       <el-form-item label="登录密码" prop="pass">
         <el-input v-model="userForm.pass" placeholder="字母开头，数字特殊字符 [@.&!#?,%$] 的 6 - 18 位" />
       </el-form-item>
@@ -65,6 +71,7 @@ export default {
         email: "",
         mobile: "",
         pass: "",
+        is_internal: 1,
       },
       userRules: {
         username: { required: true, message: "请填写用户名称" },
