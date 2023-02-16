@@ -2,6 +2,7 @@ package servicereport
 
 import (
 	"bs.mobgi.cc/app/model"
+	serviceexternal "bs.mobgi.cc/app/service/external"
 	"bs.mobgi.cc/app/utils"
 	"bs.mobgi.cc/app/validator/v_data"
 	"bs.mobgi.cc/app/vars"
@@ -12,8 +13,14 @@ func ReportAds(params *v_data.VReportAds) (data []*AdsReport, total int64, err e
 	countries := formatCountries(params.Countries, params.Dimensions)
 	var _ads []*model.Ads
 	offset := utils.GetPages(params.Page, params.PageSize)
+	actIds := params.AccountIds
+	if params.User.IsInternal == 0 {
+		if actIds, err = serviceexternal.Ads(params.AccountIds, params.User.UserId); err != nil {
+			return
+		}
+	}
 	_ads, total, err = model.NewRAS(vars.DBMysql).AnalysisAds(
-		params.AccountIds, params.AppIds, params.DateRange, countries, _adsColumns(params.Dimensions),
+		actIds, params.AppIds, params.DateRange, countries, _adsColumns(params.Dimensions),
 		params.Dimensions, int(offset), int(params.PageSize),
 	)
 	if err != nil {
@@ -91,7 +98,7 @@ func formatAdsData(params *v_data.VReportAds, _ads []*model.Ads) (data []*AdsRep
 
 func appMap() map[string]string {
 	rs := make(map[string]string)
-	apps, err := model.NewApp(vars.DBMysql).AllApps()
+	apps, err := model.NewApp(vars.DBMysql).AllApps(nil)
 	if err != nil {
 		return rs
 	}

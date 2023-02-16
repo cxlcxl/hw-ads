@@ -34,11 +34,12 @@ func CheckUserLogin() gin.HandlerFunc {
 			return
 		}
 		loginUser := &vars.LoginUser{
-			UserId:   user.Id,
-			RoleId:   user.RoleId,
-			Username: user.Username,
-			Email:    user.Email,
-			Mobile:   user.Mobile,
+			UserId:     user.Id,
+			RoleId:     user.RoleId,
+			Username:   user.Username,
+			Email:      user.Email,
+			Mobile:     user.Mobile,
+			IsInternal: user.IsInternal,
 		}
 		// 用户登陆信息，在控制器可以直接 get 获取
 		ctx.Set(vars.LoginUserKey, loginUser)

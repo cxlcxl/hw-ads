@@ -15,19 +15,19 @@
 
 <script>
 export default {
-  name: 'SidebarLogo',
+  name: "SidebarLogo",
   props: {
     collapse: {
       type: Boolean,
-      required: true
-    }
+      required: true,
+    },
   },
   data() {
     return {
-      title: '',
-      logo: '/mobgi.png'
+      title: "",
+      logo: "/mobgi.png",
     }
-  }
+  },
 }
 </script>
 
@@ -55,7 +55,7 @@ export default {
     width: 100%;
 
     & .sidebar-logo {
-      height: 32px;
+      height: 38px;
       vertical-align: middle;
       margin-right: 12px;
     }

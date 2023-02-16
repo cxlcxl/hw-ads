@@ -9,13 +9,13 @@ import (
 type Token struct {
 	connectDb
 
-	Id           int64     `db:"id"`
-	AccountId    int64     `db:"account_id"`    // 账户ID
-	AdvertiserId string    `db:"advertiser_id"` //
-	AccessToken  string    `db:"access_token"`
-	RefreshToken string    `db:"refresh_token"`
-	ExpiredAt    time.Time `db:"expired_at"` // access_token 过期时间
-	TokenType    string    `db:"token_type"`
+	Id           int64     `json:"id"`
+	AccountId    int64     `json:"account_id"`    // 账户ID
+	AdvertiserId string    `json:"advertiser_id"` //
+	AccessToken  string    `json:"access_token"`
+	RefreshToken string    `json:"refresh_token"`
+	ExpiredAt    time.Time `json:"expired_at"` // access_token 过期时间
+	TokenType    string    `json:"token_type"`
 	Timestamp
 }
 

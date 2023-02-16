@@ -202,7 +202,7 @@ func adsColumns(dimensions []string) []string {
 
 func accountMap(accountType int) map[int64]string {
 	rs := make(map[int64]string)
-	accounts, err := model.NewAct(vars.DBMysql).AllAccounts()
+	accounts, err := model.NewAct(vars.DBMysql).AllAccounts(nil)
 	if err != nil {
 		return rs
 	}

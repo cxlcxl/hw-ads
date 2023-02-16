@@ -21,11 +21,11 @@
         </el-form-item>
       </el-form>
     </el-col>
-    <el-col :span="24">
+    <el-col :span="24" v-permission="'account/create'" style="margin-bottom: 15px">
       <el-button type="primary" icon="el-icon-plus" size="mini" @click="add">添加账户</el-button>
     </el-col>
     <el-col :span="24">
-      <el-table v-loading="loadings.pageLoading" :data="accountList.list" highlight-current-row stripe border size="mini" style="margin-top: 15px">
+      <el-table v-loading="loadings.pageLoading" :data="accountList.list" highlight-current-row stripe border size="mini">
         <el-table-column prop="id" label="ID" width="80" align="center" />
         <el-table-column label="账号名称" min-width="150" show-overflow-tooltip>
           <template slot-scope="scope">
@@ -49,10 +49,10 @@
         <el-table-column align="center" label="操作" width="110">
           <template slot-scope="scope">
             <el-button-group class="table-operate">
-              <el-button type="primary" plain @click.native.prevent="editRow(scope.row.id)">编辑</el-button>
+              <el-button type="primary" plain @click.native.prevent="editRow(scope.row.id)" v-permission="'account/update'">编辑</el-button>
               <template v-if="scope.row.account_type === Vars.AccountTypeMarket">
                 <!-- <el-button type="primary" plain @click.native.prevent="doRefresh(scope.row.id)" v-if="scope.row.is_auth === 1">刷新认证</el-button> -->
-                <el-button type="primary" plain @click.native.prevent="doAuth(scope.row.id)">认证</el-button>
+                <el-button type="primary" plain @click.native.prevent="doAuth(scope.row.id)" v-permission="'account/auth'">认证</el-button>
               </template>
             </el-button-group>
           </template>

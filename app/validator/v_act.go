@@ -13,7 +13,7 @@ var (
 
 func (v BsValidator) VAccountList(ctx *gin.Context) {
 	var params v_data.VAccountList
-	bindData(ctx, &params, (&handlers.Account{}).AccountList)
+	bindData(ctx, &params, (&handlers.Account{}).AccountList, fillUser)
 }
 
 func (v BsValidator) VAccountParents(ctx *gin.Context) {

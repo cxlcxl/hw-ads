@@ -41,7 +41,7 @@ func (dr *DBRedis) GetString(key string) string {
 }
 
 func (dr *DBRedis) SetString(key, val string, expire time.Duration) bool {
-	_, err := dr.Client.Set(dr.ctx, dr.keyPrefix+key, val, expire).Result()
+	_, err := dr.Client.Set(dr.ctx, dr.keyPrefix+key, val, expire*time.Second).Result()
 	if err != nil {
 		return false
 	}

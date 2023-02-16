@@ -13,7 +13,7 @@
         </el-form-item>
         <el-form-item label="">
           <el-button type="primary" icon="el-icon-search" class="item" @click="doSearch">查询</el-button>
-          <el-button icon="el-icon-download" class="item" @click="download">下载数据</el-button>
+          <el-button icon="el-icon-download" class="item" @click="download" v-permission="'report/comprehensive-download'">下载数据</el-button>
         </el-form-item>
         <el-form-item label="" style="float: right;">
           <el-button type="danger" icon="el-icon-s-tools" class="item" @click="selectColumns" circle />
@@ -28,7 +28,8 @@
         </el-form-item>
         <el-form-item v-if="search.dimensions.includes('app_id')" label="应用">
           <el-select v-model="search.app_ids" placeholder="应用选择" class="w260" multiple collapse-tags clearable filterable>
-            <el-option :key="item.app_id" :label="item.app_name" :value="item.app_id" v-for="item in apps" v-show="item.show" />
+            <el-option :key="item.app_id" :label="item.app_name" :value="item.app_id" v-for="item in apps"
+              v-show="item.show||search.account_ids.length===0" />
           </el-select>
         </el-form-item>
         <el-form-item v-if="search.dimensions.includes('country')" label="区域">
@@ -323,6 +324,12 @@ export default {
               break
             case "roi":
               sums[index] = this.reportList.summaries.roi + "%"
+              break
+            case "ad_show_count":
+              sums[index] = this.reportList.summaries.ad_show_count
+              break
+            case "ad_click_count":
+              sums[index] = this.reportList.summaries.ad_click_count
               break
           }
         }

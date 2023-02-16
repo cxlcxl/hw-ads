@@ -41,7 +41,7 @@ func (l *User) Login(ctx *gin.Context, p interface{}) {
 		response.Fail(ctx, "密码错误")
 		return
 	}
-	token, err := jwt.CreateUserToken(user.Id, user.RoleId, user.Email, user.Username, user.Mobile)
+	token, err := jwt.CreateUserToken(user.Id, user.RoleId, user.Email, user.Username, user.Mobile, user.IsInternal)
 	if err != nil {
 		response.Fail(ctx, "登录失败: "+err.Error())
 		return
@@ -74,6 +74,15 @@ func (l User) Logout(ctx *gin.Context) {
 	response.Success(ctx, nil)
 }
 
+func (l User) ResetPass(ctx *gin.Context, p interface{}) {
+	params := p.(*v_data.VResetPass)
+	if err := serviceuser.ResetPass(params); err != nil {
+		response.Fail(ctx, "密码修改失败："+err.Error())
+		return
+	}
+	response.Success(ctx, nil)
+}
+
 func (l *User) UserInfo(ctx *gin.Context, v string) {
 	id, err := strconv.ParseInt(v, 0, 64)
 	if err != nil {
@@ -85,26 +94,12 @@ func (l *User) UserInfo(ctx *gin.Context, v string) {
 		response.Fail(ctx, "请求错误："+err.Error())
 		return
 	}
-	response.Success(ctx, user)
+	response.Success(ctx, serviceuser.BindAccount(user))
 }
 
 func (l *User) UserCreate(ctx *gin.Context, p interface{}) {
 	params := p.(*v_data.VUserCreate)
-	s := utils.GenerateSecret(0)
-	user := &model.User{
-		Email:      params.Email,
-		Username:   params.Username,
-		Mobile:     params.Mobile,
-		State:      1,
-		RoleId:     params.RoleId,
-		IsInternal: params.IsInternal,
-		Secret:     s,
-		Pass:       utils.Password(params.Pass, s),
-		CreatedAt:  time.Now(),
-		UpdatedAt:  time.Now(),
-	}
-	err := model.NewUser(vars.DBMysql).CreateUser(user)
-	if err != nil {
+	if err := serviceuser.UserCreate(params); err != nil {
 		response.Fail(ctx, "创建失败："+err.Error())
 		return
 	}
@@ -113,33 +108,11 @@ func (l *User) UserCreate(ctx *gin.Context, p interface{}) {
 
 func (l *User) UserUpdate(ctx *gin.Context, p interface{}) {
 	params := p.(*v_data.VUserUpdate)
-	user, err := model.NewUser(vars.DBMysql).FindUserById(params.Id)
-	if err != nil {
-		response.Fail(ctx, "请求错误："+err.Error())
-		return
-	}
-	d := map[string]interface{}{
-		"username": params.Username,
-		"email":    params.Email,
-		"mobile":   params.Mobile,
-		"role_id":  params.RoleId,
-		"state":    params.State,
-		//"is_internal": params.IsInternal,
-		"updated_at": time.Now(),
-	}
-	updatePass := false
-	if params.Pass != "" {
-		d["pass"] = utils.Password(params.Pass, user.Secret)
-		updatePass = true
-	}
-	err = model.NewUser(vars.DBMysql).UpdateUser(d, params.Id)
-	if err != nil {
+	if err := serviceuser.UserUpdate(params); err != nil {
 		response.Fail(ctx, "修改失败："+err.Error())
 		return
 	}
-	if updatePass && user.SsoUid != "" {
-		go serviceuser.UpdatePass(user.SsoUid, params.Pass)
-	}
+
 	response.Success(ctx, nil)
 }
 

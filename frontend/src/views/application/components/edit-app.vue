@@ -1,5 +1,5 @@
 <template>
-  <dialog-panel title="应用信息修改" confirm-text="保存" :visible="visible" @cancel="cancel" @confirm="save" :confirm-loading="loading">
+  <dialog-panel title="应用信息修改" confirm-text="保存" :visible="visible" @cancel="cancel" @confirm="save" :confirm-loading="loading" width="500px">
     <el-form :model="appForm" ref="appForm" label-width="120px" size="small" :rules="userRules">
       <el-form-item label="APP ID">
         <el-input v-model="appForm.app_id" placeholder="请填写APP ID" disabled />
@@ -10,19 +10,19 @@
       <el-form-item label="应用包名" prop="pkg_name">
         <el-input v-model="appForm.pkg_name" placeholder="请填写应用包名" />
       </el-form-item>
-      <el-form-item label="渠道" prop="channel">
+      <!-- <el-form-item label="渠道" prop="channel">
         <el-select v-model="appForm.channel" style="width: 100%;">
           <el-option v-for="(key, val) in appChannel" :label="key" :value="Number(val)" :key="val" />
         </el-select>
-      </el-form-item>
-      <el-form-item label="应用类型" prop="app_type">
+      </el-form-item> -->
+      <!-- <el-form-item label="应用类型" prop="app_type">
         <el-select v-model="appForm.app_type" style="width: 100%;">
           <el-option v-for="(key, val) in appType" :label="key" :value="val" :key="val" />
         </el-select>
-      </el-form-item>
-      <el-form-item label="标签" prop="tags">
+      </el-form-item> -->
+      <!-- <el-form-item label="标签" prop="tags">
         <el-input v-model="appForm.tags" placeholder="多个请用英文 ',' 号隔开" />
-      </el-form-item>
+      </el-form-item> -->
     </el-form>
   </dialog-panel>
 </template>
@@ -55,7 +55,7 @@ export default {
       },
       userRules: {
         app_name: { required: true, message: "请填写应用名称" },
-        channel: { required: true, message: "请选择渠道" },
+        // channel: { required: true, message: "请选择渠道" },
         pkg_name: { required: true, message: "请填写应用包名" },
       },
     }

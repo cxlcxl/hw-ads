@@ -1,5 +1,5 @@
 module.exports = {
-  title: "HW-ADS",
+  title: "MobgiADS",
 
   /**
    * @type {boolean} true | false

@@ -4,6 +4,7 @@ import (
 	"bs.mobgi.cc/app/model"
 	"bs.mobgi.cc/app/response"
 	serviceaccount "bs.mobgi.cc/app/service/account"
+	serviceexternal "bs.mobgi.cc/app/service/external"
 	"bs.mobgi.cc/app/utils"
 	"bs.mobgi.cc/app/validator/v_data"
 	"bs.mobgi.cc/app/vars"
@@ -20,7 +21,20 @@ type Account struct{}
 func (h *Account) AccountList(ctx *gin.Context, p interface{}) {
 	params := p.(*v_data.VAccountList)
 	offset := utils.GetPages(params.Page, params.PageSize)
-	acts, total, err := model.NewAct(vars.DBMysql).AccountList(params.AccountType, params.State, params.AccountName, offset, params.PageSize)
+	actIds := make([]int64, 0)
+	if params.User.IsInternal == 0 {
+		var err error
+		actIds, err = serviceexternal.Markets(actIds, params.User.UserId)
+		if err != nil {
+			response.Fail(ctx, "查询失败："+err.Error())
+			return
+		}
+		if len(actIds) == 0 {
+			response.Success(ctx, gin.H{"total": 0, "list": nil, "state": vars.CommonState, "types": vars.AccountType})
+			return
+		}
+	}
+	acts, total, err := model.NewAct(vars.DBMysql).AccountList(actIds, params.AccountType, params.State, params.AccountName, offset, params.PageSize)
 	if err != nil {
 		response.Fail(ctx, "请求失败："+err.Error())
 		return
@@ -63,7 +77,18 @@ func (h *Account) AccountDefault(ctx *gin.Context) {
 }
 
 func (h *Account) AllAccounts(ctx *gin.Context) {
-	acts, err := model.NewAct(vars.DBMysql).AllAccounts()
+	u, _ := ctx.Get(vars.LoginUserKey)
+	accountIds := make([]int64, 0)
+	if u.(*vars.LoginUser).IsInternal == 0 {
+		accounts, ads, err := serviceexternal.QueryAccounts(u.(*vars.LoginUser).UserId)
+		if err != nil {
+			response.Fail(ctx, "请求失败："+err.Error())
+			return
+		}
+		accountIds = append(accounts, ads...)
+	}
+
+	acts, err := model.NewAct(vars.DBMysql).AllAccounts(accountIds)
 	if err != nil {
 		response.Fail(ctx, "请求失败："+err.Error())
 		return
@@ -241,7 +266,14 @@ func (h *Account) AccountCreate(ctx *gin.Context, p interface{}) {
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
 	}
-	if err := model.NewAct(vars.DBMysql).AccountCreate(d); err != nil {
+	var userAct model.UserAccount
+	if params.User.IsInternal == 0 {
+		userAct = model.UserAccount{
+			UserId:      params.User.UserId,
+			AccountType: params.AccountType,
+		}
+	}
+	if err := model.NewAct(vars.DBMysql).AccountCreate(d, userAct); err != nil {
 		response.Fail(ctx, "请求错误："+err.Error())
 		return
 	}

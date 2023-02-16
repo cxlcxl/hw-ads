@@ -1,5 +1,5 @@
 <template>
-  <dialog-panel title="添加应用" confirm-text="添加" :visible="visible" @cancel="cancel" @confirm="add" :confirm-loading="loading">
+  <dialog-panel title="添加应用" confirm-text="添加" :visible="visible" @cancel="cancel" @confirm="add" :confirm-loading="loading" width="500px">
     <el-form :model="appForm" ref="appForm" label-width="120px" size="small" :rules="userRules">
       <el-form-item label="应用名称" prop="app_name">
         <el-input v-model="appForm.app_name" placeholder="请填写应用名称" />
@@ -10,7 +10,7 @@
       <el-form-item label="应用包名" prop="pkg_name">
         <el-input v-model="appForm.pkg_name" placeholder="请填写应用包名" />
       </el-form-item>
-      <el-form-item label="渠道" prop="channel">
+      <!-- <el-form-item label="渠道" prop="channel">
         <el-select v-model="appForm.channel" style="width: 100%;">
           <el-option v-for="(key, val) in appChannel" :label="key" :value="Number(val)" :key="val" />
         </el-select>
@@ -22,7 +22,7 @@
       </el-form-item>
       <el-form-item label="标签" prop="tags">
         <el-input v-model="appForm.tags" placeholder="多个请用英文 ',' 号隔开" />
-      </el-form-item>
+      </el-form-item> -->
     </el-form>
   </dialog-panel>
 </template>
@@ -55,7 +55,7 @@ export default {
       userRules: {
         app_name: { required: true, message: "请填写应用名称" },
         app_id: { required: true, message: "请填写 APP ID" },
-        channel: { required: true, message: "请选择渠道" },
+        // channel: { required: true, message: "请选择渠道" },
         pkg_name: { required: true, message: "请填写应用包名" },
       },
     }

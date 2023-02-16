@@ -110,81 +110,57 @@ func (m *ReportMarketCollect) ReportComprehensive(
 	if utils.InArray("account_id", groups) {
 		adsTable = NewRACA(nil).TableName()
 	}
-	var values []interface{}
-	marketBase := m.ComprehensiveBaseSQL(m.TableName(), actIds, appIds, countries, dates, groups)
-	adsBase := m.ComprehensiveBaseSQL(adsTable, actIds, appIds, countries, dates, groups)
-	marketQuery, ms, err := marketBase(marketSelects)
-	if err != nil {
-		return
+	sqlQuery := func(table, _m string, selects []string) string {
+		return m.ToSQL(func(tx *gorm.DB) *gorm.DB {
+			query := tx.Table(table).Where("stat_day between ? and ?", dates[0], dates[1])
+			if len(groups) > 0 {
+				query = query.Group(strings.Join(groups, ","))
+			}
+			// 组合维度筛选后的过滤条件
+			if len(actIds) > 0 {
+				if _m == "ads" && !utils.InArray("account_id", groups) {
+					query = query.Where("app_id in (select app_id from app_accounts where account_id in ?)", actIds)
+				} else {
+					query = query.Where("account_id in ?", actIds)
+				}
+			}
+			if len(appIds) > 0 {
+				query = query.Where("app_id in ?", appIds)
+			}
+			if len(countries) > 0 {
+				query = query.Where("country in ?", countries)
+			}
+			return query.Select(selects).Find(nil)
+		})
 	}
-	values = append(values, ms...)
-	adsQuery, as, err := adsBase(adsSelects)
-	if err != nil {
-		return
-	}
-	values = append(values, as...)
 
 	query := squirrel.
 		Select("t0.*,t1.`earnings`,t1.`ad_requests`,t1.`matched_ad_requests`,t1.`ad_show_count`,t1.`ad_click_count`").
-		From(fmt.Sprintf("(%s) as t0", marketQuery)).
-		LeftJoin(fmt.Sprintf("(%s) as t1 on %s", adsQuery, strings.Join(JoinOn, " and "))).
+		From(fmt.Sprintf("(%s) as t0", sqlQuery(m.TableName(), "market", marketSelects))).
+		LeftJoin(fmt.Sprintf("(%s) as t1 on %s", sqlQuery(adsTable, "ads", adsSelects), strings.Join(JoinOn, " and "))).
 		OrderBy(_os...)
+
 	if limit > 0 {
-		totalSql, ts, err := marketBase([]string{"1"})
-		if err != nil {
-			return nil, 0, err
-		}
-		if err = m.Raw(totalSql, ts...).Count(&total).Error; err != nil || total == 0 {
+		if err = m.Raw(sqlQuery(m.TableName(), "market", []string{"1"})).Count(&total).Error; err != nil || total == 0 {
 			return nil, 0, err
 		}
 		query = query.Offset(offset).Limit(limit)
 	}
-	sql, _, err := query.ToSql()
-	if err != nil {
-		return
+	var sql string
+	if sql, _, err = query.ToSql(); err == nil {
+		err = m.Raw(sql).Find(&markets).Error
 	}
-	err = m.Raw(sql, values...).Find(&markets).Error
+
 	return
 }
 
-func (m *ReportMarketCollect) ComprehensiveBaseSQL(
-	tableName string, actIds []int64, appIds, countries, dates, groups []string,
-) func(selects []string) (string, []interface{}, error) {
-	return func(s []string) (baseSQL string, values []interface{}, err error) {
-		sql := squirrel.Select(s...).From(tableName).Where("stat_day between ? and ?", dates[0], dates[1])
-
-		if len(groups) > 0 {
-			sql = sql.GroupBy(groups...)
-		}
-		// 组合维度筛选后的过滤条件
-		if len(actIds) > 0 {
-			in, vs := utils.WhereIn(actIds)
-			sql = sql.Where("account_id in "+in, vs...)
-		}
-		if len(appIds) > 0 {
-			in, vs := utils.WhereIn(appIds)
-			sql = sql.Where("app_id in "+in, vs...)
-		}
-		if len(countries) > 0 {
-			in, vs := utils.WhereIn(countries)
-			sql = sql.Where("country in "+in, vs...)
-		}
-
-		baseSQL, vs, err := sql.ToSql()
-		if err != nil {
-			return
-		}
-		values = append(values, vs...)
-		return
-	}
-
-}
-
 type Summaries struct {
-	Cost     float64 `json:"cost"`
-	Earnings float64 `json:"earnings"`
-	Roi      float64 `json:"roi"`
-	ECpm     float64 `json:"ecpm"`
+	Cost         float64 `json:"cost"`
+	Earnings     float64 `json:"earnings"`
+	Roi          float64 `json:"roi"`
+	ECpm         float64 `json:"ecpm"`
+	AdShowCount  int64   `json:"ad_show_count"`
+	AdClickCount int64   `json:"ad_click_count"`
 }
 
 func (m *ReportMarketCollect) ComprehensiveSummaries(

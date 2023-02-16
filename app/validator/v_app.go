@@ -8,7 +8,7 @@ import (
 
 func (v BsValidator) VAppList(ctx *gin.Context) {
 	var params v_data.VAppList
-	bindData(ctx, &params, (&handlers.App{}).AppList)
+	bindData(ctx, &params, (&handlers.App{}).AppList, fillUser)
 }
 
 func (v BsValidator) VAppCampaignList(ctx *gin.Context) {

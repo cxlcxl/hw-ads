@@ -12,7 +12,7 @@ type Account struct {
 	ParentId     int64     `json:"parent_id"`     // 所属上级服务商
 	AdvertiserId string    `json:"advertiser_id"` // 广告主账户ID
 	DeveloperId  string    `json:"developer_id"`  // 开发者ID
-	AccountType  int64     `json:"account_type"`  // 账户类型
+	AccountType  uint8     `json:"account_type"`  // 账户类型
 	State        int64     `json:"state"`         // 状态
 	AccountName  string    `json:"account_name"`  // 账户名
 	ClientId     string    `json:"client_id"`     // 客户端ID
@@ -41,10 +41,13 @@ func (m *Account) FindAccountById(id int64) (act *Account, err error) {
 	return
 }
 
-func (m *Account) AccountList(accountType, state int64, accountName string, offset, limit int64) (ls []*Account, total int64, err error) {
+func (m *Account) AccountList(ids []int64, accountType, state int64, accountName string, offset, limit int64) (ls []*Account, total int64, err error) {
 	tbl := m.Table(m.TableName()).Where("state = ?", state).Order("id desc")
 	if len(accountName) > 0 {
 		tbl = tbl.Where("account_name like ?", "%"+accountName+"%")
+	}
+	if len(ids) > 0 {
+		tbl = tbl.Where("id in ?", ids)
 	}
 	if accountType > 0 {
 		tbl = tbl.Where("account_type = ?", accountType)
@@ -70,12 +73,16 @@ func (m *Account) RemoteAccounts(accountName string, isParent int64) (accounts [
 	return
 }
 
-func (m *Account) AllAccounts() (accounts []*BelongAccount, err error) {
-	err = m.Table(m.TableName()).Where("state = 1").Find(&accounts).Error
+func (m *Account) AllAccounts(ids []int64) (accounts []*BelongAccount, err error) {
+	query := m.Table(m.TableName()).Where("state = 1")
+	if len(ids) > 0 {
+		query = query.Where("id in ?", ids)
+	}
+	err = query.Find(&accounts).Error
 	return
 }
 
-func (m *Account) AccountCreate(act *Account) (err error) {
+func (m *Account) AccountCreate(act *Account, userAct UserAccount) (err error) {
 	err = m.Transaction(func(tx *gorm.DB) error {
 		if err = tx.Table(m.TableName()).Create(act).Error; err != nil {
 			return err
@@ -86,6 +93,10 @@ func (m *Account) AccountCreate(act *Account) (err error) {
 			TokenType: "Bearer",
 			Timestamp: Timestamp{CreatedAt: act.CreatedAt, UpdatedAt: act.CreatedAt},
 		}).Error; err != nil {
+			return err
+		}
+		userAct.AccountId = act.Id
+		if err = tx.Table(NewUserAccount(nil).TableName()).Create(&userAct).Error; err != nil {
 			return err
 		}
 		return nil

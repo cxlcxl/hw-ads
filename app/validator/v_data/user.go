@@ -25,13 +25,15 @@ type VUserList struct {
 }
 
 type VUserCreate struct {
-	Username   string `json:"username" form:"username" binding:"required"`
-	Email      string `json:"email" form:"email" binding:"required,email"`
-	Mobile     string `json:"mobile" form:"mobile"`
-	State      uint8  `json:"state" form:"state" binding:"numeric"`
-	IsInternal uint8  `json:"is_internal" form:"is_internal" binding:"numeric"`
-	RoleId     int64  `json:"role_id" form:"role_id" binding:"required,numeric"`
-	Pass       string `json:"pass" form:"pass"`
+	Username       string  `json:"username" form:"username" binding:"required"`
+	Email          string  `json:"email" form:"email" binding:"required,email"`
+	Mobile         string  `json:"mobile" form:"mobile"`
+	State          uint8   `json:"state" form:"state" binding:"numeric"`
+	IsInternal     uint8   `json:"is_internal" form:"is_internal" binding:"numeric"`
+	RoleId         int64   `json:"role_id" form:"role_id" binding:"required,numeric"`
+	Pass           string  `json:"pass" form:"pass"`
+	MarketAccounts []int64 `json:"market_accounts"`
+	AdsAccounts    []int64 `json:"ads_accounts"`
 }
 
 type VSelfUpdate struct {
@@ -70,4 +72,11 @@ type VSsoLoginData struct {
 
 type VRolePermissions struct {
 	Id int64 `form:"id" binding:"required,numeric"`
+}
+
+type VResetPass struct {
+	OldPass          string `json:"old_pass" binding:"required,pass"`
+	Pass             string `json:"pass" binding:"required,pass"`
+	ConfirmationPass string `json:"confirmation_pass" binding:"required,pass"`
+	User             *vars.LoginUser
 }

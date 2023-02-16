@@ -2,6 +2,7 @@ package servicereport
 
 import (
 	"bs.mobgi.cc/app/model"
+	serviceexternal "bs.mobgi.cc/app/service/external"
 	"bs.mobgi.cc/app/utils"
 	"bs.mobgi.cc/app/validator/v_data"
 	"bs.mobgi.cc/app/vars"
@@ -18,11 +19,20 @@ func ReportComprehensive(params *v_data.VReportComprehensive) (data []*Comprehen
 		pageSize = 0
 	}
 	groups := append(params.Dimensions, "stat_day")
-	comprehensives, total, err := model.NewRMC(vars.DBMysql).ReportComprehensive(
-		params.DateRange, params.AccountIds, params.AppIds, countries,
+	markets := params.AccountIds
+	var comprehensives []*model.ComprehensiveReport
+	if params.User.IsInternal == 0 {
+		// 外部用户查看附加条件
+		if markets, err = serviceexternal.Markets(params.AccountIds, params.User.UserId); err != nil {
+			return
+		}
+	}
+	comprehensives, total, err = model.NewRMC(vars.DBMysql).ReportComprehensive(
+		params.DateRange, markets, params.AppIds, countries,
 		marketColumns(params.Dimensions), adsColumns(params.Dimensions),
 		groups, comprehensiveOrders(params.Order, params.By), uint64(offset), pageSize,
 	)
+
 	if err != nil {
 		return nil, 0, err
 	}
@@ -226,16 +236,29 @@ func comprehensiveOrders(order, by string) (orders []string) {
 
 // ReportComprehensiveSummaries 综合报表汇总数据
 func ReportComprehensiveSummaries(params *v_data.VReportComprehensive) (summaries model.Summaries) {
+	markets := params.AccountIds
+	if params.User.IsInternal == 0 {
+		var err error
+		if markets, err = serviceexternal.Markets(params.AccountIds, params.User.UserId); err != nil {
+			return
+		}
+	}
 	countries := formatCountries(params.Countries, params.Dimensions)
 	summaries = model.NewRMC(vars.DBMysql).ComprehensiveSummaries(
-		params.DateRange, params.AccountIds, params.AppIds, countries,
+		params.DateRange, markets, params.AppIds, countries,
 		[]string{"round(sum(`cost`), 3) as `cost`"},
 	)
 	summariesAds := model.NewRAC(vars.DBMysql).ComprehensiveAdsEarningsSummary(
-		params.DateRange, params.AccountIds, params.AppIds, countries,
-		[]string{"round(sum(`earnings`), 3) as `earnings`"},
+		params.DateRange, markets, params.AppIds, countries,
+		[]string{
+			"round(sum(`earnings`), 3) as `earnings`",
+			"sum(`click_count`) as `ad_click_count`",
+			"sum(`show_count`) as `ad_show_count`",
+		},
 	)
 	summaries.Earnings = summariesAds.Earnings
+	summaries.AdShowCount = summariesAds.AdShowCount
+	summaries.AdClickCount = summariesAds.AdClickCount
 	if summaries.Cost == 0 {
 		if summaries.Earnings == 0 {
 			summaries.Roi = 0

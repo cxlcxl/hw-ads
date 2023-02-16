@@ -144,7 +144,7 @@ export default {
       })
     },
     add() {
-      this.$refs.userCreate.visible = true
+      this.$refs.userCreate.initCreate()
     },
     editRow(row) {
       this.$refs.userUpdate.initUpdate(row.id)

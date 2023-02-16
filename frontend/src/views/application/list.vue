@@ -13,12 +13,12 @@
         <el-form-item>
           <el-input v-model="search.app_id" class="w120" clearable placeholder="APP ID" />
         </el-form-item>
-        <el-form-item>
+        <!-- <el-form-item>
           <el-select v-model="search.channel" class="w100">
             <el-option label="全部渠道" :value="0" />
             <el-option v-for="(key, val) in appList.app_channel" :label="key" :value="Number(val)" :key="val" />
           </el-select>
-        </el-form-item>
+        </el-form-item> -->
         <el-form-item label="">
           <el-button type="primary" icon="el-icon-search" class="item" @click="doSearch">查询</el-button>
         </el-form-item>
@@ -33,9 +33,9 @@
         <el-table-column prop="id" label="ID" width="80" align="center" />
         <el-table-column prop="app_name" label="应用名称" width="180" show-overflow-tooltip />
         <el-table-column prop="app_id" label="AppID" width="100" align="center" />
-        <el-table-column label="渠道" width="120" align="center">
+        <!-- <el-table-column label="渠道" width="120" align="center">
           <template slot-scope="scope">{{appList.app_channel[scope.row.channel]}}</template>
-        </el-table-column>
+        </el-table-column> -->
         <el-table-column label="关联投放账户" prop="account_ids" min-width="150" show-overflow-tooltip>
           <template slot-scope="scope">
             {{scope.row.account_ids|accountsFilter(accounts)}}
@@ -47,7 +47,7 @@
         </el-table-column>
         <el-table-column align="center" label="操作" width="90">
           <template slot-scope="scope">
-            <el-button-group class="table-operate">
+            <el-button-group class="table-operate" v-permission="'app/update'">
               <el-button type="primary" plain @click.native.prevent="editRow(scope.row.id)">编辑</el-button>
             </el-button-group>
           </template>

@@ -87,10 +87,16 @@ func (m *App) FindAppById(id int64) (app *App, err error) {
 	return
 }
 
-func (m *App) AllApps() (apps []*SimpleApp, err error) {
-	err = cache.New(m.DB).Query(appsKey, &apps, func(db *gorm.DB, v interface{}) error {
-		return db.Table(m.TableName()).Find(v).Error
-	})
+func (m *App) AllApps(actIds []int64) (apps []*SimpleApp, err error) {
+	if len(actIds) > 0 {
+		err = m.Table(m.TableName()).
+			Where("app_id in (select app_id from app_accounts where account_id in ?)", actIds).
+			Select("app_id,app_name").Find(&apps).Error
+	} else {
+		err = cache.New(m.DB).Query(appsKey, &apps, func(db *gorm.DB, v interface{}) error {
+			return db.Table(m.TableName()).Select("app_id,app_name").Find(v).Error
+		})
+	}
 	return
 }
 

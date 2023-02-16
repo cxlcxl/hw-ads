@@ -4,6 +4,7 @@ import (
 	"bs.mobgi.cc/app/model"
 	"bs.mobgi.cc/app/response"
 	serviceapp "bs.mobgi.cc/app/service/app"
+	serviceexternal "bs.mobgi.cc/app/service/external"
 	"bs.mobgi.cc/app/utils"
 	"bs.mobgi.cc/app/validator/v_data"
 	"bs.mobgi.cc/app/vars"
@@ -17,7 +18,20 @@ type App struct{}
 func (h *App) AppList(ctx *gin.Context, p interface{}) {
 	params := p.(*v_data.VAppList)
 	offset := utils.GetPages(params.Page, params.PageSize)
-	apps, total, err := model.NewApp(vars.DBMysql).AppList(params.AppId, params.AppName, params.Channel, params.AccountIds, offset, params.PageSize)
+	actIds := params.AccountIds
+	if params.User.IsInternal == 0 {
+		var err error
+		actIds, err = serviceexternal.Markets(params.AccountIds, params.User.UserId)
+		if err != nil {
+			response.Fail(ctx, "查询失败："+err.Error())
+			return
+		}
+		if len(actIds) == 0 {
+			response.Success(ctx, gin.H{"total": 0, "list": nil, "app_channel": vars.AppChannel})
+			return
+		}
+	}
+	apps, total, err := model.NewApp(vars.DBMysql).AppList(params.AppId, params.AppName, params.Channel, actIds, offset, params.PageSize)
 	if err != nil {
 		response.Fail(ctx, "查询失败："+err.Error())
 		return
@@ -104,7 +118,17 @@ func (h *App) AppPull(ctx *gin.Context, p interface{}) {
 }
 
 func (h *App) AllApp(ctx *gin.Context) {
-	apps, err := model.NewApp(vars.DBMysql).AllApps()
+	u, _ := ctx.Get(vars.LoginUserKey)
+	accountIds := make([]int64, 0)
+	if u.(*vars.LoginUser).IsInternal == 0 {
+		accounts, _, err := serviceexternal.QueryAccounts(u.(*vars.LoginUser).UserId)
+		if err != nil {
+			response.Fail(ctx, "请求失败："+err.Error())
+			return
+		}
+		accountIds = accounts
+	}
+	apps, err := model.NewApp(vars.DBMysql).AllApps(accountIds)
 	if err != nil {
 		response.Fail(ctx, "请求失败："+err.Error())
 		return

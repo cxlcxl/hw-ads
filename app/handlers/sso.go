@@ -11,8 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type Sso struct {
-}
+type Sso struct{}
 
 func (l *Sso) SsoLoginPath(ctx *gin.Context) {
 	host := vars.YmlConfig.GetString("Sso.LoginHost")
@@ -52,7 +51,7 @@ func (l *Sso) ValidTicket(ctx *gin.Context, p interface{}) {
 		return
 	}
 	var token string
-	if token, err = jwt.CreateUserToken(user.Id, user.RoleId, user.Email, user.Username, user.Mobile); err == nil {
+	if token, err = jwt.CreateUserToken(user.Id, user.RoleId, user.Email, user.Username, user.Mobile, 1); err == nil {
 		_, err = jwt.ParseToken(token)
 		if err != nil {
 			response.Fail(ctx, err.Error())

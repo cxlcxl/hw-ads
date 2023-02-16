@@ -7,12 +7,14 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
+	"regexp"
 )
 
 const (
 	appCodeRule = `^[a-z0-9A-Z\_]{1,50}$`
 	ticketRule  = `^[a-z0-9]+$`
 	uuidRule    = `^[a-z0-9\-]{36}$`
+	passRule    = `^[a-zA-Z]+[a-zA-Z0-9\.\@\#\$\%\&\*\!\?\,]{5,17}$`
 )
 
 type BsValidator struct{}
@@ -24,10 +26,12 @@ func RegisterValidators() {
 }
 
 func pass(fl validator.FieldLevel) bool {
-	//if fl.Field().String() == "invalid" {
-	//	return false
-	//}
-	return true
+	_pass := fl.Field().String()
+	if ok, err := regexp.MatchString(passRule, _pass); err != nil {
+		return false
+	} else {
+		return ok
+	}
 }
 
 func emptyValidator(_ *gin.Context, _ interface{}) error {
@@ -69,6 +73,14 @@ func fillUser(ctx *gin.Context, p interface{}) error {
 		p.(*v_data.VReportAds).User = u.(*vars.LoginUser)
 	case *v_data.VSelfUpdate:
 		p.(*v_data.VSelfUpdate).User = u.(*vars.LoginUser)
+	case *v_data.VResetPass:
+		p.(*v_data.VResetPass).User = u.(*vars.LoginUser)
+	case *v_data.VAppList:
+		p.(*v_data.VAppList).User = u.(*vars.LoginUser)
+	case *v_data.VAccountList:
+		p.(*v_data.VAccountList).User = u.(*vars.LoginUser)
+	case *v_data.VAccountCreate:
+		p.(*v_data.VAccountCreate).User = u.(*vars.LoginUser)
 	default:
 	}
 	return nil

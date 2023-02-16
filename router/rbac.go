@@ -14,6 +14,7 @@ func initRbacApis(r *gin.RouterGroup) {
 
 	r.Use(middleware.CheckUserLogin())
 	{
+		r.POST("/reset-pass", (validator.BsValidator{}).VResetPass)
 		r.GET("/profile", (&handlers.User{}).Profile) //个人信息
 		r.POST("/logout", (&handlers.User{}).Logout)
 		r.POST("/self/update", (validator.BsValidator{}).VSelfUpdate)

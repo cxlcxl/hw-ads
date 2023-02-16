@@ -37,7 +37,20 @@ func (m *Permission) Permissions() (ps []*Permission, err error) {
 }
 
 func (m *Permission) PermissionUpdate(id int64, v map[string]interface{}) (err error) {
-	return m.Table(m.TableName()).Where("id = ?", id).Updates(v).Error
+	var per Permission
+	if err = m.Table(m.TableName()).Where("id = ?", id).First(&per).Error; err != nil {
+		return err
+	}
+	pr := map[string]interface{}{"v1": v["permission"], "v2": v["method"]}
+	return m.Transaction(func(tx *gorm.DB) error {
+		if err = tx.Table(m.TableName()).Where("id = ?", id).Updates(v).Error; err != nil {
+			return err
+		}
+		if err = tx.Table(NewPR(nil).TableName()).Where("v1 = ? and v2 = ?", per.Per, per.Method).Updates(pr).Error; err != nil {
+			return err
+		}
+		return nil
+	})
 }
 
 func (m *Permission) PermissionDestroy(id int64) (err error) {
