@@ -11,7 +11,6 @@ import (
 // ReportAds 变现报表
 func ReportAds(params *v_data.VReportAds) (data []*AdsReport, total int64, err error) {
 	countries := formatCountries(params.Countries, params.Dimensions)
-	var _ads []*model.Ads
 	offset := utils.GetPages(params.Page, params.PageSize)
 	actIds := params.AccountIds
 	if params.User.IsInternal == 0 {
@@ -19,8 +18,9 @@ func ReportAds(params *v_data.VReportAds) (data []*AdsReport, total int64, err e
 			return
 		}
 	}
+	var _ads []*model.ReportAds
 	_ads, total, err = model.NewRAS(vars.DBMysql).AnalysisAds(
-		actIds, params.AppIds, params.DateRange, countries, _adsColumns(params.Dimensions),
+		actIds, params.Areas, params.AppIds, params.DateRange, countries, _adsColumns(params.Dimensions),
 		params.Dimensions, int(offset), int(params.PageSize),
 	)
 	if err != nil {
@@ -45,16 +45,20 @@ func _adsColumns(dimensions []string) []string {
 	return rs
 }
 
-func formatAdsData(params *v_data.VReportAds, _ads []*model.Ads) (data []*AdsReport, err error) {
+func formatAdsData(params *v_data.VReportAds, _ads []*model.ReportAds) (data []*AdsReport, err error) {
 	// 3.1 检查是否需要填充账户名称，需要则填充
 	_accountMap := make(map[int64]string)
 	if utils.InArray("account_id", params.Dimensions) {
 		_accountMap = accountMap(vars.AccountTypeAds)
 	}
 	// 3.2 检查是否需要填充国家地区，需要则填充
-	areaMap := make(map[string]*model.AreaCountry)
+	_countryMap := make(map[string]*model.AreaCountry)
 	if utils.InArray("country", params.Dimensions) {
-		areaMap = regionCountryMap()
+		_countryMap = regionCountryMap()
+	}
+	_areaMap := make(map[int64]string)
+	if utils.InArray("area_id", params.Dimensions) {
+		_areaMap = areaMap()
 	}
 	// 3.3 检查应用
 	_appMap := make(map[string]string)
@@ -63,24 +67,18 @@ func formatAdsData(params *v_data.VReportAds, _ads []*model.Ads) (data []*AdsRep
 	}
 	data = make([]*AdsReport, len(_ads))
 	for i, ads := range _ads {
-		area, ok := areaMap[ads.Country]
-		if !ok {
-			area = &model.AreaCountry{}
-		}
 		f0, f1, f2, f3 := calculateAdsRate(ads)
 		appName := _appMap[ads.AppId]
 		if appName == "" {
 			appName = ads.AppId
 		}
-		data[i] = &AdsReport{
+		adsReport := &AdsReport{
 			StatDay:           ads.StatDay.Format(vars.DateFormat),
 			Country:           ads.Country,
 			AccountId:         ads.AccountId,
 			AppId:             ads.AppId,
 			AppName:           appName,
 			AccountName:       _accountMap[ads.AccountId],
-			AreaName:          area.AreaName,
-			CountryName:       area.CountryName,
 			AdRequests:        ads.AdRequests,
 			MatchedAdRequests: ads.MatchedAdRequests,
 			ShowCount:         ads.ShowCount,
@@ -92,6 +90,16 @@ func formatAdsData(params *v_data.VReportAds, _ads []*model.Ads) (data []*AdsRep
 			ECpm:              f3,
 			ARPU:              0,
 		}
+		if area, ok := _countryMap[ads.Country]; ok {
+			adsReport.AreaName = area.AreaName
+			adsReport.CountryName = area.CountryName
+		}
+		if area, ok := _areaMap[ads.AreaId]; ok {
+			adsReport.AreaName = area
+		} else {
+			adsReport.AreaName = "-"
+		}
+		data[i] = adsReport
 	}
 	return
 }
@@ -121,7 +129,11 @@ func ReportAdsColumns(columns, dimensions []string) (rs []*ReportColumn) {
 		rs = append(rs, AppColumn)
 	}
 	if utils.InArray("country", dimensions) {
+		rs = append(rs, AreaColumn)
 		rs = append(rs, CountryColumn)
+	}
+	if utils.InArray("area_id", dimensions) {
+		rs = append(rs, AreaColumn)
 	}
 	for _, column := range AdsColumns {
 		if forceShow || utils.InArray(column.Key, columns) {
@@ -134,7 +146,7 @@ func ReportAdsColumns(columns, dimensions []string) (rs []*ReportColumn) {
 	return
 }
 
-func calculateAdsRate(ads *model.Ads) (rmr float64, rsr float64, ctr float64, ecpm float64) {
+func calculateAdsRate(ads *model.ReportAds) (rmr float64, rsr float64, ctr float64, ecpm float64) {
 	if ads.AdRequests == 0 {
 		rmr = 0
 	} else {

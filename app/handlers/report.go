@@ -27,8 +27,17 @@ func (h *Report) Comprehensive(ctx *gin.Context, p interface{}) {
 	if !utils.InArray("account_id", params.Dimensions) {
 		params.AccountIds = make([]int64, 0)
 	}
+	if !utils.InArray("area_id", params.Dimensions) {
+		params.Areas = make([]int64, 0)
+	}
 	if !utils.InArray("app_id", params.Dimensions) {
 		params.AppIds = make([]string, 0)
+	}
+	if err := servicereport.ValidatorDimension(params.Dimensions); err != nil {
+		if err != nil {
+			response.Fail(ctx, "请求失败："+err.Error())
+			return
+		}
 	}
 	list, total, err := servicereport.ReportComprehensive(params)
 	if err != nil {
@@ -46,10 +55,11 @@ func (h *Report) Comprehensive(ctx *gin.Context, p interface{}) {
 		summaries = servicereport.ReportComprehensiveSummaries(params)
 	}
 	response.Success(ctx, gin.H{
-		"total":     total,
-		"list":      list,
-		"columns":   servicereport.ReportComprehensiveColumns(params.ShowColumns, params.Dimensions),
-		"summaries": summaries,
+		"total":      total,
+		"list":       list,
+		"columns":    servicereport.ReportComprehensiveColumns(params.ShowColumns, params.Dimensions),
+		"summaries":  summaries,
+		"dimensions": vars.ReportDimensions,
 	})
 }
 
@@ -61,8 +71,17 @@ func (h *Report) Ads(ctx *gin.Context, p interface{}) {
 	if !utils.InArray("account_id", params.Dimensions) {
 		params.AccountIds = make([]int64, 0)
 	}
+	if !utils.InArray("area_id", params.Dimensions) {
+		params.Areas = make([]int64, 0)
+	}
 	if !utils.InArray("app_id", params.Dimensions) {
 		params.AppIds = make([]string, 0)
+	}
+	if err := servicereport.ValidatorDimension(params.Dimensions); err != nil {
+		if err != nil {
+			response.Fail(ctx, "请求失败："+err.Error())
+			return
+		}
 	}
 	list, total, err := servicereport.ReportAds(params)
 	if err != nil {
@@ -76,9 +95,10 @@ func (h *Report) Ads(ctx *gin.Context, p interface{}) {
 		}
 	}
 	response.Success(ctx, gin.H{
-		"total":   total,
-		"list":    list,
-		"columns": servicereport.ReportAdsColumns(params.ShowColumns, params.Dimensions),
+		"total":      total,
+		"list":       list,
+		"columns":    servicereport.ReportAdsColumns(params.ShowColumns, params.Dimensions),
+		"dimensions": vars.ReportDimensions,
 	})
 }
 

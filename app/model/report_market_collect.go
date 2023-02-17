@@ -73,11 +73,13 @@ type ComprehensiveReport struct {
 	AdShowCount       int64     `json:"ad_show_count"`
 	AdClickCount      int64     `json:"ad_click_count"`
 	Earnings          float64   `json:"earnings"`
+	AreaId            int64     `json:"area_id"`
 }
 
 // ReportComprehensive 综合报表利用 JOIN 查询
 func (m *ReportMarketCollect) ReportComprehensive(
-	dates []string, actIds []int64, appIds, countries, marketSelects, adsSelects, groups, orders []string, offset, limit uint64,
+	dates []string, actIds, areas []int64, appIds, countries []string,
+	marketSelects, adsSelects, groups, orders []string, offset, limit uint64,
 ) (markets []*ComprehensiveReport, total int64, err error) {
 	// 自定义排序
 	_os := make([]string, 0)
@@ -94,15 +96,17 @@ func (m *ReportMarketCollect) ReportComprehensive(
 		JoinOn = append(JoinOn, "t0.account_id = t1.account_id")
 		_os = append(_os, "t0.account_id asc")
 	}
-
 	if utils.InArray("app_id", groups) {
 		JoinOn = append(JoinOn, "t0.app_id = t1.app_id")
 		_os = append(_os, "t0.app_id asc")
 	}
-
 	if utils.InArray("country", groups) {
 		JoinOn = append(JoinOn, "t0.country = t1.country")
 		_os = append(_os, "t0.country asc")
+	}
+	if utils.InArray("area_id", groups) {
+		JoinOn = append(JoinOn, "t0.area_id = t1.area_id")
+		_os = append(_os, "t0.area_id asc")
 	}
 
 	// 变现表「包含账户维度需要查与账户关联的表」
@@ -119,7 +123,8 @@ func (m *ReportMarketCollect) ReportComprehensive(
 			// 组合维度筛选后的过滤条件
 			if len(actIds) > 0 {
 				if _m == "ads" && !utils.InArray("account_id", groups) {
-					query = query.Where("app_id in (select app_id from app_accounts where account_id in ?)", actIds)
+					in := fmt.Sprintf("app_id in (select app_id from `%s` where account_id in ?)", NewAppAct(nil).TableName())
+					query = query.Where(in, actIds)
 				} else {
 					query = query.Where("account_id in ?", actIds)
 				}
@@ -130,6 +135,23 @@ func (m *ReportMarketCollect) ReportComprehensive(
 			if len(countries) > 0 {
 				query = query.Where("country in ?", countries)
 			}
+			if utils.InArray("area_id", groups) {
+				if areaColumn := NewOverseasAreaRegion(m.DB).AreaColumnParse(areas); areaColumn != "" {
+					if _m != "count" {
+						selects = append(selects, areaColumn)
+					} else {
+						selects = []string{areaColumn}
+					}
+				}
+				if len(areas) > 0 {
+					in := fmt.Sprintf(
+						"country in (select c_code from `%s` where area_id in ?)",
+						NewOverseasAreaRegion(nil).TableName(),
+					)
+					query = query.Where(in, areas)
+				}
+			}
+
 			return query.Select(selects).Find(nil)
 		})
 	}
@@ -141,7 +163,7 @@ func (m *ReportMarketCollect) ReportComprehensive(
 		OrderBy(_os...)
 
 	if limit > 0 {
-		if err = m.Raw(sqlQuery(m.TableName(), "market", []string{"1"})).Count(&total).Error; err != nil || total == 0 {
+		if err = m.Raw(sqlQuery(m.TableName(), "count", []string{"1"})).Count(&total).Error; err != nil || total == 0 {
 			return nil, 0, err
 		}
 		query = query.Offset(offset).Limit(limit)

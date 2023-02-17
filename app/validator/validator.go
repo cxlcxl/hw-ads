@@ -22,6 +22,7 @@ type BsValidator struct{}
 func RegisterValidators() {
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		_ = v.RegisterValidation("pass", pass)
+		_ = v.RegisterValidation("dimensions", dimensions)
 	}
 }
 
@@ -32,6 +33,16 @@ func pass(fl validator.FieldLevel) bool {
 	} else {
 		return ok
 	}
+}
+
+func dimensions(fl validator.FieldLevel) bool {
+	_dimensions := fl.Field().Interface().([]string)
+	for _, dimension := range _dimensions {
+		if _, ok := vars.ReportDimensions[dimension]; !ok {
+			return false
+		}
+	}
+	return true
 }
 
 func emptyValidator(_ *gin.Context, _ interface{}) error {

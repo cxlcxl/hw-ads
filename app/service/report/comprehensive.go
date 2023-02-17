@@ -28,7 +28,7 @@ func ReportComprehensive(params *v_data.VReportComprehensive) (data []*Comprehen
 		}
 	}
 	comprehensives, total, err = model.NewRMC(vars.DBMysql).ReportComprehensive(
-		params.DateRange, markets, params.AppIds, countries,
+		params.DateRange, markets, params.Areas, params.AppIds, countries,
 		marketColumns(params.Dimensions), adsColumns(params.Dimensions),
 		groups, comprehensiveOrders(params.Order, params.By), uint64(offset), pageSize,
 	)
@@ -51,9 +51,13 @@ func formatComprehensiveData(dimensions []string, comprehensives []*model.Compre
 		_accountMap = accountMap(vars.AccountTypeMarket)
 	}
 	// 3.2 检查是否需要填充国家地区，需要则填充
-	areaMap := make(map[string]*model.AreaCountry)
+	areaCountryMap := make(map[string]*model.AreaCountry)
 	if utils.InArray("country", dimensions) {
-		areaMap = regionCountryMap()
+		areaCountryMap = regionCountryMap()
+	}
+	_areaMap := make(map[int64]string)
+	if utils.InArray("area_id", dimensions) {
+		_areaMap = areaMap()
 	}
 	for _, report := range comprehensives {
 		var roi float64
@@ -66,10 +70,6 @@ func formatComprehensiveData(dimensions []string, comprehensives []*model.Compre
 		} else {
 			roi = utils.Round(report.Earnings/report.Cost*100, 2)
 		}
-		area, ok := areaMap[report.Country]
-		if !ok {
-			area = &model.AreaCountry{}
-		}
 		comprehensiveReport := &ComprehensiveReport{
 			StatDay:           report.StatDay.Format(vars.DateFormat),
 			Country:           report.Country,
@@ -77,8 +77,6 @@ func formatComprehensiveData(dimensions []string, comprehensives []*model.Compre
 			AppId:             report.AppId,
 			AppName:           report.AppName,
 			AccountName:       _accountMap[report.AccountId],
-			AreaName:          area.AreaName,
-			CountryName:       area.CountryName,
 			ROI:               roi,
 			Cost:              report.Cost,
 			ShowCount:         report.ShowCount,
@@ -91,6 +89,15 @@ func formatComprehensiveData(dimensions []string, comprehensives []*model.Compre
 			AdShowCount:       report.ShowCount,
 			AdClickCount:      report.ClickCount,
 			Earnings:          utils.Round(report.Earnings, 3),
+		}
+		if area, ok := areaCountryMap[report.Country]; ok {
+			comprehensiveReport.AreaName = area.AreaName
+			comprehensiveReport.CountryName = area.CountryName
+		}
+		if area, ok := _areaMap[report.AreaId]; ok {
+			comprehensiveReport.AreaName = area
+		} else {
+			comprehensiveReport.AreaName = "-"
 		}
 		calculateRates(report, comprehensiveReport)
 		data = append(data, comprehensiveReport)
@@ -110,6 +117,28 @@ func marketColumns(dimensions []string) (rs []string) {
 	if utils.InArray("country", dimensions) {
 		rs = append(rs, "country")
 	}
+	//if utils.InArray("area_id", dimensions) {
+	//	rs = append(rs, "area_id")
+	//}
+	return rs
+}
+
+func adsColumns(dimensions []string) []string {
+	rs := append(AdsSQLColumns)
+	if utils.InArray("account_id", dimensions) {
+		rs = append(rs, "account_id")
+	} else {
+		rs = append(rs, "0 as account_id")
+	}
+	if utils.InArray("app_id", dimensions) {
+		rs = append(rs, "app_id")
+	}
+	if utils.InArray("country", dimensions) {
+		rs = append(rs, "country")
+	}
+	//if utils.InArray("area_id", dimensions) {
+	//	rs = append(rs, "area_id")
+	//}
 	return rs
 }
 
@@ -212,6 +241,9 @@ func ReportComprehensiveColumns(columns, dimensions []string) (rs []*ReportColum
 		rs = append(rs, AreaColumn)
 		rs = append(rs, CountryColumn)
 	}
+	if utils.InArray("area_id", dimensions) {
+		rs = append(rs, AreaColumn)
+	}
 	for _, column := range ComprehensiveColumns {
 		if forceShow || utils.InArray(column.Key, columns) {
 			column.Show = true
@@ -244,6 +276,9 @@ func ReportComprehensiveSummaries(params *v_data.VReportComprehensive) (summarie
 		}
 	}
 	countries := formatCountries(params.Countries, params.Dimensions)
+	if len(params.Areas) > 0 {
+		countries = queryCountriesByAreaIds(params.Areas)
+	}
 	summaries = model.NewRMC(vars.DBMysql).ComprehensiveSummaries(
 		params.DateRange, markets, params.AppIds, countries,
 		[]string{"round(sum(`cost`), 3) as `cost`"},

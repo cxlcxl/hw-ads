@@ -8,7 +8,7 @@
         </el-form-item>
         <el-form-item label="维度">
           <el-select v-model="search.dimensions" placeholder="数据维度" class="w220" multiple collapse-tags>
-            <el-option :key="k" :label="v" :value="k" v-for="(v,k) in requestDimensions" />
+            <el-option :key="k" :label="v" :value="k" v-for="(v,k) in reportDimensions" />
           </el-select>
         </el-form-item>
         <el-form-item label="">
@@ -30,7 +30,12 @@
             <el-option :key="item.app_id" :label="item.app_name" :value="item.app_id" v-for="item in apps" />
           </el-select>
         </el-form-item>
-        <el-form-item v-if="search.dimensions.includes('country')" label="区域">
+        <el-form-item v-if="search.dimensions.includes('area_id')" label="地区">
+          <el-select v-model="search.areas" placeholder="地区选择" class="w260" multiple collapse-tags clearable filterable>
+            <el-option :key="item.id" :label="item.c_name" :value="item.id" v-for="item in regions" />
+          </el-select>
+        </el-form-item>
+        <el-form-item v-if="search.dimensions.includes('country')" label="国家">
           <el-cascader :options="regions" :props="{ multiple: true, value:'c_code',label:'c_name' }" collapse-tags clearable class="w300"
             v-model="search.countries" />
         </el-form-item>
@@ -58,7 +63,6 @@
 <script>
 import Page from "@c/Page"
 import { parseTime } from "@/utils"
-import { requestDimensions } from "./data"
 import { reportAds } from "@/api/report"
 import { regions } from "@/api/common"
 import { allAccounts } from "@/api/account"
@@ -78,10 +82,10 @@ export default {
   data() {
     return {
       Vars,
-      requestDimensions,
       loadings: {
         pageLoading: false,
       },
+      reportDimensions: {},
       search: {
         date_range: [],
         dimensions: [],
@@ -157,6 +161,7 @@ export default {
               this.reportList.columns = res.data.columns
               this.reportList.list = res.data.list
               this.reportList.total = res.data.total
+              this.reportDimensions = res.data.dimensions
               this.loadings.pageLoading = false
             })
             .catch((err) => {

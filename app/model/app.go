@@ -2,6 +2,7 @@ package model
 
 import (
 	"bs.mobgi.cc/app/cache"
+	"fmt"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -51,7 +52,8 @@ func (m *App) AppList(appId, appName string, channel int64, actIds []int64, offs
 		query = query.Where("channel = ?", channel)
 	}
 	if len(actIds) > 0 {
-		query = query.Where("app_id in (select app_id from app_accounts where account_id in ?)", actIds)
+		in := fmt.Sprintf("app_id in (select app_id from `%s` where account_id in ?)", NewAppAct(nil).TableName())
+		query = query.Where(in, actIds)
 	}
 	if err = query.Count(&total).Error; err != nil {
 		return
@@ -89,8 +91,9 @@ func (m *App) FindAppById(id int64) (app *App, err error) {
 
 func (m *App) AllApps(actIds []int64) (apps []*SimpleApp, err error) {
 	if len(actIds) > 0 {
+		in := fmt.Sprintf("app_id in (select app_id from `%s` where account_id in ?)", NewAppAct(nil).TableName())
 		err = m.Table(m.TableName()).
-			Where("app_id in (select app_id from app_accounts where account_id in ?)", actIds).
+			Where(in, actIds).
 			Select("app_id,app_name").Find(&apps).Error
 	} else {
 		err = cache.New(m.DB).Query(appsKey, &apps, func(db *gorm.DB, v interface{}) error {

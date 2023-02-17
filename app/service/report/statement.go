@@ -4,7 +4,15 @@ import (
 	"bs.mobgi.cc/app/model"
 	"bs.mobgi.cc/app/utils"
 	"bs.mobgi.cc/app/vars"
+	"errors"
 )
+
+func ValidatorDimension(dimensions []string) error {
+	if utils.InArray(vars.ReportDimensionArea, dimensions) && utils.InArray(vars.ReportDimensionCountry, dimensions) {
+		return errors.New("国家和地区维度不能同时筛选")
+	}
+	return nil
+}
 
 type ReportColumn struct {
 	Key    string `json:"key"`
@@ -128,7 +136,7 @@ var (
 	DateColumn    = &ReportColumn{Key: "stat_day", Label: "日期", Align: "center", Min: 90, Fix: true, Show: true}
 	AccountColumn = &ReportColumn{Key: "account_name", Label: "账户", Align: "left", Min: 120, Fix: true, Show: true}
 	AppColumn     = &ReportColumn{Key: "app_name", Label: "应用", Align: "left", Min: 130, Fix: true, Show: true}
-	AreaColumn    = &ReportColumn{Key: "area_name", Label: "区域", Align: "left", Min: 100, Fix: true, Show: true}
+	AreaColumn    = &ReportColumn{Key: "area_name", Label: "区域", Align: "left", Min: 90, Fix: true, Show: true}
 	CountryColumn = &ReportColumn{Key: "country_name", Label: "国家", Align: "left", Min: 120, Fix: true, Show: true}
 
 	// MarketSQLColumns 综合报表投放查询汇总字段「as 需要和数据库模型字段一直」
@@ -184,22 +192,6 @@ func formatCountries(countries [][]string, dimensions []string) []string {
 	return rs
 }
 
-func adsColumns(dimensions []string) []string {
-	rs := append(AdsSQLColumns)
-	if utils.InArray("account_id", dimensions) {
-		rs = append(rs, "account_id")
-	} else {
-		rs = append(rs, "0 as account_id")
-	}
-	if utils.InArray("app_id", dimensions) {
-		rs = append(rs, "app_id")
-	}
-	if utils.InArray("country", dimensions) {
-		rs = append(rs, "country")
-	}
-	return rs
-}
-
 func accountMap(accountType int) map[int64]string {
 	rs := make(map[int64]string)
 	accounts, err := model.NewAct(vars.DBMysql).AllAccounts(nil)
@@ -224,4 +216,24 @@ func regionCountryMap() map[string]*model.AreaCountry {
 		rs[area.CCode] = area
 	}
 	return rs
+}
+
+func areaMap() map[int64]string {
+	rs := make(map[int64]string)
+	areas, err := model.NewOverseasArea(vars.DBMysql).Areas()
+	if err != nil {
+		return rs
+	}
+	for _, area := range areas {
+		rs[area.Id] = area.Name
+	}
+	return rs
+}
+
+func queryCountriesByAreaIds(areas []int64) []string {
+	cCodes, err := model.NewOverseasAreaRegion(vars.DBMysql).FindCCodesByAreaIds(areas)
+	if err != nil {
+		return nil
+	}
+	return cCodes
 }

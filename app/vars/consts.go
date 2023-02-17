@@ -35,6 +35,13 @@ const (
 
 	// ScheduleTimeout 任务调度刷新间隔 /单位：s
 	ScheduleTimeout = 300
+
+	// ReportDimension 报表筛选维度
+	ReportDimension        = ""
+	ReportDimensionAccount = "account_id"
+	ReportDimensionApp     = "app_id"
+	ReportDimensionCountry = "country"
+	ReportDimensionArea    = "area_id"
 )
 
 const (
@@ -132,5 +139,11 @@ var (
 		ApiModulePosition:        "[Position] 版位",
 		ApiModulePositionPrice:   "[PositionPrice] 版位底价",
 		ApiModulePositionElement: "[PositionElement] 版位元素",
+	}
+	ReportDimensions = map[string]string{
+		ReportDimensionAccount: "账户",
+		ReportDimensionApp:     "应用",
+		ReportDimensionCountry: "国家",
+		ReportDimensionArea:    "地区",
 	}
 )

@@ -1,6 +1,8 @@
 package model
 
 import (
+	"bs.mobgi.cc/app/utils"
+	"fmt"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"time"
@@ -65,29 +67,61 @@ func (m *ReportAdsSource) CollectSources(day string) (realizations []*ReportAdsS
 	return
 }
 
+type ReportAds struct {
+	Ads
+	AreaId int64 `json:"area_id"`
+}
+
 // AnalysisAds 变现报表数据
 func (m *ReportAdsSource) AnalysisAds(
-	accountIds []int64, appIds, dates, countries, selects, groups []string, offset, limit int,
-) (ads []*Ads, total int64, err error) {
-	query := m.Table(m.TableName()).Select(selects).
-		Where("stat_day between ? and ?", dates[0], dates[1]).
-		Group("stat_day") // 变现数据以应用将数据匹配到投放数据上，所以应用必需分组
-	if len(appIds) > 0 {
-		query = query.Where("app_id in ?", appIds)
-	}
-	if len(countries) > 0 {
-		query = query.Where("country in ?", countries)
-	}
-	if len(accountIds) > 0 {
-		query = query.Where("account_id in ?", accountIds)
+	accountIds, areas []int64, appIds, dates, countries, selects, groups []string, offset, limit int,
+) (ads []*ReportAds, total int64, err error) {
+	query := func(selects []string, _m string) string {
+		return m.ToSQL(func(tx *gorm.DB) *gorm.DB {
+			if _m == "count" {
+				selects = []string{"1"}
+			}
+			query := tx.Table(m.TableName()).
+				Where("stat_day between ? and ?", dates[0], dates[1]).
+				Group("stat_day")
+
+			if len(appIds) > 0 {
+				query = query.Where("app_id in ?", appIds)
+			}
+			if len(countries) > 0 {
+				query = query.Where("country in ?", countries)
+			}
+			if len(accountIds) > 0 {
+				query = query.Where("account_id in ?", accountIds)
+			}
+
+			if utils.InArray("area_id", groups) {
+				if areaColumn := NewOverseasAreaRegion(m.DB).AreaColumnParse(areas); areaColumn != "" {
+					if _m != "count" {
+						selects = append(selects, areaColumn)
+					} else {
+						selects = []string{areaColumn}
+					}
+				}
+			}
+			if len(areas) > 0 {
+				in := fmt.Sprintf(
+					"country in (select c_code from `%s` where area_id in ?)",
+					NewOverseasAreaRegion(nil).TableName(),
+				)
+				query = query.Where(in, areas)
+			}
+
+			for _, group := range groups {
+				query = query.Group(group)
+			}
+			return query.Select(selects).Find(nil)
+		})
 	}
 
-	for _, group := range groups {
-		query = query.Group(group)
-	}
-	if err = query.Count(&total).Error; err != nil {
+	if err = m.Raw(query(selects, "count")).Count(&total).Error; err != nil {
 		return
 	}
-	err = query.Offset(offset).Limit(limit).Order("stat_day desc").Find(&ads).Error
+	err = m.Raw(query(selects, "ads")+" order by stat_day desc limit ? offset ?", limit, offset).Find(&ads).Error
 	return
 }

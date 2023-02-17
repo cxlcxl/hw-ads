@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"time"
@@ -58,7 +59,8 @@ func (m *ReportAdsCollect) ComprehensiveAdsEarningsSummary(
 		Where("stat_day between ? and ?", dates[0], dates[1])
 	// 变现表「包含账户维度需要查与账户关联的表」
 	if len(actIds) > 0 {
-		query = query.Where("app_id in (select app_id from app_accounts where account_id in ?)", actIds)
+		in := fmt.Sprintf("app_id in (select app_id from `%s` where account_id in ?)", NewAppAct(nil).TableName())
+		query = query.Where(in, actIds)
 	}
 
 	if len(appIds) > 0 {

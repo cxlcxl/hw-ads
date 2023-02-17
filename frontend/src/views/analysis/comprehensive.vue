@@ -8,7 +8,7 @@
         </el-form-item>
         <el-form-item label="维度">
           <el-select v-model="search.dimensions" placeholder="数据维度" class="w220" multiple collapse-tags>
-            <el-option :key="k" :label="v" :value="k" v-for="(v,k) in requestDimensions" />
+            <el-option :key="k" :label="v" :value="k" v-for="(v,k) in reportDimensions" />
           </el-select>
         </el-form-item>
         <el-form-item label="">
@@ -32,7 +32,12 @@
               v-show="item.show||search.account_ids.length===0" />
           </el-select>
         </el-form-item>
-        <el-form-item v-if="search.dimensions.includes('country')" label="区域">
+        <el-form-item v-if="search.dimensions.includes('area_id')" label="地区">
+          <el-select v-model="search.areas" placeholder="地区选择" class="w260" multiple collapse-tags clearable filterable>
+            <el-option :key="item.id" :label="item.c_name" :value="item.id" v-for="item in regions" />
+          </el-select>
+        </el-form-item>
+        <el-form-item v-if="search.dimensions.includes('country')" label="国家">
           <el-cascader :options="regions" :props="{ multiple: true, value:'c_code',label:'c_name' }" collapse-tags clearable class="w300"
             v-model="search.countries" />
         </el-form-item>
@@ -61,7 +66,6 @@
 <script>
 import Page from "@c/Page"
 import { parseTime } from "@/utils"
-import { requestDimensions } from "./data"
 import { reportComprehensive } from "@/api/report"
 import { regions } from "@/api/common"
 import { allAccounts } from "@/api/account"
@@ -72,7 +76,7 @@ const nowDate = new Date()
 const sorts = { custom: "custom", 1: true, 0: false }
 
 export default {
-  name: "Comprehensive", // 写上 name 可以使 keep-alive 生效
+  // name: "Comprehensive", // 写上 name 可以使 keep-alive 生效
   components: { Page, SelectColumns },
   filters: {
     timeFormat(t) {
@@ -82,15 +86,16 @@ export default {
   data() {
     return {
       Vars,
-      requestDimensions,
       loadings: {
         pageLoading: false,
       },
+      reportDimensions: {},
       search: {
         date_range: [],
         dimensions: [],
         account_ids: [],
         app_ids: [],
+        areas: [],
         countries: [],
         show_columns: [],
         order: "",
@@ -170,6 +175,7 @@ export default {
               this.reportList.list = res.data.list
               this.reportList.total = res.data.total
               this.reportList.summaries = res.data.summaries
+              this.reportDimensions = res.data.dimensions
               this.loadings.pageLoading = false
             })
             .catch((err) => {
@@ -214,7 +220,7 @@ export default {
     },
     getAppRels() {
       return new Promise((resolve, reject) => {
-        if (this.appRels.length > 0) {
+        if (Object.keys(this.appRels).length > 0) {
           return resolve()
         }
         appActRel()
