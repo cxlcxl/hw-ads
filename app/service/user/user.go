@@ -6,6 +6,7 @@ import (
 	"bs.mobgi.cc/library/curl"
 	"errors"
 	"log"
+	"strconv"
 	"time"
 
 	"bs.mobgi.cc/app/utils"
@@ -31,6 +32,11 @@ func SsoLogin(u *vars.SsoLoginResData) (user *model.User, err error) {
 		return nil, err
 	}
 	if user == nil {
+		var roleId int64 = 0
+		conf, err := model.NewSysConfig(vars.DBMysql).FindOneByKey("SSO.Default.Role")
+		if err == nil {
+			roleId, _ = strconv.ParseInt(conf.Val, 0, 64)
+		}
 		s := utils.GenerateSecret(0)
 		user = &model.User{
 			SsoUid:     u.SsoUid,
@@ -40,6 +46,7 @@ func SsoLogin(u *vars.SsoLoginResData) (user *model.User, err error) {
 			Secret:     s,
 			State:      1,
 			IsInternal: 1,
+			RoleId:     roleId,
 			Pass:       utils.Password(vars.SystemDefaultPass, s),
 			CreatedAt:  time.Now(),
 		}

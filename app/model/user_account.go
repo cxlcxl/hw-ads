@@ -16,7 +16,8 @@ type UserAccount struct {
 }
 
 var (
-	userActCacheKey = "db:user_account"
+	userActCacheKey     = "db:user_account"
+	userActInfoCacheKey = "db:user_account:info"
 )
 
 func NewUserAccount(db *gorm.DB) *UserAccount {
@@ -47,4 +48,12 @@ func (m *UserAccount) SaveUserAccount(uid int64, ua []*UserAccount) error {
 
 		return nil
 	})
+}
+
+func (m *UserAccount) FindActsInfoByUserId(uid int64) (ua []*BelongAccount, err error) {
+	err = cache.New(m.DB).SetExpire(1800).QueryRow(userActInfoCacheKey, &ua, uid, func(db *gorm.DB, v interface{}, id interface{}) error {
+		w := fmt.Sprintf("id in (select account_id from %s where user_id = ?)", m.TableName())
+		return db.Table(NewAct(nil).TableName()).Select("id", "account_name", "account_type").Where(w, id).Find(v).Error
+	})
+	return
 }

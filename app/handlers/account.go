@@ -23,12 +23,12 @@ func (h *Account) AccountList(ctx *gin.Context, p interface{}) {
 	offset := utils.GetPages(params.Page, params.PageSize)
 	actIds := make([]int64, 0)
 	if params.User.IsInternal == 0 {
-		var err error
-		actIds, err = serviceexternal.Markets(actIds, params.User.UserId)
+		markets, ads, err := serviceexternal.QueryAccounts(params.User.UserId)
 		if err != nil {
 			response.Fail(ctx, "查询失败："+err.Error())
 			return
 		}
+		actIds = append(markets, ads...)
 		if len(actIds) == 0 {
 			response.Success(ctx, gin.H{"total": 0, "list": nil, "state": vars.CommonState, "types": vars.AccountType})
 			return

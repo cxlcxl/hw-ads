@@ -8,3 +8,4 @@ web/storage
 .DS_Store
 go.mod
 go.sum
+frontend-soybean/*

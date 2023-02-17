@@ -4,6 +4,7 @@ import (
 	"bs.mobgi.cc/app/model"
 	"bs.mobgi.cc/app/utils"
 	"bs.mobgi.cc/app/vars"
+	"errors"
 )
 
 func QueryAccounts(uid int64) (markets, ads []int64, err error) {
@@ -30,12 +31,16 @@ func Ads(searchActs []int64, uid int64) (ads []int64, err error) {
 		return
 	}
 	if len(searchActs) == 0 {
-		return accounts, nil
-	}
-	for _, act := range searchActs {
-		if utils.InArray(act, ads) {
-			ads = append(ads, act)
+		ads = accounts
+	} else {
+		for _, act := range searchActs {
+			if utils.InArray(act, accounts) {
+				ads = append(ads, act)
+			}
 		}
+	}
+	if len(ads) == 0 {
+		return nil, errors.New("您的账号未绑定开发者账户")
 	}
 	return
 }
@@ -47,11 +52,31 @@ func Markets(searchActs []int64, uid int64) (markets []int64, err error) {
 		return
 	}
 	if len(searchActs) == 0 {
-		return accounts, err
+		markets = accounts
+	} else {
+		for _, act := range searchActs {
+			if utils.InArray(act, accounts) {
+				markets = append(markets, act)
+			}
+		}
 	}
-	for _, act := range searchActs {
-		if utils.InArray(act, accounts) {
-			markets = append(markets, act)
+	if len(markets) == 0 {
+		return nil, errors.New("您的账号未绑定投放账户")
+	}
+	return
+}
+
+func GetBindAccounts(uid int64) (markets, ads []*model.BelongAccount, err error) {
+	accounts, err := model.NewUserAccount(vars.DBMysql).FindActsInfoByUserId(uid)
+	if err != nil {
+		return
+	}
+	for _, account := range accounts {
+		if account.AccountType == vars.AccountTypeMarket {
+			markets = append(markets, account)
+		}
+		if account.AccountType == vars.AccountTypeAds {
+			ads = append(ads, account)
 		}
 	}
 	return
