@@ -7,14 +7,14 @@ type VCountries struct {
 }
 
 type VRegionCreate struct {
-	T        string `json:"t" binding:"required"`
-	AreaId   int64  `json:"area_id"`
-	AreaName string `json:"area_name"`
-	CCode    string `json:"c_code"`
-	CName    string `json:"c_name"`
+	T        string  `json:"t" binding:"required"`
+	AreaIds  []int64 `json:"area_ids"`
+	AreaName string  `json:"area_name"`
+	CCode    string  `json:"c_code"`
+	CName    string  `json:"c_name"`
 }
 
 type VRegionAreaSet struct {
-	AreaId int64  `json:"area_id"`
-	CCode  string `json:"c_code"`
+	AreaIds []int64 `json:"area_ids" binding:"required"`
+	CCode   string  `json:"c_code" binding:"required"`
 }

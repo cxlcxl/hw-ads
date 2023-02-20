@@ -2,6 +2,7 @@ package model
 
 import (
 	"bs.mobgi.cc/app/utils"
+	"bs.mobgi.cc/app/vars"
 	"fmt"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -95,7 +96,7 @@ func (m *ReportAdsSource) AnalysisAds(
 				query = query.Where("account_id in ?", accountIds)
 			}
 
-			if utils.InArray("area_id", groups) {
+			if utils.InArray(vars.ReportDimensionArea, groups) {
 				if areaColumn := NewOverseasAreaRegion(m.DB).AreaColumnParse(areas); areaColumn != "" {
 					if _m != "count" {
 						selects = append(selects, areaColumn)

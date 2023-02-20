@@ -63,7 +63,7 @@ func (h *Region) RegionCreate(ctx *gin.Context, p interface{}) {
 			CName:       params.CName,
 			Level:       0,
 			ContinentId: 0,
-		})
+		}, params.AreaIds)
 	}
 	if err != nil {
 		response.Fail(ctx, "地区请求失败")
@@ -74,7 +74,11 @@ func (h *Region) RegionCreate(ctx *gin.Context, p interface{}) {
 
 func (h *Region) RegionAreaSet(ctx *gin.Context, p interface{}) {
 	params := p.(*v_data.VRegionAreaSet)
-	err := model.NewOverseasAreaRegion(vars.DBMysql).AreaSet(&model.OverseasAreaRegion{AreaId: params.AreaId, CCode: params.CCode})
+	var areaCountries []*model.OverseasAreaRegion
+	for _, id := range params.AreaIds {
+		areaCountries = append(areaCountries, &model.OverseasAreaRegion{AreaId: id, CCode: params.CCode})
+	}
+	err := model.NewOverseasAreaRegion(vars.DBMysql).AreaSet(areaCountries, params.CCode)
 	if err != nil {
 		response.Fail(ctx, "地区设置失败")
 		return

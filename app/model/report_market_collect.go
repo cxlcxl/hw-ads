@@ -2,6 +2,7 @@ package model
 
 import (
 	"bs.mobgi.cc/app/utils"
+	"bs.mobgi.cc/app/vars"
 	"fmt"
 	"github.com/Masterminds/squirrel"
 	"gorm.io/gorm"
@@ -79,7 +80,7 @@ type ComprehensiveReport struct {
 // ReportComprehensive 综合报表利用 JOIN 查询
 func (m *ReportMarketCollect) ReportComprehensive(
 	dates []string, actIds, areas []int64, appIds, countries []string,
-	marketSelects, adsSelects, groups, orders []string, offset, limit uint64,
+	marketSelects, adsSelects, granularityColumns, groups, orders []string, offset, limit uint64,
 ) (markets []*ComprehensiveReport, total int64, err error) {
 	// 自定义排序
 	_os := make([]string, 0)
@@ -92,26 +93,26 @@ func (m *ReportMarketCollect) ReportComprehensive(
 	_os = append(_os, "t0.stat_day desc")
 	JoinOn := []string{"t0.stat_day = t1.stat_day"}
 	// 变现表「包含账户维度需要查与账户关联的表」
-	if utils.InArray("account_id", groups) {
+	if utils.InArray(vars.ReportDimensionAccount, groups) {
 		JoinOn = append(JoinOn, "t0.account_id = t1.account_id")
 		_os = append(_os, "t0.account_id asc")
 	}
-	if utils.InArray("app_id", groups) {
+	if utils.InArray(vars.ReportDimensionApp, groups) {
 		JoinOn = append(JoinOn, "t0.app_id = t1.app_id")
 		_os = append(_os, "t0.app_id asc")
 	}
-	if utils.InArray("country", groups) {
+	if utils.InArray(vars.ReportDimensionCountry, groups) {
 		JoinOn = append(JoinOn, "t0.country = t1.country")
 		_os = append(_os, "t0.country asc")
 	}
-	if utils.InArray("area_id", groups) {
+	if utils.InArray(vars.ReportDimensionArea, groups) {
 		JoinOn = append(JoinOn, "t0.area_id = t1.area_id")
 		_os = append(_os, "t0.area_id asc")
 	}
 
 	// 变现表「包含账户维度需要查与账户关联的表」
 	adsTable := NewRAC(nil).TableName()
-	if utils.InArray("account_id", groups) {
+	if utils.InArray(vars.ReportDimensionAccount, groups) {
 		adsTable = NewRACA(nil).TableName()
 	}
 	sqlQuery := func(table, _m string, selects []string) string {
@@ -122,7 +123,7 @@ func (m *ReportMarketCollect) ReportComprehensive(
 			}
 			// 组合维度筛选后的过滤条件
 			if len(actIds) > 0 {
-				if _m == "ads" && !utils.InArray("account_id", groups) {
+				if _m == "ads" && !utils.InArray(vars.ReportDimensionAccount, groups) {
 					in := fmt.Sprintf("app_id in (select app_id from `%s` where account_id in ?)", NewAppAct(nil).TableName())
 					query = query.Where(in, actIds)
 				} else {
@@ -135,7 +136,7 @@ func (m *ReportMarketCollect) ReportComprehensive(
 			if len(countries) > 0 {
 				query = query.Where("country in ?", countries)
 			}
-			if utils.InArray("area_id", groups) {
+			if utils.InArray(vars.ReportDimensionArea, groups) {
 				if areaColumn := NewOverseasAreaRegion(m.DB).AreaColumnParse(areas); areaColumn != "" {
 					if _m != "count" {
 						selects = append(selects, areaColumn)
@@ -157,7 +158,7 @@ func (m *ReportMarketCollect) ReportComprehensive(
 	}
 
 	query := squirrel.
-		Select("t0.*,t1.`earnings`,t1.`ad_requests`,t1.`matched_ad_requests`,t1.`ad_show_count`,t1.`ad_click_count`").
+		Select(granularityColumns...).
 		From(fmt.Sprintf("(%s) as t0", sqlQuery(m.TableName(), "market", marketSelects))).
 		LeftJoin(fmt.Sprintf("(%s) as t1 on %s", sqlQuery(adsTable, "ads", adsSelects), strings.Join(JoinOn, " and "))).
 		OrderBy(_os...)

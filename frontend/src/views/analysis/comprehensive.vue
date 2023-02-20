@@ -2,6 +2,11 @@
   <el-row class="comprehensive">
     <el-form ref="_search" :model="search" inline size="small">
       <el-col :span="24" class="search-container">
+        <el-form-item label="粒度">
+          <el-select v-model="search.granularity" placeholder="数据粒度" class="w100">
+            <el-option :key="item.key" :label="item.name" :value="item.key" v-for="item in Vars.ReportGranularity" />
+          </el-select>
+        </el-form-item>
         <el-form-item label="日期">
           <el-date-picker v-model="search.date_range" :picker-options="pickerOptions" class="w240" :clearable="false" value-format="yyyy-MM-dd"
             type="daterange" start-placeholder="开始日期" end-placeholder="结束日期" />
@@ -98,6 +103,7 @@ export default {
         areas: [],
         countries: [],
         show_columns: [],
+        granularity: "date",
         order: "",
         by: "",
         download: 0,

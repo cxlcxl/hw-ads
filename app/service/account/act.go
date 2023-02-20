@@ -12,11 +12,19 @@ import (
 	"time"
 )
 
-func GetToken(accountId int64) (*vars.AccountTokenInfo, error) {
+type AccountTokenInfo struct {
+	AccountId    int64  `json:"account_id"`
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+	ExpiredAt    int64  `json:"expired_at"`
+	TokenType    string `json:"token_type"`
+}
+
+func GetToken(accountId int64) (*AccountTokenInfo, error) {
 	if token, err := model.NewToken(vars.DBMysql).FindByAccountId(accountId); err != nil {
 		return nil, err
 	} else {
-		return &vars.AccountTokenInfo{
+		return &AccountTokenInfo{
 			AccountId:    accountId,
 			AccessToken:  token.AccessToken,
 			RefreshToken: token.RefreshToken,

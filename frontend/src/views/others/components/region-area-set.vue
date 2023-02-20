@@ -4,8 +4,8 @@
       <el-form-item label="国家名称">
         <el-input :value="regionForm.c_name" disabled />
       </el-form-item>
-      <el-form-item label="所属地区" prop="area_id" :rules="{required: true,message:'请选择所属地区'}">
-        <el-select v-model="regionForm.area_id" placeholder="请选择所属地区">
+      <el-form-item label="所属地区" prop="area_ids" :rules="{required: true,message:'请选择所属地区'}">
+        <el-select v-model="regionForm.area_ids" placeholder="请选择所属地区" multiple>
           <el-option v-for="item in areas" :key="item.id" :value="Number(item.id)" :label="item.name" />
         </el-select>
       </el-form-item>
@@ -34,7 +34,7 @@ export default {
       regionForm: {
         c_name: "",
         c_code: "",
-        area_id: 0,
+        area_ids: [],
       },
     }
   },

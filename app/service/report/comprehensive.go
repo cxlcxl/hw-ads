@@ -29,7 +29,7 @@ func ReportComprehensive(params *v_data.VReportComprehensive) (data []*Comprehen
 	}
 	comprehensives, total, err = model.NewRMC(vars.DBMysql).ReportComprehensive(
 		params.DateRange, markets, params.Areas, params.AppIds, countries,
-		marketColumns(params.Dimensions), adsColumns(params.Dimensions),
+		marketColumns(params.Dimensions), adsColumns(params.Dimensions), granularityColumns(params.Dimensions, params.Granularity),
 		groups, comprehensiveOrders(params.Order, params.By), uint64(offset), pageSize,
 	)
 
@@ -47,16 +47,16 @@ func ReportComprehensive(params *v_data.VReportComprehensive) (data []*Comprehen
 func formatComprehensiveData(dimensions []string, comprehensives []*model.ComprehensiveReport) (data []*ComprehensiveReport, err error) {
 	// 3.1 检查是否需要填充账户名称，需要则填充
 	_accountMap := make(map[int64]string)
-	if utils.InArray("account_id", dimensions) {
+	if utils.InArray(vars.ReportDimensionAccount, dimensions) {
 		_accountMap = accountMap(vars.AccountTypeMarket)
 	}
 	// 3.2 检查是否需要填充国家地区，需要则填充
 	areaCountryMap := make(map[string]*model.AreaCountry)
-	if utils.InArray("country", dimensions) {
+	if utils.InArray(vars.ReportDimensionCountry, dimensions) {
 		areaCountryMap = regionCountryMap()
 	}
 	_areaMap := make(map[int64]string)
-	if utils.InArray("area_id", dimensions) {
+	if utils.InArray(vars.ReportDimensionArea, dimensions) {
 		_areaMap = areaMap()
 	}
 	for _, report := range comprehensives {
@@ -109,14 +109,14 @@ func formatComprehensiveData(dimensions []string, comprehensives []*model.Compre
 
 func marketColumns(dimensions []string) (rs []string) {
 	rs = append(MarketSQLColumns)
-	if utils.InArray("account_id", dimensions) {
+	if utils.InArray(vars.ReportDimensionAccount, dimensions) {
 		rs = append(rs, "account_id")
 	}
-	if utils.InArray("app_id", dimensions) {
+	if utils.InArray(vars.ReportDimensionApp, dimensions) {
 		rs = append(rs, "app_id")
 		rs = append(rs, "app_name")
 	}
-	if utils.InArray("country", dimensions) {
+	if utils.InArray(vars.ReportDimensionCountry, dimensions) {
 		rs = append(rs, "country")
 	}
 	//if utils.InArray("area_id", dimensions) {
@@ -125,17 +125,39 @@ func marketColumns(dimensions []string) (rs []string) {
 	return rs
 }
 
+func granularityColumns(dimensions []string, granularity string) (rs []string) {
+	if granularity == "all" {
+		rs = append(ComprehensiveGranularityAll)
+	} else if granularity == "date" {
+		rs = append(ComprehensiveGranularityDate)
+	}
+	if utils.InArray(vars.ReportDimensionAccount, dimensions) {
+		rs = append(rs, "t0.account_id")
+	}
+	if utils.InArray(vars.ReportDimensionApp, dimensions) {
+		rs = append(rs, "t0.app_id")
+		rs = append(rs, "t0.app_name")
+	}
+	if utils.InArray(vars.ReportDimensionCountry, dimensions) {
+		rs = append(rs, "t0.country")
+	}
+	if utils.InArray(vars.ReportDimensionArea, dimensions) {
+		rs = append(rs, "t0.area_id")
+	}
+	return rs
+}
+
 func adsColumns(dimensions []string) []string {
 	rs := append(AdsSQLColumns)
-	if utils.InArray("account_id", dimensions) {
+	if utils.InArray(vars.ReportDimensionAccount, dimensions) {
 		rs = append(rs, "account_id")
 	} else {
 		rs = append(rs, "0 as account_id")
 	}
-	if utils.InArray("app_id", dimensions) {
+	if utils.InArray(vars.ReportDimensionApp, dimensions) {
 		rs = append(rs, "app_id")
 	}
-	if utils.InArray("country", dimensions) {
+	if utils.InArray(vars.ReportDimensionCountry, dimensions) {
 		rs = append(rs, "country")
 	}
 	//if utils.InArray("area_id", dimensions) {
@@ -233,17 +255,17 @@ func ReportComprehensiveColumns(columns, dimensions []string) (rs []*ReportColum
 		forceShow = true
 	}
 	rs = append(rs, DateColumn)
-	if utils.InArray("account_id", dimensions) {
+	if utils.InArray(vars.ReportDimensionAccount, dimensions) {
 		rs = append(rs, AccountColumn)
 	}
-	if utils.InArray("app_id", dimensions) {
+	if utils.InArray(vars.ReportDimensionApp, dimensions) {
 		rs = append(rs, AppColumn)
 	}
-	if utils.InArray("country", dimensions) {
+	if utils.InArray(vars.ReportDimensionCountry, dimensions) {
 		rs = append(rs, AreaColumn)
 		rs = append(rs, CountryColumn)
 	}
-	if utils.InArray("area_id", dimensions) {
+	if utils.InArray(vars.ReportDimensionArea, dimensions) {
 		rs = append(rs, AreaColumn)
 	}
 	for _, column := range ComprehensiveColumns {

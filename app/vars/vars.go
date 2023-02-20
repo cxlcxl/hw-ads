@@ -27,30 +27,6 @@ type LoginUser struct {
 	RoleId     int64  `json:"role_id"`
 	IsInternal uint8  `json:"is_internal"`
 }
-type TicketInfo struct {
-	AppCode   string `json:"app_code"`
-	ExpiredAt int64  `json:"expired_at"`
-	Uid       string `json:"uid"`
-	Email     string `json:"email"`
-	Username  string `json:"username"`
-	Mobile    string `json:"mobile"`
-	RoleId    int64  `json:"role_id"`
-	Pid       string `json:"pid"`
-}
-type SsoLoginResData struct {
-	SsoUid   string `json:"uid"`
-	Email    string `json:"email"`
-	Mobile   string `json:"mobile"`
-	Token    string `json:"token"`
-	Username string `json:"username"`
-}
-type AccountTokenInfo struct {
-	AccountId    int64  `json:"account_id"`
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
-	ExpiredAt    int64  `json:"expired_at"`
-	TokenType    string `json:"token_type"`
-}
 
 func init() {
 	if dir, err := os.Getwd(); err != nil {

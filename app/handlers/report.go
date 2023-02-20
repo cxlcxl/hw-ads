@@ -21,16 +21,16 @@ type Report struct{}
 
 func (h *Report) Comprehensive(ctx *gin.Context, p interface{}) {
 	params := p.(*v_data.VReportComprehensive)
-	if !utils.InArray("country", params.Dimensions) {
+	if !utils.InArray(vars.ReportDimensionCountry, params.Dimensions) {
 		params.Countries = make([][]string, 0)
 	}
-	if !utils.InArray("account_id", params.Dimensions) {
+	if !utils.InArray(vars.ReportDimensionAccount, params.Dimensions) {
 		params.AccountIds = make([]int64, 0)
 	}
-	if !utils.InArray("area_id", params.Dimensions) {
+	if !utils.InArray(vars.ReportDimensionArea, params.Dimensions) {
 		params.Areas = make([]int64, 0)
 	}
-	if !utils.InArray("app_id", params.Dimensions) {
+	if !utils.InArray(vars.ReportDimensionApp, params.Dimensions) {
 		params.AppIds = make([]string, 0)
 	}
 	if err := servicereport.ValidatorDimension(params.Dimensions); err != nil {
@@ -65,16 +65,16 @@ func (h *Report) Comprehensive(ctx *gin.Context, p interface{}) {
 
 func (h *Report) Ads(ctx *gin.Context, p interface{}) {
 	params := p.(*v_data.VReportAds)
-	if !utils.InArray("country", params.Dimensions) {
+	if !utils.InArray(vars.ReportDimensionCountry, params.Dimensions) {
 		params.Countries = make([][]string, 0)
 	}
-	if !utils.InArray("account_id", params.Dimensions) {
+	if !utils.InArray(vars.ReportDimensionAccount, params.Dimensions) {
 		params.AccountIds = make([]int64, 0)
 	}
-	if !utils.InArray("area_id", params.Dimensions) {
+	if !utils.InArray(vars.ReportDimensionArea, params.Dimensions) {
 		params.Areas = make([]int64, 0)
 	}
-	if !utils.InArray("app_id", params.Dimensions) {
+	if !utils.InArray(vars.ReportDimensionApp, params.Dimensions) {
 		params.AppIds = make([]string, 0)
 	}
 	if err := servicereport.ValidatorDimension(params.Dimensions); err != nil {

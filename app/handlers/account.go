@@ -223,7 +223,7 @@ func (h *Account) RefreshToken(ctx *gin.Context, v string) {
 		return
 	}
 
-	response.Success(ctx, &vars.AccountTokenInfo{
+	response.Success(ctx, &serviceaccount.AccountTokenInfo{
 		AccountId:    id,
 		AccessToken:  at.AccessToken,
 		RefreshToken: at.RefreshToken,

@@ -88,13 +88,35 @@ func Password(pass, secret string) string {
 }
 
 // InArray 判断是否在数组中
-func InArray[T int64 | string](v T, vs []T) bool {
-	for _, t := range vs {
-		if t == v {
-			return true
+func InArray[T int64 | string](v T, vs []T) (ok bool) {
+	if len(vs) > 50 {
+		tmp := make(map[T]struct{})
+		for _, t := range vs {
+			tmp[t] = struct{}{}
+		}
+		_, ok = tmp[v]
+	} else {
+		for _, t := range vs {
+			if t == v {
+				ok = true
+				break
+			}
 		}
 	}
-	return false
+	return
+}
+
+// SomeInArray 多个元素一起判断是否在同一个数组中
+func SomeInArray[T int64 | string](vs []T, v ...T) map[T]bool {
+	tmp := make(map[T]struct{})
+	for _, t := range vs {
+		tmp[t] = struct{}{}
+	}
+	rs := make(map[T]bool)
+	for _, t := range v {
+		_, rs[t] = tmp[t]
+	}
+	return rs
 }
 
 // StringToFloat string to float64
@@ -124,12 +146,12 @@ func BufferConcat(s []string, seq string) string {
 	return buf.String()
 }
 
-func WhereIn[T int64 | string](v []T) (string, []interface{}) {
+func WhereIn[T int64 | string](column string, v []T) (string, []interface{}) {
 	conditions := make([]string, len(v))
 	values := make([]interface{}, len(v))
 	for i, t := range v {
 		conditions[i] = "?"
 		values[i] = t
 	}
-	return "(" + strings.Join(conditions, ",") + ")", values
+	return column + " in (" + strings.Join(conditions, ",") + ")", values
 }

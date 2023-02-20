@@ -20,9 +20,16 @@ func (m *OverseasAreaRegion) TableName() string {
 	return "overseas_area_regions"
 }
 
-func (m *OverseasAreaRegion) AreaSet(v *OverseasAreaRegion) (err error) {
-	err = m.Table(m.TableName()).Create(&v).Error
-	return
+func (m *OverseasAreaRegion) AreaSet(v []*OverseasAreaRegion, country string) (err error) {
+	return m.Transaction(func(tx *gorm.DB) error {
+		if err = tx.Exec(fmt.Sprintf("delete from `%s` where c_code = ?", m.TableName()), country).Error; err != nil {
+			return err
+		}
+		if err = tx.Table(m.TableName()).CreateInBatches(v, 10).Error; err != nil {
+			return err
+		}
+		return nil
+	})
 }
 
 func (m *OverseasAreaRegion) FindCCodesByAreaIds(areaIds []int64) (codes []string, err error) {

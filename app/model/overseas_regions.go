@@ -32,7 +32,7 @@ func (m *OverseasRegion) GetCountries() (regions []*OverseasRegion, err error) {
 	return
 }
 
-func (m *OverseasRegion) RegionCreate(region *OverseasRegion) (err error) {
+func (m *OverseasRegion) RegionCreate(region *OverseasRegion, areaIds []int64) (err error) {
 	err = m.Table(m.TableName()).Create(&region).Error
 	return
 }

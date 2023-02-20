@@ -33,13 +33,13 @@ func ReportAds(params *v_data.VReportAds) (data []*AdsReport, total int64, err e
 
 func _adsColumns(dimensions []string) []string {
 	rs := append(AdsReportColumns)
-	if utils.InArray("account_id", dimensions) {
+	if utils.InArray(vars.ReportDimensionAccount, dimensions) {
 		rs = append(rs, "account_id")
 	}
-	if utils.InArray("app_id", dimensions) {
+	if utils.InArray(vars.ReportDimensionApp, dimensions) {
 		rs = append(rs, "app_id")
 	}
-	if utils.InArray("country", dimensions) {
+	if utils.InArray(vars.ReportDimensionCountry, dimensions) {
 		rs = append(rs, "country")
 	}
 	return rs
@@ -48,21 +48,21 @@ func _adsColumns(dimensions []string) []string {
 func formatAdsData(params *v_data.VReportAds, _ads []*model.ReportAds) (data []*AdsReport, err error) {
 	// 3.1 检查是否需要填充账户名称，需要则填充
 	_accountMap := make(map[int64]string)
-	if utils.InArray("account_id", params.Dimensions) {
+	if utils.InArray(vars.ReportDimensionAccount, params.Dimensions) {
 		_accountMap = accountMap(vars.AccountTypeAds)
 	}
 	// 3.2 检查是否需要填充国家地区，需要则填充
 	_countryMap := make(map[string]*model.AreaCountry)
-	if utils.InArray("country", params.Dimensions) {
+	if utils.InArray(vars.ReportDimensionCountry, params.Dimensions) {
 		_countryMap = regionCountryMap()
 	}
 	_areaMap := make(map[int64]string)
-	if utils.InArray("area_id", params.Dimensions) {
+	if utils.InArray(vars.ReportDimensionArea, params.Dimensions) {
 		_areaMap = areaMap()
 	}
 	// 3.3 检查应用
 	_appMap := make(map[string]string)
-	if utils.InArray("app_id", params.Dimensions) {
+	if utils.InArray(vars.ReportDimensionApp, params.Dimensions) {
 		_appMap = appMap()
 	}
 	data = make([]*AdsReport, len(_ads))
@@ -123,17 +123,17 @@ func ReportAdsColumns(columns, dimensions []string) (rs []*ReportColumn) {
 		forceShow = true
 	}
 	rs = append(rs, DateColumn)
-	if utils.InArray("account_id", dimensions) {
+	if utils.InArray(vars.ReportDimensionAccount, dimensions) {
 		rs = append(rs, AccountColumn)
 	}
-	if utils.InArray("app_id", dimensions) {
+	if utils.InArray(vars.ReportDimensionApp, dimensions) {
 		rs = append(rs, AppColumn)
 	}
-	if utils.InArray("country", dimensions) {
+	if utils.InArray(vars.ReportDimensionCountry, dimensions) {
 		rs = append(rs, AreaColumn)
 		rs = append(rs, CountryColumn)
 	}
-	if utils.InArray("area_id", dimensions) {
+	if utils.InArray(vars.ReportDimensionArea, dimensions) {
 		rs = append(rs, AreaColumn)
 	}
 	for _, column := range AdsColumns {

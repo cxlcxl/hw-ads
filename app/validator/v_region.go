@@ -35,7 +35,7 @@ func validRegion(_ *gin.Context, p interface{}) error {
 		if params.CCode == "" {
 			return errors.New("国家代码必填")
 		}
-		if params.AreaId <= 0 {
+		if len(params.AreaIds) == 0 {
 			return errors.New("所属区域必填")
 		}
 		return nil

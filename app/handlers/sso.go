@@ -20,9 +20,9 @@ func (l *Sso) SsoLoginPath(ctx *gin.Context) {
 }
 
 type SsoLoginRes struct {
-	Code    int64                 `json:"code"`
-	Message string                `json:"message"`
-	Data    *vars.SsoLoginResData `json:"data"`
+	Code    int64                        `json:"code"`
+	Message string                       `json:"message"`
+	Data    *serviceuser.SsoLoginResData `json:"data"`
 }
 
 func (l *Sso) ValidTicket(ctx *gin.Context, p interface{}) {

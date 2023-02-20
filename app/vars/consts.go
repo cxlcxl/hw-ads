@@ -8,10 +8,6 @@ const (
 
 	UserStateValid = 1
 
-	LoginTicketKey        = "mobgi:ads:app:ticket:"
-	LoginTicketSessionKey = "LoginUserInfo"
-	UserAllowModifySso    = "UserAllowModifySso"
-
 	MaxPageSize       uint64 = 100
 	SystemDefaultPass        = "a123456"
 

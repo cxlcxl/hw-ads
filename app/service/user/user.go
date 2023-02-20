@@ -13,6 +13,14 @@ import (
 	"bs.mobgi.cc/app/vars"
 )
 
+type SsoLoginResData struct {
+	SsoUid   string `json:"uid"`
+	Email    string `json:"email"`
+	Mobile   string `json:"mobile"`
+	Token    string `json:"token"`
+	Username string `json:"username"`
+}
+
 func UpdatePass(uid, pass string) {
 	curlPwd := map[string]interface{}{
 		"uid":  uid,
@@ -26,7 +34,7 @@ func UpdatePass(uid, pass string) {
 	_ = c.Request(nil, curl.JsonHeader())
 }
 
-func SsoLogin(u *vars.SsoLoginResData) (user *model.User, err error) {
+func SsoLogin(u *SsoLoginResData) (user *model.User, err error) {
 	user, err = model.NewUser(vars.DBMysql).FindUserBySso(u.Email, u.SsoUid)
 	if err != nil {
 		return nil, err

@@ -3,13 +3,13 @@
     <el-form :model="regionForm" ref="regionForm" label-width="90px" size="small">
       <el-tabs type="border-card" v-model="regionForm.t">
         <el-tab-pane label="地区信息" name="area">
-          <el-form-item label="地区名称" prop="area_name" :rules="{required: true,message:'请填写地区名称'}">
+          <el-form-item label="地区名称" prop="area_name" :rules="{required: true,message:'请填写地区名称'}" v-if="regionForm.t === 'area'">
             <el-input v-model="regionForm.area_name" placeholder="请填写地区名称" />
           </el-form-item>
         </el-tab-pane>
         <el-tab-pane label="国家信息" name="country">
-          <el-form-item label="所属地区" prop="area_id" :rules="{required: true,message:'请选择所属地区'}" v-if="regionForm.t === 'country'">
-            <el-select v-model="regionForm.area_id" placeholder="请选择所属地区">
+          <el-form-item label="所属地区" prop="area_ids" :rules="{required: true,message:'请选择所属地区'}" v-if="regionForm.t === 'country'">
+            <el-select v-model="regionForm.area_ids" placeholder="请选择所属地区" multiple>
               <el-option v-for="item in areas" :key="item.id" :value="Number(item.id)" :label="item.name" />
             </el-select>
           </el-form-item>
@@ -46,7 +46,7 @@ export default {
       remoteLoading: false,
       regionForm: {
         t: "area",
-        area_id: 0,
+        area_ids: [],
         c_code: "",
         c_name: "",
         area_name: "",

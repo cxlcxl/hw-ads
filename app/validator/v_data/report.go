@@ -10,6 +10,7 @@ type VReportComprehensive struct {
 	AppIds      []string   `json:"app_ids"`
 	Countries   [][]string `json:"countries"`
 	ShowColumns []string   `json:"show_columns" binding:"required"`
+	Granularity string     `json:"granularity" binding:"required"`
 	Order       string     `json:"order"`
 	By          string     `json:"by"`
 	Download    int64      `json:"download"`

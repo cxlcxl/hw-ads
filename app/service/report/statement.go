@@ -136,7 +136,7 @@ var (
 	DateColumn    = &ReportColumn{Key: "stat_day", Label: "日期", Align: "center", Min: 90, Fix: true, Show: true}
 	AccountColumn = &ReportColumn{Key: "account_name", Label: "账户", Align: "left", Min: 120, Fix: true, Show: true}
 	AppColumn     = &ReportColumn{Key: "app_name", Label: "应用", Align: "left", Min: 130, Fix: true, Show: true}
-	AreaColumn    = &ReportColumn{Key: "area_name", Label: "区域", Align: "left", Min: 90, Fix: true, Show: true}
+	AreaColumn    = &ReportColumn{Key: "area_name", Label: "地区", Align: "left", Min: 90, Fix: true, Show: true}
 	CountryColumn = &ReportColumn{Key: "country_name", Label: "国家", Align: "left", Min: 120, Fix: true, Show: true}
 
 	// MarketSQLColumns 综合报表投放查询汇总字段「as 需要和数据库模型字段一直」
@@ -161,6 +161,31 @@ var (
 		"sum(`show_count`) as `ad_show_count`",
 		"sum(`click_count`) as `ad_click_count`",
 	}
+	ComprehensiveGranularityAll = []string{
+		"t0.`stat_day`",
+		"round(sum(t0.`cost`), 3) as `cost`",
+		"sum(t0.`show_count`) as `show_count`",
+		"sum(t0.`click_count`) as `click_count`",
+		"sum(t0.`install_count`) as `install_count`",
+		"sum(t0.`download_count`) as `download_count`",
+		"sum(t0.`activate_count`) as `activate_count`",
+		"sum(t0.`retain_count`) as `retain_count`",
+		"sum(t0.`three_retain_count`) as `three_retain_count`",
+		"sum(t0.`seven_retain_count`) as `seven_retain_count`",
+		"round(sum(t1.`earnings`), 3) as `earnings`",
+		"sum(t1.`ad_requests`) as `ad_requests`",
+		"sum(t1.`matched_ad_requests`) as `matched_ad_requests`",
+		"sum(t1.`ad_show_count`) as `ad_show_count`",
+		"sum(t1.`ad_click_count`) as `ad_click_count`",
+	}
+	ComprehensiveGranularityDate = []string{
+		"t0.*",
+		"t1.`earnings`",
+		"t1.`ad_requests`",
+		"t1.`matched_ad_requests`",
+		"t1.`ad_show_count`",
+		"t1.`ad_click_count`",
+	}
 	// AdsReportColumns 综合报表变现查询汇总字段「as 需要和数据库模型字段一直」
 	AdsReportColumns = []string{
 		"`stat_day`",
@@ -180,7 +205,7 @@ var (
 
 func formatCountries(countries [][]string, dimensions []string) []string {
 	rs := make([]string, 0)
-	if !utils.InArray("country", dimensions) || len(countries) == 0 {
+	if !utils.InArray(vars.ReportDimensionCountry, dimensions) || len(countries) == 0 {
 		return rs
 	}
 	for _, country := range countries {
