@@ -93,11 +93,12 @@ func formatAdsData(params *v_data.VReportAds, _ads []*model.ReportAds) (data []*
 		if area, ok := _countryMap[ads.Country]; ok {
 			adsReport.AreaName = area.AreaName
 			adsReport.CountryName = area.CountryName
-		}
-		if area, ok := _areaMap[ads.AreaId]; ok {
-			adsReport.AreaName = area
 		} else {
-			adsReport.AreaName = "-"
+			if area1, ok := _areaMap[ads.AreaId]; ok {
+				adsReport.AreaName = area1
+			} else {
+				adsReport.AreaName = "-"
+			}
 		}
 		data[i] = adsReport
 	}

@@ -93,12 +93,14 @@ func formatComprehensiveData(dimensions []string, comprehensives []*model.Compre
 		if area, ok := areaCountryMap[report.Country]; ok {
 			comprehensiveReport.AreaName = area.AreaName
 			comprehensiveReport.CountryName = area.CountryName
-		}
-		if area, ok := _areaMap[report.AreaId]; ok {
-			comprehensiveReport.AreaName = area
 		} else {
-			comprehensiveReport.AreaName = "-"
+			if area1, ok := _areaMap[report.AreaId]; ok {
+				comprehensiveReport.AreaName = area1
+			} else {
+				comprehensiveReport.AreaName = "-"
+			}
 		}
+
 		calculateRates(report, comprehensiveReport)
 		data = append(data, comprehensiveReport)
 	}

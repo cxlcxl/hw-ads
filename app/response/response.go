@@ -47,5 +47,5 @@ func Fail(c *gin.Context, msg string) {
 
 // TokenExpired Token 过期
 func TokenExpired(c *gin.Context) {
-	ReturnJson(c, http.StatusBadRequest, 400, "token expired", "")
+	ReturnJson(c, http.StatusBadRequest, 418, "token 过期，请手动刷新页面重新登陆", "")
 }

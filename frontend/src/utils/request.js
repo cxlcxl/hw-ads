@@ -58,13 +58,25 @@ service.interceptors.response.use(
   (error) => {
     const err = error.response.data;
 
-    const errMsg = err.message ? err.message : "接口调用异常，请重试";
-    Message({
-      message: errMsg,
-      type: "error",
-      duration: 5 * 1000,
-    });
-    return Promise.reject(err);
+    if (err.code && err.code === 418) {
+      Message({
+        message: "Token 已过期，请重新登陆",
+        type: "error",
+        duration: 5 * 1000,
+      });
+      store.dispatch("user/resetToken").then(() => {
+        location.reload();
+      });
+    } else {
+      const errMsg = err.message ? err.message : "接口调用异常，请重试";
+      Message({
+        message: errMsg,
+        type: "error",
+        duration: 5 * 1000,
+      });
+
+      return Promise.reject(err);
+    }
   }
 );
 
