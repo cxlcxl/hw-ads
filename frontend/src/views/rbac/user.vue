@@ -25,8 +25,8 @@
     <el-col :span="24">
       <el-table v-loading="loadings.pageLoading" :data="userList.list" highlight-current-row stripe border size="mini" style="margin-top: 15px">
         <el-table-column prop="id" label="ID" width="80" align="center" />
-        <el-table-column prop="email" label="邮箱" width="220" />
         <el-table-column prop="username" label="用户名" width="180" />
+        <el-table-column prop="email" label="邮箱" width="220" />
         <el-table-column prop="mobile" label="手机号" width="130" />
         <el-table-column label="角色">
           <template slot-scope="scope">{{ scope.row.role_id|userRolesFilter(roles) }}</template>
@@ -38,7 +38,8 @@
         </el-table-column>
         <el-table-column label="内部账号" width="80" align="center">
           <template slot-scope="scope">
-            {{ scope.row.is_internal === 1 ? '是' : '否' }}
+            <span v-if="scope.row.is_internal === 1">是</span>
+            <span class="text-success" v-else>外部</span>
           </template>
         </el-table-column>
         <el-table-column prop="created_at" label="添加时间" width="140" align="center">

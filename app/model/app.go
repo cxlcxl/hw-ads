@@ -127,7 +127,7 @@ func (m *App) BatchInsert(apps []*App, appActs []*AppAccount) (err error) {
 	if len(apps) == 0 {
 		return nil
 	}
-	updateColumns := []string{"product_id", "pkg_name", "icon_url"}
+	updateColumns := []string{"app_name", "product_id", "pkg_name", "icon_url"}
 	return m.Transaction(func(tx *gorm.DB) error {
 		if err = tx.Table(m.TableName()).Clauses(clause.OnConflict{
 			DoUpdates: clause.AssignmentColumns(updateColumns),

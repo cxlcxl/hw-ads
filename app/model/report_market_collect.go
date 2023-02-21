@@ -186,9 +186,7 @@ type Summaries struct {
 	AdClickCount int64   `json:"ad_click_count"`
 }
 
-func (m *ReportMarketCollect) ComprehensiveSummaries(
-	dates []string, actIds []int64, appIds, countries, marketSelects []string,
-) (summaries Summaries) {
+func (m *ReportMarketCollect) ComprehensiveSummaries(dates []string, actIds []int64, appIds, countries, marketSelects []string) (summaries Summaries) {
 	query := m.Table(m.TableName()).Where("stat_day between ? and ?", dates[0], dates[1]).Select(marketSelects)
 	// 变现表「包含账户维度需要查与账户关联的表」
 	if len(actIds) > 0 {

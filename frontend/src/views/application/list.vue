@@ -30,8 +30,12 @@
     </el-col> -->
     <el-col :span="24">
       <el-table v-loading="loading" :data="appList.data" highlight-current-row stripe border size="mini">
-        <el-table-column prop="id" label="ID" width="80" align="center" />
-        <el-table-column prop="app_name" label="应用名称" width="180" show-overflow-tooltip />
+        <el-table-column prop="id" label="#" width="60" align="center">
+          <template slot-scope="scope">
+            <el-avatar shape="square" :size="30" :src="scope.row.icon_url"/>
+          </template>
+        </el-table-column>
+        <el-table-column prop="app_name" label="应用名称" width="200" show-overflow-tooltip/>
         <el-table-column prop="app_id" label="AppID" width="100" align="center" />
         <!-- <el-table-column label="渠道" width="120" align="center">
           <template slot-scope="scope">{{appList.app_channel[scope.row.channel]}}</template>

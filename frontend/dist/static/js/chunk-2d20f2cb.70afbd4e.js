@@ -1,1 +1,0 @@
-(window["webpackJsonp"]=window["webpackJsonp"]||[]).push([["chunk-2d20f2cb"],{b304:function(e,n,c){"use strict";c.r(n);var t=function(){var e=this,n=e.$createElement,c=e._self._c||n;return c("div")},a=[],i={name:"CreativeList"},r=i,s=c("cba8"),u=Object(s["a"])(r,t,a,!1,null,"47cf257c",null);n["default"]=u.exports}}]);

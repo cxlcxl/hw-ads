@@ -9,3 +9,4 @@ web/storage
 go.mod
 go.sum
 frontend-soybean/*
+frontend/.idea
