@@ -6,7 +6,7 @@
           <el-date-picker v-model="search.d" value-format="yyyy-MM-dd" placeholder="下载日期，最多下载 15 天前的数据" class="w300"/>
         </el-form-item>
         <el-form-item label="">
-          <el-button type="primary" icon="el-icon-download" @click="downloadLog">下载</el-button>
+          <el-button icon="el-icon-download" @click="downloadLog">下载日志文件</el-button>
         </el-form-item>
       </el-form>
     </el-col>

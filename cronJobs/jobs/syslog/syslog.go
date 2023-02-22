@@ -28,7 +28,6 @@ func SysLog() {
 			break
 		}
 		d := jobDay.Format(vars.DateFormat)
-		fmt.Println("schedule day: ", d)
 		if err = logic.NewLogLogic(d).Parse(); err != nil {
 			vars.HLog.WithFields(logrus.Fields{
 				"module": "jobs-log",
@@ -49,6 +48,11 @@ func SysLog() {
 }
 
 func SysLogManual(d time.Time, _ int64) {
+	// 最晚只能调度到前一天
+	if d.After(time.Now().AddDate(0, 0, -1)) {
+		fmt.Println("最多调度到当前时间的前一天")
+		return
+	}
 	if err := logic.NewLogLogic(d.Format(vars.DateFormat)).Parse(); err != nil {
 		vars.HLog.WithFields(logrus.Fields{
 			"module": "jobs-log",
