@@ -7,6 +7,7 @@ import (
 	"bs.mobgi.cc/cronJobs/jobs"
 	"bs.mobgi.cc/library/curl"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"time"
 )
 
@@ -79,7 +80,11 @@ func (l *AppQueryLogic) setTokens(tokenList []*model.Token) {
 		if tokens.ExpiredAt.Before(time.Now()) {
 			at, err := jobs.Refresh(tokens)
 			if err != nil {
-				fmt.Println("Token 刷新失败，账户 ID：", tokens.AccountId, err)
+				vars.HLog.WithFields(logrus.Fields{
+					"account_id": tokens.AccountId,
+					"module":     "jobs-app-refreshToken",
+					"log_id":     time.Now().UnixNano(),
+				}).Error(err)
 				continue
 			}
 			l.tokenChan <- &queryParam{
@@ -190,6 +195,12 @@ func (l *AppQueryLogic) setFailed(param *queryParam, page int64) {
 				}
 			} else {
 				// log
+				vars.HLog.WithFields(logrus.Fields{
+					"account_id": param.accountId,
+					"module":     "jobs-app-request",
+					"failed":     param.failed,
+					"log_id":     time.Now().UnixNano(),
+				}).Error("接口调用错误次数超出")
 			}
 
 			break

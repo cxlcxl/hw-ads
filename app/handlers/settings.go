@@ -7,8 +7,11 @@ import (
 	"bs.mobgi.cc/app/validator/v_data"
 	"bs.mobgi.cc/app/vars"
 	"bs.mobgi.cc/cronJobs/job_data/scripts"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -153,4 +156,43 @@ func (h *Settings) ConfigUpdate(ctx *gin.Context, p interface{}) {
 		return
 	}
 	response.Success(ctx, nil)
+}
+
+func (h *Settings) ToolLog(ctx *gin.Context, p interface{}) {
+	params := p.(*v_data.VSettingsLog)
+	t, err := time.Parse(vars.DateFormat, params.D)
+	if err != nil {
+		response.Fail(ctx, "时间格式有误")
+		return
+	}
+	// 每 24 小时切割，数量相当于天数
+	d := vars.YmlConfig.GetInt("Logs.MaxBackups")
+	if t.Before(time.Now().AddDate(0, 0, -1*d)) {
+		response.Fail(ctx, fmt.Sprintf("最多只能查询 %d 天的日志数据", d))
+		return
+	}
+	f := vars.YmlConfig.GetString("Logs.SysLogName")
+	filename := fmt.Sprintf("%s.%s", f, t.Format("20060102"))
+	if _, err = os.Stat(filename); err != nil {
+		response.Fail(ctx, "请求日期的日志不存在")
+		return
+	}
+	key := fmt.Sprintf("log:%s:%s", t.Format("20060102"), utils.GenerateSecret(15))
+	if vars.DBRedis.SetString(key, filename, 30) {
+		response.Success(ctx, key)
+	} else {
+		response.Fail(ctx, "日子文件请求失败")
+	}
+}
+
+func (h *Settings) LogDownload(ctx *gin.Context, key string) {
+	v := vars.DBRedis.GetString(key)
+	if v == "" {
+		response.Fail(ctx, "请求失败，密钥错误")
+		return
+	}
+	keys := strings.Split(key, ":")
+	ctx.Header("Content-Type", "application/text")
+	ctx.Header("Content-Disposition", "attachment; filename=syslog.log"+keys[1])
+	ctx.File(v)
 }

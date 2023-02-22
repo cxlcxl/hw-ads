@@ -8,19 +8,22 @@ import (
 )
 
 func initAppApis(g *gin.RouterGroup) {
-	group := g.Group("/app")
+	g.Use(middleware.CheckUserLogin())
 	{
-		group.GET("/all", (&handlers.App{}).AllApp)
-		group.GET("/campaign-list", (validator.BsValidator{}).VAppCampaignList)
-		group.GET("/relation", (&handlers.App{}).AppRelations)
-	}
-	gp := g.Group("/app", middleware.CheckPermission())
-	{
-		gp.POST("/pull", (validator.BsValidator{}).VAppPull)
-		gp.POST("/create", (validator.BsValidator{}).VAppCreate)
-		gp.POST("/update", (validator.BsValidator{}).VAppUpdate)
+		group := g.Group("/app")
+		{
+			group.GET("/all", (&handlers.App{}).AllApp)
+			group.GET("/campaign-list", (validator.BsValidator{}).VAppCampaignList)
+			group.GET("/relation", (&handlers.App{}).AppRelations)
+		}
+		gp := g.Group("/app", middleware.CheckPermission())
+		{
+			gp.POST("/pull", (validator.BsValidator{}).VAppPull)
+			gp.POST("/create", (validator.BsValidator{}).VAppCreate)
+			gp.POST("/update", (validator.BsValidator{}).VAppUpdate)
 
-		gp.GET("/:id", (validator.BsValidator{}).VAppInfo)
-		gp.POST("/list", (validator.BsValidator{}).VAppList)
+			gp.GET("/:id", (validator.BsValidator{}).VAppInfo)
+			gp.POST("/list", (validator.BsValidator{}).VAppList)
+		}
 	}
 }

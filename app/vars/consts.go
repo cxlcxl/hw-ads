@@ -21,6 +21,7 @@ const (
 	ApiModuleAds             = "Ads"
 	ApiModuleAdsCollect      = "AdsCollect"
 	ApiModuleApp             = "App"
+	ApiModuleLog             = "Log"
 	ApiModuleCampaign        = "Campaign"
 	ApiModuleDictionary      = "Dictionary"      // 定向字典数据
 	ApiModuleRefreshToken    = "RefreshToken"    // Token 刷新
@@ -135,6 +136,7 @@ var (
 		ApiModulePosition:        "[Position] 版位",
 		ApiModulePositionPrice:   "[PositionPrice] 版位底价",
 		ApiModulePositionElement: "[PositionElement] 版位元素",
+		ApiModuleLog:             "[Log] 日志解析入库",
 	}
 	ReportDimensions = map[string]string{
 		ReportDimensionAccount: "账户",

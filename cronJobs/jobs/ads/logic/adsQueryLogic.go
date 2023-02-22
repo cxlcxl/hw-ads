@@ -7,6 +7,7 @@ import (
 	"bs.mobgi.cc/cronJobs/jobs"
 	"bs.mobgi.cc/library/curl"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"sync"
 	"time"
 )
@@ -85,7 +86,11 @@ func (l *AdsQueryLogic) setTokens(tokenList []*model.Token) {
 			clientId, secret := l.getClientInfo(tokens.AccountId)
 			at, err := jobs.RefreshV3(tokens, clientId, secret)
 			if err != nil {
-				fmt.Println("Token 刷新失败，账户 ID：", tokens.AccountId, err)
+				vars.HLog.WithFields(logrus.Fields{
+					"account_id": tokens.AccountId,
+					"module":     "jobs-ads-refreshToken",
+					"log_id":     time.Now().UnixNano(),
+				}).Error(err)
 				continue
 			}
 			l.tokenChan <- &queryParam{
@@ -205,7 +210,13 @@ func (l *AdsQueryLogic) setFailed(param *queryParam, page int64) {
 					page: page,
 				}
 			} else {
-				// TODO log
+				// log
+				vars.HLog.WithFields(logrus.Fields{
+					"account_id": param.accountId,
+					"module":     "jobs-ads-request",
+					"failed":     param.failed,
+					"log_id":     time.Now().UnixNano(),
+				}).Error("接口调用错误次数超出")
 			}
 
 			break

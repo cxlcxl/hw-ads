@@ -7,6 +7,7 @@ import (
 	"bs.mobgi.cc/cronJobs/jobs"
 	"bs.mobgi.cc/library/curl"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"sync"
 	"time"
 )
@@ -50,7 +51,10 @@ func (l *CountryQueryLogic) CountryQuery() (err error) {
 		return err
 	}
 	if len(tokenList) == 0 {
-		fmt.Println("没有可用的 Token")
+		vars.HLog.WithFields(logrus.Fields{
+			"module": "jobs-country-request",
+			"log_id": time.Now().UnixNano(),
+		}).Warning("没有可用的 Token")
 		return nil
 	}
 
@@ -70,7 +74,6 @@ func (l *CountryQueryLogic) CountryQuery() (err error) {
 			}
 		case <-l.doneChan:
 			l.workers--
-			fmt.Println("workers：", l.workers)
 		case <-l.pageDoneChan:
 			l.pageRequests--
 		default:
@@ -87,7 +90,11 @@ func (l *CountryQueryLogic) setTokens(tokenList []*model.Token) {
 		if tokens.ExpiredAt.Before(time.Now()) {
 			at, err := jobs.Refresh(tokens)
 			if err != nil {
-				fmt.Println("Token 刷新失败，账户 ID：", tokens.AccountId, err)
+				vars.HLog.WithFields(logrus.Fields{
+					"account_id": tokens.AccountId,
+					"module":     "jobs-country-refreshToken",
+					"log_id":     time.Now().UnixNano(),
+				}).Error(err)
 				continue
 			}
 			l.tokenChan <- &queryParam{
@@ -155,8 +162,13 @@ func (l *CountryQueryLogic) setFailed(param *queryParam, page int64) {
 					page:       page,
 				}
 			} else {
-				// TODO log
-
+				// log
+				vars.HLog.WithFields(logrus.Fields{
+					"account_id": param.accountId,
+					"module":     "jobs-country-request",
+					"failed":     param.failed,
+					"log_id":     time.Now().UnixNano(),
+				}).Error("接口调用错误次数超出")
 			}
 			break
 		}
@@ -172,8 +184,13 @@ func (l *CountryQueryLogic) setPageFailed(param *queryParam) {
 		l.pageLock.Unlock()
 		go l.queryPages(&queryParam{failed: param.failed + 1, accountId: param.accountId, accessToken: param.accessToken})
 	} else {
-		// TODO log
-
+		// log
+		vars.HLog.WithFields(logrus.Fields{
+			"account_id": param.accountId,
+			"module":     "jobs-country-page-request",
+			"failed":     param.failed,
+			"log_id":     time.Now().UnixNano(),
+		}).Error("接口调用错误次数超出")
 	}
 	return
 }

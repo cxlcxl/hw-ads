@@ -2,6 +2,7 @@ package bootstrap
 
 import (
 	validator2 "bs.mobgi.cc/app/validator"
+	"bs.mobgi.cc/library/hlog"
 	"github.com/casbin/casbin/v2"
 	gormadapter "github.com/casbin/gorm-adapter/v3"
 	"log"
@@ -17,7 +18,7 @@ import (
 func init() {
 	checkConfigFiles()
 
-	// 初始化 WEB 配置文件
+	// 初始化 WEB 配置文件「配置文件在最开始加载，很多初始化依赖配置信息」
 	vars.YmlConfig = config.CreateYamlFactory()
 	vars.YmlConfig.ConfigFileChangeListen()
 
@@ -27,6 +28,9 @@ func init() {
 
 	// 创建软连接、更好的管理静态资源
 	initFoldersLink()
+
+	// 初始日志
+	hlog.NewHLog()
 
 	// 初始化验证器语言
 	if err := validator2.LoadValidatorLocal(); err != nil {

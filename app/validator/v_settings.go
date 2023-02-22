@@ -52,3 +52,12 @@ func bindId(ctx *gin.Context, p interface{}) error {
 	p.(*v_data.VSettingsCronUpdate).Id = v
 	return nil
 }
+
+func (v BsValidator) VSettingsLog(ctx *gin.Context) {
+	var p v_data.VSettingsLog
+	bindData(ctx, &p, (&handlers.Settings{}).ToolLog)
+}
+
+func (v BsValidator) VSettingsLogDownload(ctx *gin.Context) {
+	bindRouteData(ctx, "key", (&handlers.Settings{}).LogDownload)
+}

@@ -7,10 +7,13 @@ import (
 )
 
 func initReportApis(g *gin.RouterGroup) {
-	group := g.Group("/report", middleware.CheckPermission())
+	g.Use(middleware.CheckUserLogin())
 	{
-		group.POST("/comprehensive", (validator.BsValidator{}).VReportComprehensive)
-		group.POST("/ads", (validator.BsValidator{}).VReportAds)
-		group.POST("/column", (validator.BsValidator{}).VReportColumn)
+		group := g.Group("/report", middleware.CheckPermission())
+		{
+			group.POST("/comprehensive", (validator.BsValidator{}).VReportComprehensive)
+			group.POST("/ads", (validator.BsValidator{}).VReportAds)
+			group.POST("/column", (validator.BsValidator{}).VReportColumn)
+		}
 	}
 }

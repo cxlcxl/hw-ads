@@ -6,7 +6,7 @@ import (
 	"bs.mobgi.cc/library/curl"
 	"errors"
 	"fmt"
-	"log"
+	"github.com/sirupsen/logrus"
 	"time"
 )
 
@@ -39,7 +39,11 @@ func GetTokens(tokenChan chan *QueryParam) {
 		if tokens.ExpiredAt.Before(time.Now()) {
 			at, err := Refresh(tokens)
 			if err != nil {
-				log.Println("Token 刷新失败，账户 ID：", tokens.AccountId, err)
+				vars.HLog.WithFields(logrus.Fields{
+					"account_id": tokens.AccountId,
+					"module":     "jobs-getTokens",
+					"log_id":     time.Now().UnixNano(),
+				}).Error(err)
 				continue
 			}
 			tokenChan <- &QueryParam{

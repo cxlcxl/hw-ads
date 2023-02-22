@@ -16,6 +16,10 @@ type VSettingsCronSchedule struct {
 	StatDay   string `json:"stat_day" binding:"required"`
 }
 
+type VSettingsLog struct {
+	D string `json:"d" binding:"required"`
+}
+
 type VSettingsConfigs struct {
 	Key   string `form:"_k"`
 	Desc  string `form:"_desc"`

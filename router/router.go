@@ -18,21 +18,26 @@ func Router() error {
 
 	group := r.Group(vars.ApiPrefix)
 	{
-		initRbacApis(group)
-		initAccountApis(group)
-		initAppApis(group)
+		initNoAuthApis(group)
 
-		initMarketingApis(group)
-		initReportApis(group)
-		initSettingsApis(group)
-
-		group.GET("/regions", (&handlers.Region{}).Regions)
-		g := group.Group("/region", middleware.CheckPermission())
+		group.Use(middleware.CheckUserLogin(), middleware.AccessLog())
 		{
-			g.GET("/area", (&handlers.Region{}).Areas)
-			g.GET("/country", (validator.BsValidator{}).VCountries)
-			g.POST("", (validator.BsValidator{}).VRegionCreate)
-			g.POST("/area-set", (validator.BsValidator{}).VRegionAreaSet)
+			initRbacApis(group)
+			initAccountApis(group)
+			initAppApis(group)
+
+			initMarketingApis(group)
+			initReportApis(group)
+			initSettingsApis(group)
+
+			group.GET("/regions", (&handlers.Region{}).Regions)
+			g := group.Group("/region", middleware.CheckPermission())
+			{
+				g.GET("/area", (&handlers.Region{}).Areas)
+				g.GET("/country", (validator.BsValidator{}).VCountries)
+				g.POST("", (validator.BsValidator{}).VRegionCreate)
+				g.POST("/area-set", (validator.BsValidator{}).VRegionAreaSet)
+			}
 		}
 	}
 

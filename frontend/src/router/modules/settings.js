@@ -24,6 +24,12 @@ const settingsRouter = {
       component: () => import("@v/settings/version"),
       meta: { title: "版本更新" },
     },
+    {
+      path: "tool-log",
+      name: "ToolLog",
+      component: () => import("@v/settings/tool-log"),
+      meta: { title: "日志下载" },
+    },
   ],
 };
 

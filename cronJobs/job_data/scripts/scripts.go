@@ -9,6 +9,7 @@ import (
 	"bs.mobgi.cc/cronJobs/jobs/dictionary"
 	"bs.mobgi.cc/cronJobs/jobs/position"
 	"bs.mobgi.cc/cronJobs/jobs/refreshToken"
+	"bs.mobgi.cc/cronJobs/jobs/syslog"
 	"bs.mobgi.cc/cronJobs/jobs/targeting"
 	"time"
 )
@@ -28,6 +29,7 @@ var (
 		vars.ApiModulePositionElement: position.Element,
 		vars.ApiModuleAds:             ads.ReportAds,
 		vars.ApiModuleApp:             app.ReportApp,
+		vars.ApiModuleLog:             syslog.SysLog,
 	}
 
 	ManualScheduleJobs = map[string]ManualJob{
@@ -40,5 +42,6 @@ var (
 		vars.ApiModuleAds:             ads.ReportAdsManual,
 		vars.ApiModuleAdsCollect:      ads.ReportAdsCollectManual,
 		vars.ApiModuleApp:             app.ReportAppManual,
+		vars.ApiModuleLog:             syslog.SysLogManual,
 	}
 )

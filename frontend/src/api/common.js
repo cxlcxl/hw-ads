@@ -105,3 +105,13 @@ export function confUpdate(data, id) {
     data,
   });
 }
+
+export function toolLogs(data) {
+  return request({
+    url: "/settings/log",
+    method: "post",
+    data,
+  });
+}
+
+export const toolLogDownload = process.env.VUE_APP_BASE_API + "/settings/log/"

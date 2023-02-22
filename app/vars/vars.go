@@ -2,6 +2,7 @@ package vars
 
 import (
 	"github.com/casbin/casbin/v2"
+	"github.com/sirupsen/logrus"
 	"log"
 	"os"
 	"strings"
@@ -17,6 +18,7 @@ var (
 	YmlConfig config_interface.YamlConfigInterface
 	DBRedis   *myRedis.DBRedis
 	Casbin    *casbin.SyncedEnforcer
+	HLog      *logrus.Logger
 )
 
 type LoginUser struct {
