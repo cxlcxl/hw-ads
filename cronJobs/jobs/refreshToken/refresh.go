@@ -4,6 +4,7 @@ import (
 	"bs.mobgi.cc/app/model"
 	"bs.mobgi.cc/app/vars"
 	"bs.mobgi.cc/cronJobs/jobs"
+	"bs.mobgi.cc/library/hlog"
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"time"
@@ -24,11 +25,7 @@ func RefreshToken() {
 	for _, tokens := range list {
 		_, err = jobs.Refresh(tokens)
 		if err != nil {
-			vars.HLog.WithFields(logrus.Fields{
-				"account_id": tokens.AccountId,
-				"module":     "jobs-refreshToken",
-				"log_id":     time.Now().UnixNano(),
-			}).Error(err)
+			hlog.NewLog(logrus.ErrorLevel, "jobs-refreshToken").Log(logrus.Fields{"account_id": tokens.AccountId}, err)
 			continue
 		}
 	}

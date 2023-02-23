@@ -121,12 +121,12 @@ func (h *App) AllApp(ctx *gin.Context) {
 	u, _ := ctx.Get(vars.LoginUserKey)
 	accountIds := make([]int64, 0)
 	if u.(*vars.LoginUser).IsInternal == 0 {
-		accounts, _, err := serviceexternal.QueryAccounts(u.(*vars.LoginUser).UserId)
+		var err error
+		accountIds, err = serviceexternal.Markets(nil, u.(*vars.LoginUser).UserId)
 		if err != nil {
 			response.Fail(ctx, "请求失败："+err.Error())
 			return
 		}
-		accountIds = accounts
 	}
 	apps, err := model.NewApp(vars.DBMysql).AllApps(accountIds)
 	if err != nil {

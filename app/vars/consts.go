@@ -39,6 +39,11 @@ const (
 	ReportDimensionApp     = "app_id"
 	ReportDimensionCountry = "country"
 	ReportDimensionArea    = "area_id"
+
+	// ReportGranularity 报表筛选粒度
+	ReportGranularity
+	ReportGranularityDate = "date"
+	ReportGranularityAll  = "all"
 )
 
 const (

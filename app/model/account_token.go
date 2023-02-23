@@ -48,7 +48,7 @@ func (m *Token) GetAccessTokenList() (tokens []*Token, err error) {
 
 func (m *Token) ReportAccessTokens(accountType int64) (tokens []*Token, err error) {
 	sql := fmt.Sprintf(
-		"select t0.* from %s t0 left join %s t1 on t0.account_id = t1.id where t1.account_type = ?",
+		"select t0.* from %s t0 left join %s t1 on t0.account_id = t1.id where t1.account_type = ? and t1.state = 1",
 		m.TableName(),
 		NewAct(nil).TableName(),
 	)

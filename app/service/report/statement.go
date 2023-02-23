@@ -162,7 +162,7 @@ var (
 		"sum(`click_count`) as `ad_click_count`",
 	}
 	ComprehensiveGranularityAll = []string{
-		"t0.`stat_day`",
+		"NOW() as `stat_day`",
 		"round(sum(t0.`cost`), 3) as `cost`",
 		"sum(t0.`show_count`) as `show_count`",
 		"sum(t0.`click_count`) as `click_count`",

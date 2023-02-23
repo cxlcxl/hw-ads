@@ -4,20 +4,21 @@ import (
 	"bs.mobgi.cc/app/model"
 	"bs.mobgi.cc/app/vars"
 	"bs.mobgi.cc/cronJobs/jobs/country/logic"
+	"bs.mobgi.cc/library/hlog"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"log"
 	"time"
 )
 
 func Country() {
-	fmt.Println("================= country job start ==================")
-
+	hlog.NewLog(logrus.InfoLevel, "jobs-country").Log(logrus.Fields{}, "Country job start")
 	defer func() {
 		_ = model.NewJob(vars.DBMysql).UpdateLastSchedule(vars.ApiModuleCountry)
 	}()
 	job, err := model.NewJob(vars.DBMysql).FindOneByApiModule(vars.ApiModuleCountry)
 	if err != nil {
-		log.Fatal("调度模块查询错误：", err)
+		hlog.NewLog(logrus.ErrorLevel, "jobs-country-module").Log(logrus.Fields{}, err)
 		return
 	}
 	jobDay := job.StatDay
@@ -28,23 +29,26 @@ func Country() {
 			break
 		}
 		d := jobDay.Format(vars.DateFormat)
-		fmt.Println("schedule day: ", d)
 		if err = logic.NewCountryQueryLogic(d).CountryQuery(); err != nil {
-			log.Fatal(err)
+			hlog.NewLog(logrus.ErrorLevel, "jobs-country-schedule").Log(logrus.Fields{
+				"stat_day": d,
+			}, err)
 			return
 		}
 		if err = logic.NewCountryCollectLogic(d).CountryCollect(); err != nil {
-			log.Fatal(err)
+			hlog.NewLog(logrus.ErrorLevel, "jobs-country-collect").Log(logrus.Fields{
+				"stat_day": d,
+			}, err)
 			return
 		}
 		if err = model.NewJob(vars.DBMysql).UpdateJobDayByModule(vars.ApiModuleCountry, jobDay.Format(vars.DateFormat)); err != nil {
-			fmt.Println("数据库调度时间修改失败: ", err)
+			hlog.NewLog(logrus.WarnLevel, "jobs-country-update-day").Log(logrus.Fields{}, err)
 		}
 		jobDay = jobDay.AddDate(0, 0, 1)
 		time.Sleep(time.Millisecond * 500)
 	}
 
-	fmt.Println("================= country job end ==================")
+	hlog.NewLog(logrus.InfoLevel, "jobs-country").Log(logrus.Fields{}, "Country job end")
 	fmt.Println()
 	fmt.Println()
 }

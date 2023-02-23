@@ -4,19 +4,21 @@ import (
 	"bs.mobgi.cc/app/model"
 	"bs.mobgi.cc/app/vars"
 	"bs.mobgi.cc/cronJobs/jobs/ads/logic"
+	"bs.mobgi.cc/library/hlog"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"log"
 	"time"
 )
 
 func ReportAds() {
-	fmt.Println("================= Ads job start ==================")
+	hlog.NewLog(logrus.InfoLevel, "jobs-ads").Log(logrus.Fields{}, "Ads job start")
 	defer func() {
 		_ = model.NewJob(vars.DBMysql).UpdateLastSchedule(vars.ApiModuleAds)
 	}()
 	job, err := model.NewJob(vars.DBMysql).FindOneByApiModule(vars.ApiModuleAds)
 	if err != nil {
-		log.Fatal("调度模块查询错误：", err)
+		hlog.NewLog(logrus.WarnLevel, "jobs-ads-module").Log(logrus.Fields{}, "Ads job start")
 		return
 	}
 	jobDay := job.StatDay
@@ -27,23 +29,26 @@ func ReportAds() {
 			break
 		}
 		d := jobDay.Format(vars.DateFormat)
-		fmt.Println("schedule day: ", d)
 		if err = logic.NewAdsQueryLogic(d).AdsQuery(); err != nil {
-			log.Fatal(err)
+			hlog.NewLog(logrus.ErrorLevel, "jobs-ads-schedule").Log(logrus.Fields{
+				"stat_day": d,
+			}, err)
 			return
 		}
 		if err = logic.NewAdsCollectLogic(d).AdsCollect(); err != nil {
-			log.Fatal(err)
+			hlog.NewLog(logrus.ErrorLevel, "jobs-ads-collect").Log(logrus.Fields{
+				"stat_day": d,
+			}, err)
 			return
 		}
 		if err = model.NewJob(vars.DBMysql).UpdateJobDayByModule(vars.ApiModuleAds, jobDay.Format(vars.DateFormat)); err != nil {
-			fmt.Println("数据库调度时间修改失败: ", err)
+			hlog.NewLog(logrus.WarnLevel, "jobs-ads-update-day").Log(logrus.Fields{}, err)
 		}
 		jobDay = jobDay.AddDate(0, 0, 1)
 		time.Sleep(time.Millisecond * 500)
 	}
 
-	fmt.Println("================= Ads job end ==================")
+	hlog.NewLog(logrus.InfoLevel, "jobs-ads").Log(logrus.Fields{}, "Ads job end")
 	fmt.Println()
 	fmt.Println()
 }
@@ -72,7 +77,6 @@ func ReportAdsManual(day time.Time, pauseRule int64) {
 				break
 			}
 			d := jobDay.Format(vars.DateFormat)
-			fmt.Println("schedule day: ", d)
 			if err = logic.NewAdsQueryLogic(d).AdsQuery(); err != nil {
 				log.Fatal(err)
 				return

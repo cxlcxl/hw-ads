@@ -2,6 +2,7 @@ package serviceaccount
 
 import (
 	"bs.mobgi.cc/app/model"
+	serviceexternal "bs.mobgi.cc/app/service/external"
 	"bs.mobgi.cc/app/utils"
 	"bs.mobgi.cc/app/vars"
 	"bs.mobgi.cc/library/curl"
@@ -83,4 +84,17 @@ func SetToken(token *model.Token) (err error) {
 		}
 		return model.NewToken(vars.DBMysql).TokenUpdate(v, t.Id)
 	}
+}
+
+// ExternalUserAccountIds 外部用户查询与之绑定的账号ID「投放与变现均返回」
+func ExternalUserAccountIds(internal uint8, userId int64) (accountIds []int64, err error) {
+	if internal == 1 {
+		return
+	}
+	accounts, ads, err := serviceexternal.QueryAccounts(userId)
+	if err != nil {
+		return
+	}
+	accountIds = append(accounts, ads...)
+	return
 }

@@ -6,6 +6,7 @@ import (
 	"bs.mobgi.cc/app/vars"
 	"bs.mobgi.cc/cronJobs/jobs"
 	"bs.mobgi.cc/library/curl"
+	"bs.mobgi.cc/library/hlog"
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"sync"
@@ -51,10 +52,7 @@ func (l *CountryQueryLogic) CountryQuery() (err error) {
 		return err
 	}
 	if len(tokenList) == 0 {
-		vars.HLog.WithFields(logrus.Fields{
-			"module": "jobs-country-request",
-			"log_id": time.Now().UnixNano(),
-		}).Warning("没有可用的 Token")
+		hlog.NewLog(logrus.WarnLevel, "jobs-country").Log(logrus.Fields{}, "没有可用的 Token")
 		return nil
 	}
 
@@ -90,11 +88,9 @@ func (l *CountryQueryLogic) setTokens(tokenList []*model.Token) {
 		if tokens.ExpiredAt.Before(time.Now()) {
 			at, err := jobs.Refresh(tokens)
 			if err != nil {
-				vars.HLog.WithFields(logrus.Fields{
+				hlog.NewLog(logrus.ErrorLevel, "jobs-country-refreshToken").Log(logrus.Fields{
 					"account_id": tokens.AccountId,
-					"module":     "jobs-country-refreshToken",
-					"log_id":     time.Now().UnixNano(),
-				}).Error(err)
+				}, err)
 				continue
 			}
 			l.tokenChan <- &queryParam{
@@ -130,22 +126,30 @@ func (l *CountryQueryLogic) query(param *queryParam, page int64) {
 	var response CountryResponse
 	c, err := curl.New(l.url).Debug(false).Post().JsonData(data)
 	if err != nil {
-		fmt.Println("API 接口构建失败：" + err.Error())
+		hlog.NewLog(logrus.WarnLevel, "jobs-country-request").Log(logrus.Fields{
+			"stat_day": l.statDay,
+		}, "API 接口构建失败："+err.Error())
 		go l.setFailed(param, page)
 		return
 	}
 	if err = c.Request(&response, curl.Authorization(param.accessToken), curl.JsonHeader()); err != nil {
-		fmt.Println("API 接口请求失败：" + err.Error())
+		hlog.NewLog(logrus.WarnLevel, "jobs-country-request").Log(logrus.Fields{
+			"stat_day": l.statDay,
+		}, "API 接口请求失败："+err.Error())
 		go l.setFailed(param, page)
 		return
 	}
 	if response.Code != "0" {
-		fmt.Println("API 接口响应失败：" + response.Message)
+		hlog.NewLog(logrus.WarnLevel, "jobs-country-request").Log(logrus.Fields{
+			"stat_day": l.statDay,
+		}, "API 接口响应失败："+response.Message)
 		go l.setFailed(param, page)
 		return
 	}
 	if err = l.saveCountryData(param.accountId, response.Data.List); err != nil {
-		fmt.Println("数据存储失败：" + err.Error())
+		hlog.NewLog(logrus.WarnLevel, "jobs-country-request").Log(logrus.Fields{
+			"stat_day": l.statDay,
+		}, "数据存储失败："+err.Error())
 		go l.setFailed(param, page)
 		return
 	}
@@ -163,12 +167,11 @@ func (l *CountryQueryLogic) setFailed(param *queryParam, page int64) {
 				}
 			} else {
 				// log
-				vars.HLog.WithFields(logrus.Fields{
+				hlog.NewLog(logrus.ErrorLevel, "jobs-country-request").Log(logrus.Fields{
 					"account_id": param.accountId,
-					"module":     "jobs-country-request",
 					"failed":     param.failed,
-					"log_id":     time.Now().UnixNano(),
-				}).Error("接口调用错误次数超出")
+					"stat_day":   l.statDay,
+				}, "接口调用错误次数超出")
 			}
 			break
 		}
@@ -185,12 +188,11 @@ func (l *CountryQueryLogic) setPageFailed(param *queryParam) {
 		go l.queryPages(&queryParam{failed: param.failed + 1, accountId: param.accountId, accessToken: param.accessToken})
 	} else {
 		// log
-		vars.HLog.WithFields(logrus.Fields{
+		hlog.NewLog(logrus.ErrorLevel, "jobs-country-page-request").Log(logrus.Fields{
 			"account_id": param.accountId,
-			"module":     "jobs-country-page-request",
 			"failed":     param.failed,
-			"log_id":     time.Now().UnixNano(),
-		}).Error("接口调用错误次数超出")
+			"stat_day":   l.statDay,
+		}, "接口调用错误次数超出")
 	}
 	return
 }
@@ -215,17 +217,23 @@ func (l *CountryQueryLogic) queryPages(param *queryParam) {
 	var response CountryPagesResponse
 	c, err := curl.New(l.url).Debug(false).Post().JsonData(data)
 	if err != nil {
-		fmt.Println("API 接口构建失败：" + err.Error())
+		hlog.NewLog(logrus.WarnLevel, "jobs-country-page-request").Log(logrus.Fields{
+			"stat_day": l.statDay,
+		}, "API 接口构建失败："+err.Error())
 		go l.setPageFailed(param)
 		return
 	}
 	if err = c.Request(&response, curl.Authorization(param.accessToken), curl.JsonHeader()); err != nil {
-		fmt.Println("API 接口请求失败：" + err.Error())
+		hlog.NewLog(logrus.WarnLevel, "jobs-country-page-request").Log(logrus.Fields{
+			"stat_day": l.statDay,
+		}, "API 接口构建失败："+err.Error())
 		go l.setPageFailed(param)
 		return
 	}
 	if response.Code != "0" {
-		fmt.Println("API 接口响应失败：" + response.Message)
+		hlog.NewLog(logrus.WarnLevel, "jobs-country-page-request").Log(logrus.Fields{
+			"stat_day": l.statDay,
+		}, "API 接口响应失败："+response.Message)
 		go l.setPageFailed(param)
 		return
 	}

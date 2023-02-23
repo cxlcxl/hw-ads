@@ -2,19 +2,17 @@ package validator
 
 import (
 	"bs.mobgi.cc/app/response"
-	"bs.mobgi.cc/app/validator/v_data"
 	"bs.mobgi.cc/app/vars"
+	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
+	"reflect"
 	"regexp"
 )
 
 const (
-	appCodeRule = `^[a-z0-9A-Z\_]{1,50}$`
-	ticketRule  = `^[a-z0-9]+$`
-	uuidRule    = `^[a-z0-9\-]{36}$`
-	passRule    = `^[a-zA-Z]+[a-zA-Z0-9\.\@\#\$\%\&\*\!\?\,]{5,17}$`
+	passRule = `^[a-zA-Z]+[a-zA-Z0-9\.\@\#\$\%\&\*\!\?\,]{5,17}$`
 )
 
 type BsValidator struct{}
@@ -45,16 +43,11 @@ func dimensions(fl validator.FieldLevel) bool {
 	return true
 }
 
-func emptyValidator(_ *gin.Context, _ interface{}) error {
-	return nil
-}
-
 // ctx 上下文
 // v   要绑定的数据
 // h   绑定完成后调用的方法
 // f   自定义扩展验证规则
 func bindData(ctx *gin.Context, v interface{}, h func(*gin.Context, interface{}), fs ...func(*gin.Context, interface{}) error) {
-	//if err := ctx.ShouldBindBodyWith(v, binding.JSON); err != nil {
 	if err := ctx.ShouldBind(v); err != nil {
 		response.Fail(ctx, "验证失败："+Translate(err))
 		return
@@ -74,25 +67,11 @@ func bindRouteData(ctx *gin.Context, key string, h func(c *gin.Context, t string
 }
 
 func fillUser(ctx *gin.Context, p interface{}) error {
-	u, _ := ctx.Get(vars.LoginUserKey)
-	switch p.(type) {
-	case *v_data.VReportComprehensive:
-		p.(*v_data.VReportComprehensive).User = u.(*vars.LoginUser)
-	case *v_data.VReportColumn:
-		p.(*v_data.VReportColumn).User = u.(*vars.LoginUser)
-	case *v_data.VReportAds:
-		p.(*v_data.VReportAds).User = u.(*vars.LoginUser)
-	case *v_data.VSelfUpdate:
-		p.(*v_data.VSelfUpdate).User = u.(*vars.LoginUser)
-	case *v_data.VResetPass:
-		p.(*v_data.VResetPass).User = u.(*vars.LoginUser)
-	case *v_data.VAppList:
-		p.(*v_data.VAppList).User = u.(*vars.LoginUser)
-	case *v_data.VAccountList:
-		p.(*v_data.VAccountList).User = u.(*vars.LoginUser)
-	case *v_data.VAccountCreate:
-		p.(*v_data.VAccountCreate).User = u.(*vars.LoginUser)
-	default:
+	if _, ok := reflect.TypeOf(p).Elem().FieldByName("User"); !ok {
+		return errors.New("用户信息绑定失败，请检查是否包含 User 结构体")
+	} else {
+		u, _ := ctx.Get(vars.LoginUserKey)
+		reflect.ValueOf(p).Elem().FieldByName("User").Set(reflect.ValueOf(u))
 	}
 	return nil
 }

@@ -6,6 +6,7 @@ import (
 	"bs.mobgi.cc/app/vars"
 	"bs.mobgi.cc/cronJobs/jobs"
 	"bs.mobgi.cc/library/curl"
+	"bs.mobgi.cc/library/hlog"
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"sync"
@@ -47,7 +48,7 @@ func (l *AdsQueryLogic) AdsQuery() (err error) {
 		return err
 	}
 	if len(tokenList) == 0 {
-		fmt.Println("没有可用的 Token")
+		hlog.NewLog(logrus.WarnLevel, "jobs-ads-request").Log(logrus.Fields{}, "没有可用的 Token")
 		return nil
 	}
 	if err = l.setClientInfo(); err != nil {
@@ -86,11 +87,9 @@ func (l *AdsQueryLogic) setTokens(tokenList []*model.Token) {
 			clientId, secret := l.getClientInfo(tokens.AccountId)
 			at, err := jobs.RefreshV3(tokens, clientId, secret)
 			if err != nil {
-				vars.HLog.WithFields(logrus.Fields{
+				hlog.NewLog(logrus.ErrorLevel, "jobs-ads-refreshToken").Log(logrus.Fields{
 					"account_id": tokens.AccountId,
-					"module":     "jobs-ads-refreshToken",
-					"log_id":     time.Now().UnixNano(),
-				}).Error(err)
+				}, err)
 				continue
 			}
 			l.tokenChan <- &queryParam{
@@ -127,15 +126,21 @@ func (l *AdsQueryLogic) queryPages(param *queryParam) {
 	var response AdsPagesResponse
 	c, err := curl.New(l.url).Debug(false).Post().JsonData(data)
 	if err != nil {
-		fmt.Println("API 接口构建失败：" + err.Error())
+		hlog.NewLog(logrus.WarnLevel, "jobs-ads-page-request").Log(logrus.Fields{
+			"stat_day": l.statDay,
+		}, "API 接口构建失败："+err.Error())
 		return
 	}
 	if err = c.Request(&response, curl.Authorization(param.accessToken), curl.JsonHeader()); err != nil {
-		fmt.Println("API 接口请求失败：" + err.Error())
+		hlog.NewLog(logrus.WarnLevel, "jobs-ads-page-request").Log(logrus.Fields{
+			"stat_day": l.statDay,
+		}, "API 接口请求失败："+err.Error())
 		return
 	}
 	if response.Code != "0" {
-		fmt.Println("API 接口响应失败：" + response.Message)
+		hlog.NewLog(logrus.WarnLevel, "jobs-ads-page-request").Log(logrus.Fields{
+			"stat_day": l.statDay,
+		}, "API 接口响应失败："+response.Message)
 		return
 	}
 
@@ -172,22 +177,30 @@ func (l *AdsQueryLogic) query(param *queryParam, page int64) {
 	var response AdsResponse
 	c, err := curl.New(l.url).Debug(false).Post().JsonData(data)
 	if err != nil {
-		fmt.Println("API 接口构建失败：" + err.Error())
+		hlog.NewLog(logrus.WarnLevel, "jobs-ads-request").Log(logrus.Fields{
+			"stat_day": l.statDay,
+		}, "API 接口构建失败："+err.Error())
 		l.setFailed(param, page)
 		return
 	}
 	if err = c.Request(&response, curl.Authorization(param.accessToken), curl.JsonHeader()); err != nil {
-		fmt.Println("API 接口请求失败：" + err.Error())
+		hlog.NewLog(logrus.WarnLevel, "jobs-ads-request").Log(logrus.Fields{
+			"stat_day": l.statDay,
+		}, "API 接口请求失败："+err.Error())
 		l.setFailed(param, page)
 		return
 	}
 	if response.Code != "0" {
-		fmt.Println("API 接口响应失败：" + response.Message)
+		hlog.NewLog(logrus.WarnLevel, "jobs-ads-request").Log(logrus.Fields{
+			"stat_day": l.statDay,
+		}, "API 接口响应失败："+response.Message)
 		l.setFailed(param, page)
 		return
 	}
 	if err = l.saveAdsData(param.accountId, response.Data.List); err != nil {
-		fmt.Println("数据存储失败：" + err.Error())
+		hlog.NewLog(logrus.WarnLevel, "jobs-ads-request").Log(logrus.Fields{
+			"stat_day": l.statDay,
+		}, "数据存储失败："+err.Error())
 		l.setFailed(param, page)
 		return
 	}
@@ -211,12 +224,11 @@ func (l *AdsQueryLogic) setFailed(param *queryParam, page int64) {
 				}
 			} else {
 				// log
-				vars.HLog.WithFields(logrus.Fields{
+				hlog.NewLog(logrus.ErrorLevel, "jobs-ads-request").Log(logrus.Fields{
 					"account_id": param.accountId,
-					"module":     "jobs-ads-request",
 					"failed":     param.failed,
-					"log_id":     time.Now().UnixNano(),
-				}).Error("接口调用错误次数超出")
+					"stat_day":   l.statDay,
+				}, "接口调用错误次数超出")
 			}
 
 			break

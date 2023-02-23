@@ -18,7 +18,11 @@ func ReportComprehensive(params *v_data.VReportComprehensive) (data []*Comprehen
 	if params.Download == 1 {
 		pageSize = 0
 	}
-	groups := append(params.Dimensions, "stat_day")
+	groups := params.Dimensions
+	// 按日期粒度查询
+	if params.Granularity == vars.ReportGranularityDate {
+		groups = append(groups, "stat_day")
+	}
 	markets := params.AccountIds
 	var comprehensives []*model.ComprehensiveReport
 	if params.User.IsInternal == 0 {
@@ -30,7 +34,7 @@ func ReportComprehensive(params *v_data.VReportComprehensive) (data []*Comprehen
 	comprehensives, total, err = model.NewRMC(vars.DBMysql).ReportComprehensive(
 		params.DateRange, markets, params.Areas, params.AppIds, countries,
 		marketColumns(params.Dimensions), adsColumns(params.Dimensions), granularityColumns(params.Dimensions, params.Granularity),
-		groups, comprehensiveOrders(params.Order, params.By), uint64(offset), pageSize,
+		groups, comprehensiveOrders(params.Order, params.By), uint64(offset), pageSize, params.Granularity,
 	)
 
 	if err != nil {
@@ -126,9 +130,9 @@ func marketColumns(dimensions []string) (rs []string) {
 }
 
 func granularityColumns(dimensions []string, granularity string) (rs []string) {
-	if granularity == "all" {
+	if granularity == vars.ReportGranularityAll {
 		rs = append(ComprehensiveGranularityAll)
-	} else if granularity == "date" {
+	} else if granularity == vars.ReportGranularityDate {
 		rs = append(ComprehensiveGranularityDate)
 	}
 	if utils.InArray(vars.ReportDimensionAccount, dimensions) {
@@ -249,12 +253,14 @@ func calculateRates(report *model.ComprehensiveReport, v *ComprehensiveReport) {
 	}
 }
 
-func ReportComprehensiveColumns(columns, dimensions []string) (rs []*ReportColumn) {
+func ReportComprehensiveColumns(columns, dimensions []string, granularity string) (rs []*ReportColumn) {
 	var forceShow bool
 	if len(columns) == 0 {
 		forceShow = true
 	}
-	rs = append(rs, DateColumn)
+	if granularity == vars.ReportGranularityDate {
+		rs = append(rs, DateColumn)
+	}
 	if utils.InArray(vars.ReportDimensionAccount, dimensions) {
 		rs = append(rs, AccountColumn)
 	}

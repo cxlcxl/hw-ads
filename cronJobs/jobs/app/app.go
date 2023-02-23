@@ -4,25 +4,27 @@ import (
 	"bs.mobgi.cc/app/model"
 	"bs.mobgi.cc/app/vars"
 	"bs.mobgi.cc/cronJobs/jobs/app/logic"
+	"bs.mobgi.cc/library/hlog"
 	"fmt"
-	"log"
+	"github.com/sirupsen/logrus"
 	"time"
 )
 
 func ReportApp() {
-	fmt.Println("================= App job start ==================")
+	hlog.NewLog(logrus.InfoLevel, "jobs-app").Log(logrus.Fields{}, "App job start")
 	defer func() {
 		_ = model.NewJob(vars.DBMysql).UpdateLastSchedule(vars.ApiModuleApp)
 	}()
 	if err := logic.NewAppQueryLogic().AppQuery(); err != nil {
-		log.Fatal(err)
+		hlog.NewLog(logrus.WarnLevel, "jobs-app-schedule").Log(logrus.Fields{}, err)
 		return
 	}
 	if err := model.NewJob(vars.DBMysql).UpdateJobDayByModule(vars.ApiModuleApp, time.Now().Format(vars.DateFormat)); err != nil {
-		fmt.Println("数据库调度时间修改失败: ", err)
+		hlog.NewLog(logrus.WarnLevel, "jobs-app-update-day").Log(logrus.Fields{}, err)
+		return
 	}
 
-	fmt.Println("================= App job end ==================")
+	hlog.NewLog(logrus.InfoLevel, "jobs-app").Log(logrus.Fields{}, "App job end")
 	fmt.Println()
 	fmt.Println()
 }

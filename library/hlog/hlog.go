@@ -45,3 +45,36 @@ func NewHLog() {
 
 	vars.HLog.AddHook(lfsHook)
 }
+
+type HLog struct {
+	l      *logrus.Logger
+	level  logrus.Level
+	module string
+}
+
+func NewLog(level logrus.Level, m string) *HLog {
+	return &HLog{
+		l:      vars.HLog,
+		level:  level,
+		module: m,
+	}
+}
+
+func (hl *HLog) Log(fields map[string]interface{}, v interface{}) {
+	fields["log_id"] = time.Now().UnixMicro()
+	fields["module"] = hl.module
+	switch hl.level {
+	case logrus.WarnLevel:
+		hl.l.WithFields(fields).Warn(v)
+		break
+	case logrus.ErrorLevel:
+		hl.l.WithFields(fields).Error(v)
+		break
+	case logrus.FatalLevel:
+		hl.l.WithFields(fields).Fatal(v)
+		break
+	default:
+		hl.l.WithFields(fields).Info(v)
+	}
+	return
+}

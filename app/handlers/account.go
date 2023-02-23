@@ -4,7 +4,6 @@ import (
 	"bs.mobgi.cc/app/model"
 	"bs.mobgi.cc/app/response"
 	serviceaccount "bs.mobgi.cc/app/service/account"
-	serviceexternal "bs.mobgi.cc/app/service/external"
 	"bs.mobgi.cc/app/utils"
 	"bs.mobgi.cc/app/validator/v_data"
 	"bs.mobgi.cc/app/vars"
@@ -21,14 +20,14 @@ type Account struct{}
 func (h *Account) AccountList(ctx *gin.Context, p interface{}) {
 	params := p.(*v_data.VAccountList)
 	offset := utils.GetPages(params.Page, params.PageSize)
-	actIds := make([]int64, 0)
+	var actIds []int64
 	if params.User.IsInternal == 0 {
-		markets, ads, err := serviceexternal.QueryAccounts(params.User.UserId)
+		var err error
+		actIds, err = serviceaccount.ExternalUserAccountIds(params.User.IsInternal, params.User.UserId)
 		if err != nil {
-			response.Fail(ctx, "查询失败："+err.Error())
+			response.Fail(ctx, "请求失败："+err.Error())
 			return
 		}
-		actIds = append(markets, ads...)
 		if len(actIds) == 0 {
 			response.Success(ctx, gin.H{"total": 0, "list": nil, "state": vars.CommonState, "types": vars.AccountType})
 			return
@@ -50,7 +49,12 @@ func (h *Account) AccountList(ctx *gin.Context, p interface{}) {
 
 func (h *Account) AccountParents(ctx *gin.Context, p interface{}) {
 	params := p.(*v_data.VAccountParents)
-	acts, err := model.NewAct(vars.DBMysql).RemoteAccounts(params.AccountName, 1)
+	accountIds, err := serviceaccount.ExternalUserAccountIds(params.User.IsInternal, params.User.UserId)
+	if err != nil {
+		response.Fail(ctx, "请求失败："+err.Error())
+		return
+	}
+	acts, err := model.NewAct(vars.DBMysql).RemoteAccounts(params.AccountName, 1, accountIds)
 	if err != nil {
 		response.Fail(ctx, "请求失败："+err.Error())
 		return
@@ -68,7 +72,13 @@ func (h *Account) AccountParents(ctx *gin.Context, p interface{}) {
 }
 
 func (h *Account) AccountDefault(ctx *gin.Context) {
-	acts, err := model.NewAct(vars.DBMysql).RemoteAccounts("", 0)
+	u, _ := ctx.Get(vars.LoginUserKey)
+	accountIds, err := serviceaccount.ExternalUserAccountIds(u.(*vars.LoginUser).IsInternal, u.(*vars.LoginUser).UserId)
+	if err != nil {
+		response.Fail(ctx, "请求失败："+err.Error())
+		return
+	}
+	acts, err := model.NewAct(vars.DBMysql).RemoteAccounts("", 0, accountIds)
 	if err != nil {
 		response.Fail(ctx, "请求失败："+err.Error())
 		return
@@ -78,14 +88,10 @@ func (h *Account) AccountDefault(ctx *gin.Context) {
 
 func (h *Account) AllAccounts(ctx *gin.Context) {
 	u, _ := ctx.Get(vars.LoginUserKey)
-	accountIds := make([]int64, 0)
-	if u.(*vars.LoginUser).IsInternal == 0 {
-		accounts, ads, err := serviceexternal.QueryAccounts(u.(*vars.LoginUser).UserId)
-		if err != nil {
-			response.Fail(ctx, "请求失败："+err.Error())
-			return
-		}
-		accountIds = append(accounts, ads...)
+	accountIds, err := serviceaccount.ExternalUserAccountIds(u.(*vars.LoginUser).IsInternal, u.(*vars.LoginUser).UserId)
+	if err != nil {
+		response.Fail(ctx, "请求失败："+err.Error())
+		return
 	}
 
 	acts, err := model.NewAct(vars.DBMysql).AllAccounts(accountIds)
@@ -102,7 +108,12 @@ func (h *Account) AccountSearch(ctx *gin.Context, p interface{}) {
 		response.Success(ctx, []interface{}{})
 		return
 	}
-	acts, err := model.NewAct(vars.DBMysql).RemoteAccounts(params.AccountName, 0)
+	accountIds, err := serviceaccount.ExternalUserAccountIds(params.User.IsInternal, params.User.UserId)
+	if err != nil {
+		response.Fail(ctx, "请求失败："+err.Error())
+		return
+	}
+	acts, err := model.NewAct(vars.DBMysql).RemoteAccounts(params.AccountName, 0, accountIds)
 	if err != nil {
 		response.Fail(ctx, "请求失败："+err.Error())
 		return

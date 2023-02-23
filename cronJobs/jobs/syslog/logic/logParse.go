@@ -3,6 +3,7 @@ package logic
 import (
 	"bs.mobgi.cc/app/model"
 	"bs.mobgi.cc/app/vars"
+	"bs.mobgi.cc/library/hlog"
 	"bufio"
 	"encoding/json"
 	"fmt"
@@ -18,6 +19,7 @@ import (
 type LogLogic struct {
 	statDay string
 	mu      sync.Mutex
+	errs    []*LogInfo
 }
 
 type LogInfo struct {
@@ -33,6 +35,7 @@ func NewLogLogic(day string) *LogLogic {
 	return &LogLogic{
 		statDay: day,
 		mu:      sync.Mutex{},
+		errs:    make([]*LogInfo, 0),
 	}
 }
 
@@ -49,7 +52,6 @@ func (l *LogLogic) Parse() error {
 	sysLogs := make([]*model.SysLog, 0)
 	i, k := 0, 1
 	for {
-		i++
 		line, _, err := buf.ReadLine()
 		if err == io.EOF {
 			// 文件读取结束
@@ -58,13 +60,15 @@ func (l *LogLogic) Parse() error {
 			}
 			break
 		}
-		if sl, err := l.handleLog(line); err != nil {
-			vars.HLog.WithFields(logrus.Fields{
-				"module":   "jobs-log-lineErr",
-				"log_id":   time.Now().UnixNano(),
-				"day":      l.statDay,
-				"err_line": k,
-			}).Error(err)
+		sl, err := l.handleLog(line)
+		if err != nil {
+			// 错误级别的日志再记录，其他的丢弃
+			if sl.Level == logrus.ErrorLevel.String() {
+				hlog.NewLog(logrus.ErrorLevel, "jobs-log-line").Log(logrus.Fields{
+					"day":      l.statDay,
+					"err_line": k,
+				}, err)
+			}
 		} else {
 			sysLogs = append(sysLogs, &model.SysLog{
 				StatDay: sl.StatDay,
@@ -74,12 +78,27 @@ func (l *LogLogic) Parse() error {
 				Level:   sl.Level,
 				LogId:   strconv.Itoa(sl.LogId),
 			})
+			if sl.Level == logrus.ErrorLevel.String() {
+				l.errs = append(l.errs, &LogInfo{
+					StatDay: sl.StatDay,
+					Module:  sl.Module,
+					Msg:     sl.Msg,
+					Level:   sl.Level,
+					LogId:   sl.LogId,
+				})
+			}
 			if i >= 300 {
 				l.saveLogData(sysLogs)
 				i = 0
+			} else {
+				i++
 			}
 		}
 		k++
+	}
+
+	if len(l.errs) > 0 {
+		// TODO 发现错误，告警通知
 	}
 	return nil
 }
@@ -98,11 +117,9 @@ func (l *LogLogic) handleLog(line []byte) (sysLog *LogInfo, err error) {
 
 func (l *LogLogic) saveLogData(sysLogs []*model.SysLog) {
 	if err := model.NewLog(vars.DBMysql).BatchInsertLog(sysLogs); err != nil {
-		vars.HLog.WithFields(logrus.Fields{
-			"module": "jobs-log-saveErr",
-			"log_id": time.Now().UnixNano(),
-			"day":    l.statDay,
-		}).Error(err)
+		hlog.NewLog(logrus.ErrorLevel, "jobs-log-save").Log(logrus.Fields{
+			"day": l.statDay,
+		}, err)
 	}
 	return
 }

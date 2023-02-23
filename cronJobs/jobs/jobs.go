@@ -4,6 +4,7 @@ import (
 	"bs.mobgi.cc/app/model"
 	"bs.mobgi.cc/app/vars"
 	"bs.mobgi.cc/library/curl"
+	"bs.mobgi.cc/library/hlog"
 	"errors"
 	"fmt"
 	"github.com/sirupsen/logrus"
@@ -39,11 +40,7 @@ func GetTokens(tokenChan chan *QueryParam) {
 		if tokens.ExpiredAt.Before(time.Now()) {
 			at, err := Refresh(tokens)
 			if err != nil {
-				vars.HLog.WithFields(logrus.Fields{
-					"account_id": tokens.AccountId,
-					"module":     "jobs-getTokens",
-					"log_id":     time.Now().UnixNano(),
-				}).Error(err)
+				hlog.NewLog(logrus.ErrorLevel, "jobs-getTokens").Log(logrus.Fields{"account_id": tokens.AccountId}, err)
 				continue
 			}
 			tokenChan <- &QueryParam{

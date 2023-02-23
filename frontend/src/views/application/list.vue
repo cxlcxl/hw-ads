@@ -46,9 +46,9 @@
           </template>
         </el-table-column>
         <el-table-column label="应用包名" prop="pkg_name" min-width="150" show-overflow-tooltip />
-        <el-table-column prop="created_at" label="添加时间" width="140" align="center">
+        <!-- <el-table-column prop="created_at" label="添加时间" width="140" align="center">
           <template slot-scope="scope">{{scope.row.created_at|timeFormat}}</template>
-        </el-table-column>
+        </el-table-column>-->
         <el-table-column align="center" label="操作" width="90">
           <template slot-scope="scope">
             <el-button-group class="table-operate" v-permission="'app/update'">
@@ -107,15 +107,15 @@ export default {
       return parseTime(timestamp)
     },
     accountsFilter(ids, acts) {
-      let names = ""
+      let names = []
       if (Array.isArray(ids) && ids.length > 0) {
-        acts.forEach((item) => {
+        acts.forEach(item => {
           if (ids.includes(item.id)) {
-            names = names + item.account_name + "、"
+            names.push(item.account_name)
           }
         })
       }
-      return names
+      return names.join("、")
     },
   },
   methods: {

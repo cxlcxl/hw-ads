@@ -14,10 +14,10 @@
         <el-switch v-model="confForm.state" :active-value="1" :inactive-value="0" />
       </el-form-item>
       <el-form-item label="扩展1" prop="bak1">
-        <el-input v-model="confForm.bak1" />
+        <el-input v-model="confForm.bak1" placeholder="最大 50 长度，超过会截断"/>
       </el-form-item>
       <el-form-item label="扩展2" prop="bak2">
-        <el-input v-model="confForm.bak2" />
+        <el-input v-model="confForm.bak2" placeholder="最大 1000 长度，超过会截断" type="textarea"/>
       </el-form-item>
       <el-form-item label="配置描述" prop="remark">
         <el-input v-model="confForm.remark" />

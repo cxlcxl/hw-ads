@@ -4,20 +4,20 @@ import (
 	"bs.mobgi.cc/app/model"
 	"bs.mobgi.cc/app/vars"
 	"bs.mobgi.cc/cronJobs/jobs/syslog/logic"
+	"bs.mobgi.cc/library/hlog"
 	"fmt"
 	"github.com/sirupsen/logrus"
-	"log"
 	"time"
 )
 
 func SysLog() {
-	fmt.Println("================= Log job start ==================")
+	hlog.NewLog(logrus.InfoLevel, "jobs-log").Log(logrus.Fields{}, "Log job start")
 	defer func() {
 		_ = model.NewJob(vars.DBMysql).UpdateLastSchedule(vars.ApiModuleLog)
 	}()
 	job, err := model.NewJob(vars.DBMysql).FindOneByApiModule(vars.ApiModuleLog)
 	if err != nil {
-		log.Fatal("调度模块查询错误：", err)
+		hlog.NewLog(logrus.ErrorLevel, "jobs-log-module").Log(logrus.Fields{}, err)
 		return
 	}
 	jobDay := job.StatDay
@@ -29,20 +29,19 @@ func SysLog() {
 		}
 		d := jobDay.Format(vars.DateFormat)
 		if err = logic.NewLogLogic(d).Parse(); err != nil {
-			vars.HLog.WithFields(logrus.Fields{
-				"module": "jobs-log",
-				"log_id": time.Now().UnixNano(),
-			}).Error(err)
+			hlog.NewLog(logrus.ErrorLevel, "jobs-log").Log(logrus.Fields{
+				"stat_day": d,
+			}, err)
 			return
 		}
 		if err = model.NewJob(vars.DBMysql).UpdateJobDayByModule(vars.ApiModuleLog, jobDay.Format(vars.DateFormat)); err != nil {
-			fmt.Println("数据库调度时间修改失败: ", err)
+			hlog.NewLog(logrus.WarnLevel, "jobs-log-update-day").Log(logrus.Fields{}, err)
 		}
 		jobDay = jobDay.AddDate(0, 0, 1)
 		time.Sleep(time.Millisecond * 500)
 	}
 
-	fmt.Println("================= Ads job end ==================")
+	hlog.NewLog(logrus.InfoLevel, "jobs-log").Log(logrus.Fields{}, "Log job end")
 	fmt.Println()
 	fmt.Println()
 }
@@ -53,11 +52,11 @@ func SysLogManual(d time.Time, _ int64) {
 		fmt.Println("最多调度到当前时间的前一天")
 		return
 	}
+	defer func() {
+		_ = model.NewJob(vars.DBMysql).UpdateLastSchedule(vars.ApiModuleLog)
+	}()
 	if err := logic.NewLogLogic(d.Format(vars.DateFormat)).Parse(); err != nil {
-		vars.HLog.WithFields(logrus.Fields{
-			"module": "jobs-log",
-			"log_id": time.Now().UnixNano(),
-		}).Error(err)
+		hlog.NewLog(logrus.ErrorLevel, "jobs-log").Log(logrus.Fields{}, err)
 		return
 	}
 }

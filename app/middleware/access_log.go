@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"bs.mobgi.cc/app/vars"
+	"bs.mobgi.cc/library/hlog"
 	"bytes"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -36,16 +37,14 @@ func AccessLog() gin.HandlerFunc {
 		endTime := time.Now()
 		user, _ := c.Get(vars.LoginUserKey)
 
-		vars.HLog.WithFields(logrus.Fields{
-			"module": "access-log",
-			"uid":    user.(*vars.LoginUser).UserId,
-			"uname":  user.(*vars.LoginUser).Username,
-			"uri":    c.Request.RequestURI,
-			"ip":     c.ClientIP(),
-			"begin":  beginTime.Format(vars.DateTimeFormat),
-			"end":    endTime.Format(vars.DateTimeFormat),
-			"log_id": time.Now().UnixNano(),
-		}).Info("access log")
+		hlog.NewLog(logrus.InfoLevel, "access-log").Log(logrus.Fields{
+			"uid":   user.(*vars.LoginUser).UserId,
+			"uname": user.(*vars.LoginUser).Username,
+			"uri":   c.Request.RequestURI,
+			"ip":    c.ClientIP(),
+			"begin": beginTime.Format(vars.DateTimeFormat),
+			"end":   endTime.Format(vars.DateTimeFormat),
+		}, "")
 	}
 }
 

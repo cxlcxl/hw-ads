@@ -6,6 +6,7 @@ import (
 	"bs.mobgi.cc/app/vars"
 	"bs.mobgi.cc/cronJobs/jobs"
 	"bs.mobgi.cc/library/curl"
+	"bs.mobgi.cc/library/hlog"
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"time"
@@ -80,11 +81,9 @@ func (l *AppQueryLogic) setTokens(tokenList []*model.Token) {
 		if tokens.ExpiredAt.Before(time.Now()) {
 			at, err := jobs.Refresh(tokens)
 			if err != nil {
-				vars.HLog.WithFields(logrus.Fields{
+				hlog.NewLog(logrus.ErrorLevel, "jobs-app-refreshToken").Log(logrus.Fields{
 					"account_id": tokens.AccountId,
-					"module":     "jobs-app-refreshToken",
-					"log_id":     time.Now().UnixNano(),
-				}).Error(err)
+				}, err)
 				continue
 			}
 			l.tokenChan <- &queryParam{
@@ -117,15 +116,21 @@ func (l *AppQueryLogic) queryPages(param *queryParam) {
 	var response AppResponse
 	c, err := curl.New(l.url).Get().JsonData(data)
 	if err != nil {
-		fmt.Println("API 接口构建失败：" + err.Error())
+		hlog.NewLog(logrus.ErrorLevel, "jobs-app-page-request").Log(logrus.Fields{
+			"account_id": param.accountId,
+		}, "API 接口构建失败："+err.Error())
 		return
 	}
 	if err = c.Request(&response, curl.Authorization(param.accessToken), curl.JsonHeader()); err != nil {
-		fmt.Println("API 接口请求失败：" + err.Error())
+		hlog.NewLog(logrus.ErrorLevel, "jobs-app-page-request").Log(logrus.Fields{
+			"account_id": param.accountId,
+		}, "API 接口请求失败："+err.Error())
 		return
 	}
 	if response.Code != "200" {
-		fmt.Println("API 接口响应失败：" + response.Message)
+		hlog.NewLog(logrus.ErrorLevel, "jobs-app-page-request").Log(logrus.Fields{
+			"account_id": param.accountId,
+		}, "API 接口响应失败："+response.Message)
 		return
 	}
 
@@ -158,22 +163,31 @@ func (l *AppQueryLogic) query(param *queryParam, page int64) {
 	var response AppResponse
 	c, err := curl.New(l.url).Debug(false).Get().JsonData(data)
 	if err != nil {
-		fmt.Println("API 接口构建失败：" + err.Error())
+		hlog.NewLog(logrus.WarnLevel, "jobs-app-request").Log(logrus.Fields{
+			"account_id": param.accountId,
+		}, "API 接口构建失败："+err.Error())
+
 		l.setFailed(param, page)
 		return
 	}
 	if err = c.Request(&response, curl.Authorization(param.accessToken), curl.JsonHeader()); err != nil {
-		fmt.Println("API 接口请求失败：" + err.Error())
+		hlog.NewLog(logrus.WarnLevel, "jobs-app-request").Log(logrus.Fields{
+			"account_id": param.accountId,
+		}, "API 接口请求失败："+err.Error())
 		l.setFailed(param, page)
 		return
 	}
 	if response.Code != "200" {
-		fmt.Println("API 接口响应失败：" + response.Message)
+		hlog.NewLog(logrus.WarnLevel, "jobs-app-request").Log(logrus.Fields{
+			"account_id": param.accountId,
+		}, "API 接口响应失败："+response.Message)
 		l.setFailed(param, page)
 		return
 	}
 	if err = l.saveAppData(param.accountId, response.Data.Data); err != nil {
-		fmt.Println("数据存储失败：" + err.Error())
+		hlog.NewLog(logrus.WarnLevel, "jobs-app-request").Log(logrus.Fields{
+			"account_id": param.accountId,
+		}, "数据存储失败："+err.Error())
 		l.setFailed(param, page)
 		return
 	}
@@ -195,12 +209,10 @@ func (l *AppQueryLogic) setFailed(param *queryParam, page int64) {
 				}
 			} else {
 				// log
-				vars.HLog.WithFields(logrus.Fields{
+				hlog.NewLog(logrus.ErrorLevel, "jobs-app-request").Log(logrus.Fields{
 					"account_id": param.accountId,
-					"module":     "jobs-app-request",
 					"failed":     param.failed,
-					"log_id":     time.Now().UnixNano(),
-				}).Error("接口调用错误次数超出")
+				}, "接口调用错误次数超出")
 			}
 
 			break

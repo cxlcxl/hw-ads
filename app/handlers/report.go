@@ -57,7 +57,7 @@ func (h *Report) Comprehensive(ctx *gin.Context, p interface{}) {
 	response.Success(ctx, gin.H{
 		"total":      total,
 		"list":       list,
-		"columns":    servicereport.ReportComprehensiveColumns(params.ShowColumns, params.Dimensions),
+		"columns":    servicereport.ReportComprehensiveColumns(params.ShowColumns, params.Dimensions, params.Granularity),
 		"summaries":  summaries,
 		"dimensions": vars.ReportDimensions,
 	})

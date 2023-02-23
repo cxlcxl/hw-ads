@@ -18,12 +18,12 @@ func (v BsValidator) VAccountList(ctx *gin.Context) {
 
 func (v BsValidator) VAccountParents(ctx *gin.Context) {
 	var params v_data.VAccountParents
-	bindData(ctx, &params, (&handlers.Account{}).AccountParents)
+	bindData(ctx, &params, (&handlers.Account{}).AccountParents, fillUser)
 }
 
 func (v BsValidator) VAccountSearch(ctx *gin.Context) {
 	var params v_data.VAccountSearch
-	bindData(ctx, &params, (&handlers.Account{}).AccountSearch)
+	bindData(ctx, &params, (&handlers.Account{}).AccountSearch, fillUser)
 }
 
 func (v BsValidator) VAccountDefault(ctx *gin.Context) {

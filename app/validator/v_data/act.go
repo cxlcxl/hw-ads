@@ -16,10 +16,13 @@ type VAccountList struct {
 type VAccountParents struct {
 	ParentId    int64  `form:"parent_id,optional"`
 	AccountName string `form:"account_name,optional"`
+
+	User *vars.LoginUser
 }
 
 type VAccountSearch struct {
 	AccountName string `form:"account_name,optional"`
+	User        *vars.LoginUser
 }
 
 type VAccountAuth struct {

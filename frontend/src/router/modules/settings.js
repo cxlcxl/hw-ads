@@ -22,13 +22,19 @@ const settingsRouter = {
       path: "version",
       name: "Version",
       component: () => import("@v/settings/version"),
-      meta: { title: "版本更新" },
+      meta: { title: "版本更新", auth: "settings/version" },
     },
     {
-      path: "tool-log",
+      path: "log",
       name: "ToolLog",
       component: () => import("@v/settings/tool-log"),
-      meta: { title: "日志下载" },
+      meta: { title: "日志下载", auth: "settings/log" },
+    },
+    {
+      path: "profile",
+      name: "Profile",
+      component: () => import("@v/profile/index"),
+      meta: { title: "个人信息" },
     },
   ],
 };

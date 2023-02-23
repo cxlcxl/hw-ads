@@ -80,7 +80,7 @@ type ComprehensiveReport struct {
 // ReportComprehensive 综合报表利用 JOIN 查询
 func (m *ReportMarketCollect) ReportComprehensive(
 	dates []string, actIds, areas []int64, appIds, countries []string,
-	marketSelects, adsSelects, granularityColumns, groups, orders []string, offset, limit uint64,
+	marketSelects, adsSelects, granularityColumns, groups, orders []string, offset, limit uint64, granularity string,
 ) (markets []*ComprehensiveReport, total int64, err error) {
 	// 自定义排序
 	_os := make([]string, 0)
@@ -89,9 +89,12 @@ func (m *ReportMarketCollect) ReportComprehensive(
 			_os = append(_os, order)
 		}
 	}
-
-	_os = append(_os, "t0.stat_day desc")
-	JoinOn := []string{"t0.stat_day = t1.stat_day"}
+	var JoinOn []string
+	// 按日期粒度或者按整体没有任何维度筛选时
+	if vars.ReportGranularityDate == granularity || len(groups) == 0 {
+		_os = append(_os, "t0.stat_day desc")
+		JoinOn = append(JoinOn, "t0.stat_day = t1.stat_day")
+	}
 	// 变现表「包含账户维度需要查与账户关联的表」
 	if utils.InArray(vars.ReportDimensionAccount, groups) {
 		JoinOn = append(JoinOn, "t0.account_id = t1.account_id")
@@ -115,7 +118,8 @@ func (m *ReportMarketCollect) ReportComprehensive(
 	if utils.InArray(vars.ReportDimensionAccount, groups) {
 		adsTable = NewRACA(nil).TableName()
 	}
-	sqlQuery := func(table, _m string, selects []string) string {
+	// 生成投放与变现子查询的函数
+	subQuery := func(table, _m string, selects []string) string {
 		return m.ToSQL(func(tx *gorm.DB) *gorm.DB {
 			query := tx.Table(table).Where("stat_day between ? and ?", dates[0], dates[1])
 			if len(groups) > 0 {
@@ -159,15 +163,18 @@ func (m *ReportMarketCollect) ReportComprehensive(
 
 	query := squirrel.
 		Select(granularityColumns...).
-		From(fmt.Sprintf("(%s) as t0", sqlQuery(m.TableName(), "market", marketSelects))).
-		LeftJoin(fmt.Sprintf("(%s) as t1 on %s", sqlQuery(adsTable, "ads", adsSelects), strings.Join(JoinOn, " and "))).
+		From(fmt.Sprintf("(%s) as t0", subQuery(m.TableName(), "market", marketSelects))).
+		LeftJoin(fmt.Sprintf("(%s) as t1 on %s", subQuery(adsTable, "ads", adsSelects), strings.Join(JoinOn, " and "))).
 		OrderBy(_os...)
 
 	if limit > 0 {
-		if err = m.Raw(sqlQuery(m.TableName(), "count", []string{"1"})).Count(&total).Error; err != nil || total == 0 {
+		if err = m.Raw(subQuery(m.TableName(), "count", []string{"1"})).Count(&total).Error; err != nil || total == 0 {
 			return nil, 0, err
 		}
 		query = query.Offset(offset).Limit(limit)
+		if vars.ReportGranularityAll == granularity {
+			query = query.GroupBy(groups...)
+		}
 	}
 	var sql string
 	if sql, _, err = query.ToSql(); err == nil {

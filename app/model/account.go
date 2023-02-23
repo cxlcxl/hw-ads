@@ -61,13 +61,16 @@ func (m *Account) AccountList(ids []int64, accountType, state int64, accountName
 	return
 }
 
-func (m *Account) RemoteAccounts(accountName string, isParent int64) (accounts []*Account, err error) {
+func (m *Account) RemoteAccounts(accountName string, isParent int64, actIds []int64) (accounts []*Account, err error) {
 	query := m.Table(m.TableName()).Where("state = 1")
 	if isParent == 1 {
 		query = query.Where("parent_id = 0")
 	}
 	if accountName != "" {
 		query = query.Where("account_name like ?", "%"+accountName+"%")
+	}
+	if len(actIds) > 0 {
+		query = query.Where("id in ?", actIds)
 	}
 	err = query.Order("updated_at desc").Offset(0).Limit(20).Find(&accounts).Error
 	return
