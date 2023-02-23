@@ -2,6 +2,7 @@ package model
 
 import (
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"time"
 )
 
@@ -28,5 +29,5 @@ func (m *SysLog) BatchInsertLog(sysLogs []*SysLog) error {
 	if len(sysLogs) == 0 {
 		return nil
 	}
-	return m.Table(m.TableName()).CreateInBatches(sysLogs, 150).Error // IGNORE
+	return m.Table(m.TableName()).Clauses(clause.Insert{Modifier: "IGNORE"}).CreateInBatches(sysLogs, 150).Error // IGNORE
 }
