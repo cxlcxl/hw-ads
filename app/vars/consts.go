@@ -59,14 +59,12 @@ const (
 )
 
 const (
-	_ = iota
-	AccountTypeMarket
+	AccountTypeMarket = iota + 1
 	AccountTypeAds
 )
 
 const (
-	_ = iota
-	AppChannelGallery
+	AppChannelGallery = iota + 1
 	AppChannelGooglePlay
 	AppChannelAppStore
 	AppChannelOther
