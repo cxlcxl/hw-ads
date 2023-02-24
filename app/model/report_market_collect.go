@@ -174,6 +174,9 @@ func (m *ReportMarketCollect) ReportComprehensive(
 		query = query.Offset(offset).Limit(limit)
 		if vars.ReportGranularityAll == granularity {
 			query = query.GroupBy(groups...)
+			if len(groups) == 0 {
+				total = 1
+			}
 		}
 	}
 	var sql string
