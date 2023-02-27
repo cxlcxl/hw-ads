@@ -86,7 +86,7 @@ func (c *Curl) Debug(b bool) *Curl {
 	return c
 }
 
-func (c *Curl) ResBody(b bool) *Curl {
-	c.showResBody = b
+func (c *Curl) DebugBody() *Curl {
+	c.showResBody = true
 	return c
 }
