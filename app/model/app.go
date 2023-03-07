@@ -1,7 +1,6 @@
 package model
 
 import (
-	"bs.mobgi.cc/app/cache"
 	"fmt"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -96,9 +95,9 @@ func (m *App) AllApps(actIds []int64) (apps []*SimpleApp, err error) {
 			Where(in, actIds).
 			Select("app_id,app_name").Find(&apps).Error
 	} else {
-		err = cache.New(m.DB).Query(appsKey, &apps, func(db *gorm.DB, v interface{}) error {
-			return db.Table(m.TableName()).Select("app_id,app_name").Find(v).Error
-		})
+		//err = cache.New(m.DB).Query(appsKey, &apps, func(db *gorm.DB, v interface{}) error {
+		err = m.Table(m.TableName()).Select("app_id,app_name").Find(&apps).Error
+		//})
 	}
 	return
 }
@@ -111,7 +110,7 @@ func (m *App) CreateApp(app *App) (err error) {
 func (m *App) UpdateApp(d map[string]interface{}, id int64) (err error) {
 	err = m.Table(m.TableName()).Where("id = ? ", id).Updates(d).Error
 	if err == nil {
-		_ = cache.New(nil).DelQueryRowCache(appsKey, "")
+		//_ = cache.New(nil).DelQueryRowCache(appsKey, "")
 	}
 	return
 }
