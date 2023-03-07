@@ -84,7 +84,7 @@ func (rc *RedisCache) setCache(cacheKey string, v interface{}) error {
 	if err != nil {
 		return err
 	}
-	if !rc.SetString(cacheKey, value, time.Duration(rc.expire)*time.Second) {
+	if !rc.SetString(cacheKey, value, time.Duration(rc.expire)) {
 		return errors.New("设置缓存失败")
 	}
 	return nil
