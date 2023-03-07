@@ -111,7 +111,7 @@ func (m *App) CreateApp(app *App) (err error) {
 func (m *App) UpdateApp(d map[string]interface{}, id int64) (err error) {
 	err = m.Table(m.TableName()).Where("id = ? ", id).Updates(d).Error
 	if err == nil {
-		_ = cache.New(nil).DelQueryRowCache(appsKey, nil)
+		_ = cache.New(nil).DelQueryRowCache(appsKey, "")
 	}
 	return
 }
