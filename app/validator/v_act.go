@@ -36,7 +36,7 @@ func (v BsValidator) VAllAccounts(ctx *gin.Context) {
 
 func (v BsValidator) VAccountCreate(ctx *gin.Context) {
 	var params v_data.VAccountCreate
-	bindData(ctx, &params, (&handlers.Account{}).AccountCreate)
+	bindData(ctx, &params, (&handlers.Account{}).AccountCreate, fillUser)
 }
 
 func (v BsValidator) VAccountAuth(ctx *gin.Context) {
@@ -56,7 +56,7 @@ func (v BsValidator) VAccountUpdate(ctx *gin.Context) {
 			return ParentCanNotSelf
 		}
 		return nil
-	})
+	}, fillUser)
 }
 
 func (v BsValidator) VAccountInfo(ctx *gin.Context) {
