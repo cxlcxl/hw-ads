@@ -15,7 +15,7 @@ import (
 )
 
 type Job func()
-type ManualJob func(day time.Time, pauseRule int64)
+type ManualJob func(day time.Time, pauseRule int64, accountId int64)
 
 var (
 	ScheduleJobs = map[string]Job{

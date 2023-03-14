@@ -46,7 +46,7 @@ func SysLog() {
 	fmt.Println()
 }
 
-func SysLogManual(d time.Time, _ int64) {
+func SysLogManual(d time.Time, _, _ int64) {
 	// 最晚只能调度到前一天
 	if d.After(time.Now().AddDate(0, 0, -1)) {
 		fmt.Println("最多调度到当前时间的前一天")

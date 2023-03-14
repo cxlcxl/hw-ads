@@ -53,7 +53,7 @@ func Country() {
 	fmt.Println()
 }
 
-func CountryManual(day time.Time, pauseRule int64) {
+func CountryManual(day time.Time, pauseRule, accountId int64) {
 	// 手动调度不改脚本自动调度的日期
 	fmt.Println("================= country job start ==================")
 
@@ -132,7 +132,7 @@ func countryDoSchedule(d string) (err error) {
 	return nil
 }
 
-func ReportCountryCollectManual(day time.Time, _ int64) {
+func ReportCountryCollectManual(day time.Time, _, accountId int64) {
 	defer func() {
 		_ = model.NewJob(vars.DBMysql).UpdateLastSchedule(vars.ApiModuleCountryCollect)
 	}()

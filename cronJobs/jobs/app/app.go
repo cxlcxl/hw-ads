@@ -29,6 +29,6 @@ func ReportApp() {
 	fmt.Println()
 }
 
-func ReportAppManual(_ time.Time, _ int64) {
+func ReportAppManual(_ time.Time, _, _ int64) {
 	ReportApp()
 }

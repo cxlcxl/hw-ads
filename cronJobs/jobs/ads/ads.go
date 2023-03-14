@@ -29,13 +29,13 @@ func ReportAds() {
 			break
 		}
 		d := jobDay.Format(vars.DateFormat)
-		if err = logic.NewAdsQueryLogic(d).AdsQuery(); err != nil {
+		if err = logic.NewAdsQueryLogic(d, 0).AdsQuery(); err != nil {
 			hlog.NewLog(logrus.ErrorLevel, "jobs-ads-schedule").Log(logrus.Fields{
 				"stat_day": d,
 			}, err)
 			return
 		}
-		if err = logic.NewAdsCollectLogic(d).AdsCollect(); err != nil {
+		if err = logic.NewAdsCollectLogic(d, 0).AdsCollect(); err != nil {
 			hlog.NewLog(logrus.ErrorLevel, "jobs-ads-collect").Log(logrus.Fields{
 				"stat_day": d,
 			}, err)
@@ -53,7 +53,7 @@ func ReportAds() {
 	fmt.Println()
 }
 
-func ReportAdsManual(day time.Time, pauseRule int64) {
+func ReportAdsManual(day time.Time, pauseRule, accountId int64) {
 	// 手动调度不改脚本自动调度的日期
 	fmt.Println("================= Ads job start ==================")
 	defer func() {
@@ -61,7 +61,7 @@ func ReportAdsManual(day time.Time, pauseRule int64) {
 	}()
 	now := time.Now()
 	if pauseRule == 0 {
-		if err := adsDoSchedule(day.Format(vars.DateFormat)); err != nil {
+		if err := adsDoSchedule(day.Format(vars.DateFormat), accountId); err != nil {
 			fmt.Println("调度失败：", err)
 		}
 	} else if pauseRule == 99 {
@@ -77,11 +77,11 @@ func ReportAdsManual(day time.Time, pauseRule int64) {
 				break
 			}
 			d := jobDay.Format(vars.DateFormat)
-			if err = logic.NewAdsQueryLogic(d).AdsQuery(); err != nil {
+			if err = logic.NewAdsQueryLogic(d, accountId).AdsQuery(); err != nil {
 				log.Fatal(err)
 				return
 			}
-			if err = logic.NewAdsCollectLogic(d).AdsCollect(); err != nil {
+			if err = logic.NewAdsCollectLogic(d, accountId).AdsCollect(); err != nil {
 				log.Fatal(err)
 				return
 			}
@@ -96,11 +96,11 @@ func ReportAdsManual(day time.Time, pauseRule int64) {
 				break
 			}
 			d := day.Format(vars.DateFormat)
-			if err := logic.NewAdsQueryLogic(d).AdsQuery(); err != nil {
+			if err := logic.NewAdsQueryLogic(d, accountId).AdsQuery(); err != nil {
 				log.Fatal(err)
 				return
 			}
-			if err := logic.NewAdsCollectLogic(d).AdsCollect(); err != nil {
+			if err := logic.NewAdsCollectLogic(d, accountId).AdsCollect(); err != nil {
 				log.Fatal(err)
 				return
 			}
@@ -118,23 +118,23 @@ func ReportAdsManual(day time.Time, pauseRule int64) {
 	fmt.Println()
 }
 
-func adsDoSchedule(d string) (err error) {
-	if err = logic.NewAdsQueryLogic(d).AdsQuery(); err != nil {
+func adsDoSchedule(d string, accountId int64) (err error) {
+	if err = logic.NewAdsQueryLogic(d, accountId).AdsQuery(); err != nil {
 		log.Fatal(err)
 		return
 	}
-	if err = logic.NewAdsCollectLogic(d).AdsCollect(); err != nil {
+	if err = logic.NewAdsCollectLogic(d, accountId).AdsCollect(); err != nil {
 		log.Fatal(err)
 		return
 	}
 	return nil
 }
 
-func ReportAdsCollectManual(day time.Time, _ int64) {
+func ReportAdsCollectManual(day time.Time, _, accountId int64) {
 	defer func() {
 		_ = model.NewJob(vars.DBMysql).UpdateLastSchedule(vars.ApiModuleAdsCollect)
 	}()
-	if err := logic.NewAdsCollectLogic(day.Format(vars.DateFormat)).AdsCollect(); err != nil {
+	if err := logic.NewAdsCollectLogic(day.Format(vars.DateFormat), accountId).AdsCollect(); err != nil {
 		log.Fatal(err)
 	}
 	return

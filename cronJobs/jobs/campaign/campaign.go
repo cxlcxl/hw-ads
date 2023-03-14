@@ -49,7 +49,7 @@ func Campaign() {
 	}
 }
 
-func CampaignManual(day time.Time, pauseRule int64) {
+func CampaignManual(day time.Time, pauseRule, _ int64) {
 	fmt.Println()
 	fmt.Println()
 	fmt.Println("================= campaign job start ==================")

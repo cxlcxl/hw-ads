@@ -46,12 +46,14 @@ func (m *Token) GetAccessTokenList() (tokens []*Token, err error) {
 	return
 }
 
-func (m *Token) ReportAccessTokens(accountType int64) (tokens []*Token, err error) {
-	sql := fmt.Sprintf(
-		"select t0.* from %s t0 left join %s t1 on t0.account_id = t1.id where t1.account_type = ? and t1.state = 1",
-		m.TableName(),
-		NewAct(nil).TableName(),
-	)
-	err = m.Raw(sql, accountType).Find(&tokens).Error
+func (m *Token) ReportAccessTokens(accountType, actId int64) (tokens []*Token, err error) {
+	bs := "select t0.* from %s t0 left join %s t1 on t0.account_id = t1.id where t1.account_type = ? and t1.state = 1"
+	values := []interface{}{accountType}
+	if actId > 0 {
+		values = append(values, actId)
+		bs += " and t0.account_id = ?"
+	}
+	sql := fmt.Sprintf(bs, m.TableName(), NewAct(nil).TableName())
+	err = m.Raw(sql, values...).Find(&tokens).Error
 	return
 }

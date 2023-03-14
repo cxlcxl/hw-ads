@@ -92,7 +92,7 @@ func (h *Settings) CronSchedule(ctx *gin.Context, p interface{}) {
 			response.Fail(ctx, "调度日期参数格式错误")
 			return
 		}
-		go job(t, params.PauseRule)
+		go job(t, params.PauseRule, params.AccountId)
 	}
 	response.Success(ctx, nil)
 }

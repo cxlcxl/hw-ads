@@ -25,9 +25,10 @@ type AdsQueryLogic struct {
 	pageDoneChan chan struct{}
 	clientInfo   map[int64]*client
 	mu           sync.Mutex
+	actId        int64
 }
 
-func NewAdsQueryLogic(day string) *AdsQueryLogic {
+func NewAdsQueryLogic(day string, accountId int64) *AdsQueryLogic {
 	return &AdsQueryLogic{
 		tokenChan:    make(chan *queryParam),
 		doneChan:     make(chan struct{}),
@@ -39,11 +40,12 @@ func NewAdsQueryLogic(day string) *AdsQueryLogic {
 		pageSize:     vars.YmlConfig.GetInt64("MarketingApis.PageSize"),
 		url:          vars.YmlConfig.GetString("MarketingApis.Reports.AdsQuery"),
 		mu:           sync.Mutex{},
+		actId:        accountId,
 	}
 }
 
 func (l *AdsQueryLogic) AdsQuery() (err error) {
-	tokenList, err := model.NewToken(vars.DBMysql).ReportAccessTokens(vars.AccountTypeAds)
+	tokenList, err := model.NewToken(vars.DBMysql).ReportAccessTokens(vars.AccountTypeAds, l.actId)
 	if err != nil {
 		return err
 	}

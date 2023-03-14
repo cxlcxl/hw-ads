@@ -3,6 +3,8 @@ package logic
 import (
 	"bs.mobgi.cc/app/model"
 	"bs.mobgi.cc/app/vars"
+	"bs.mobgi.cc/library/hlog"
+	"github.com/sirupsen/logrus"
 	"time"
 )
 
@@ -10,14 +12,16 @@ type AdsCollectLogic struct {
 	statDay string
 	day     time.Time
 	appMap  map[string][]int64
+	actId   int64
 }
 
-func NewAdsCollectLogic(day string) *AdsCollectLogic {
+func NewAdsCollectLogic(day string, accountId int64) *AdsCollectLogic {
 	t, _ := time.Parse(vars.DateFormat, day)
 	return &AdsCollectLogic{
 		statDay: day,
 		day:     t,
 		appMap:  make(map[string][]int64),
+		actId:   accountId,
 	}
 }
 
@@ -25,11 +29,15 @@ func (l *AdsCollectLogic) AdsCollect() (err error) {
 	if err = l.getApps(); err != nil {
 		return err
 	}
-	sources, err := model.NewRAS(vars.DBMysql).CollectSources(l.statDay)
+	sources, err := model.NewRAS(vars.DBMysql).CollectSources(l.statDay, l.actId)
 	if err != nil {
 		return err
 	}
 	if len(sources) == 0 {
+		hlog.NewLog(logrus.WarnLevel, "jobs-ads-collect-request").Log(logrus.Fields{
+			"account_id": l.actId,
+			"stat_day":   l.statDay,
+		}, "没有请求到源数据")
 		return
 	}
 	collects := make([]*model.ReportAdsCollect, 0)

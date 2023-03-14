@@ -47,7 +47,7 @@ func main() {
 			return
 		}
 		fmt.Println(fmt.Sprintf("手动调度参数，模块：%s，日期：%s，规则：%d", moduleName, parse.Format("2006-01-02"), pauseRule))
-		job(parse, int64(pauseRule))
+		job(parse, int64(pauseRule), 0)
 	} else {
 		listener := make(chan string)
 		go startListener(listener)

@@ -25,6 +25,7 @@ type CountryQueryLogic struct {
 	doneChan     chan struct{}
 	pageDoneChan chan struct{}
 	pageLock     sync.RWMutex
+	actId        int64
 }
 
 func NewCountryQueryLogic(day string) *CountryQueryLogic {
@@ -47,7 +48,7 @@ func (l *CountryQueryLogic) CountryQuery() (err error) {
 	if err = l.getApps(); err != nil {
 		return err
 	}
-	tokenList, err := model.NewToken(vars.DBMysql).ReportAccessTokens(vars.AccountTypeMarket)
+	tokenList, err := model.NewToken(vars.DBMysql).ReportAccessTokens(vars.AccountTypeMarket, l.actId)
 	if err != nil {
 		return err
 	}

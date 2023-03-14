@@ -13,6 +13,7 @@ type VSettingsCronUpdate struct {
 type VSettingsCronSchedule struct {
 	ApiModule string `json:"api_module" binding:"required"`
 	PauseRule int64  `json:"pause_rule"`
+	AccountId int64  `json:"account_id"`
 	StatDay   string `json:"stat_day" binding:"required"`
 }
 

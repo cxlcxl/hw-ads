@@ -39,6 +39,6 @@ func RefreshToken() {
 	fmt.Println()
 }
 
-func RefreshTokenManual(_ time.Time, _ int64) {
+func RefreshTokenManual(_ time.Time, _, _ int64) {
 	RefreshToken()
 }

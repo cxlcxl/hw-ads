@@ -37,7 +37,10 @@ func NewAppQueryLogic() *AppQueryLogic {
 }
 
 func (l *AppQueryLogic) AppQuery() (err error) {
-	tokenList, err := model.NewToken(vars.DBMysql).ReportAccessTokens(vars.AccountTypeMarket)
+	// APP 模块不能单账户拉取数据
+	// APP 模块不能单账户拉取数据
+	// APP 模块不能单账户拉取数据
+	tokenList, err := model.NewToken(vars.DBMysql).ReportAccessTokens(vars.AccountTypeMarket, 0)
 	if err != nil {
 		return err
 	}
@@ -52,7 +55,7 @@ func (l *AppQueryLogic) AppQuery() (err error) {
 		l.pageRequests++
 		go l.queryPages(token)
 	}
-	// 正式调度前，清楚历史关联
+	// 正式调度前，清除历史关联
 	if err = model.NewAppAct(vars.DBMysql).FlushInfo(); err != nil {
 		return err
 	}

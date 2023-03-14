@@ -51,7 +51,7 @@ func (m *ReportAdsSource) BatchInsert(realizations []*ReportAdsSource) (err erro
 	return err
 }
 
-func (m *ReportAdsSource) CollectSources(day string) (realizations []*ReportAdsSource, err error) {
+func (m *ReportAdsSource) CollectSources(day string, actId int64) (realizations []*ReportAdsSource, err error) {
 	columns := []string{
 		"stat_day",
 		"app_id",
@@ -63,8 +63,11 @@ func (m *ReportAdsSource) CollectSources(day string) (realizations []*ReportAdsS
 		"sum(show_count) as show_count",
 		"sum(click_count) as click_count",
 	}
-	err = m.Table(m.TableName()).Where("stat_day = ?", day).Select(columns).
-		Group("stat_day,app_id,country").Find(&realizations).Error
+	query := m.Table(m.TableName()).Where("stat_day = ?", day)
+	if actId > 0 {
+		query = query.Where("account_id = ?", actId)
+	}
+	err = query.Select(columns).Group("stat_day,app_id,country").Find(&realizations).Error
 	return
 }
 
