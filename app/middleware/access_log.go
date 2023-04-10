@@ -1,13 +1,14 @@
 package middleware
 
 import (
-	"bs.mobgi.cc/app/vars"
-	"bs.mobgi.cc/library/hlog"
 	"bytes"
-	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 	"strings"
 	"time"
+
+	"bs.mobgi.cc/app/vars"
+	"bs.mobgi.cc/library/hlog"
+	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 type AccessLogWriter struct {

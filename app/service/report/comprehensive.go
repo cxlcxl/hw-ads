@@ -90,8 +90,8 @@ func formatComprehensiveData(dimensions []string, comprehensives []*model.Compre
 			ActivateCount:     report.ActivateCount,
 			AdRequests:        report.AdRequests,
 			MatchedAdRequests: report.MatchedAdRequests,
-			AdShowCount:       report.ShowCount,
-			AdClickCount:      report.ClickCount,
+			AdShowCount:       report.AdShowCount,
+			AdClickCount:      report.AdClickCount,
 			Earnings:          utils.Round(report.Earnings, 3),
 		}
 		if area, ok := areaCountryMap[report.Country]; ok {
